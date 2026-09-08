@@ -33,3 +33,6 @@ infra/data/
 # artefatos de simulacao HDL
 *.vcd
 *.vvp
+
+# config pessoal do Claude Code (nunca versionar: pode conter chaves)
+.claude/settings.local.json
