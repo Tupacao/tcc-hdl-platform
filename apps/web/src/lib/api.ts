@@ -4,7 +4,7 @@ import {
   type CompileRequest,
   type SimulationJob,
   type SimulationResult,
-} from '@hdl/shared';
+} from '@tplab/shared';
 import type { ZodType } from 'zod';
 
 /** Vazio em desenvolvimento: o proxy do Vite repassa /api para a API. */

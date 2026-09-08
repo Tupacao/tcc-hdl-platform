@@ -8,7 +8,7 @@ import {
   SimulationResultSchema,
   type JobStatus,
   type SimulationResult,
-} from '@hdl/shared';
+} from '@tplab/shared';
 import { simulationQueue } from './queue.js';
 
 const JobIdParamsSchema = z.object({ jobId: z.string().min(1) });

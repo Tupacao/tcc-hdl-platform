@@ -127,7 +127,7 @@ importers:
       '@fastify/rate-limit':
         specifier: ^10.3.0
         version: 10.3.0
-      '@hdl/shared':
+      '@tplab/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       bullmq:
@@ -164,15 +164,15 @@ importers:
 
   apps/web:
     dependencies:
-      '@hdl/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
       '@monaco-editor/react':
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.52.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@radix-ui/react-slot':
         specifier: ^1.2.3
         version: 1.3.3(@types/react@19.2.18)(react@19.2.8)
+      '@tplab/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Monorepo pnpm da plataforma web educacional para HDL (TCC).
+Monorepo pnpm do TPLab, plataforma web educacional para HDL (TCC).
 Requisitos e decisoes de stack: `docs/PROJECT_CONTEXT.md` — consulte antes de
 introduzir dependencias ou mudar arquitetura.
 
@@ -12,8 +12,8 @@ pnpm dev                 # web (5173) + api (3333)
 pnpm dev:worker          # worker da fila de simulacao
 pnpm typecheck           # tipos de todo o monorepo
 pnpm build
-pnpm --filter @hdl/api test
-pnpm sandbox:build       # imagem hdl-sandbox:latest
+pnpm --filter @tplab/api test
+pnpm sandbox:build       # imagem tplab-sandbox:latest
 ```
 
 ## Arquitetura

@@ -1,5 +1,5 @@
 # Imagem do sandbox de execucao HDL (RNF04).
-# Build: docker build -t hdl-sandbox:latest infra/sandbox
+# Build: docker build -t tplab-sandbox:latest infra/sandbox
 FROM alpine:3.20
 
 RUN apk add --no-cache iverilog \

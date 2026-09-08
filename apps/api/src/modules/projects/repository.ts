@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { CreateProject, Project, UpdateProject } from '@hdl/shared';
+import type { CreateProject, Project, UpdateProject } from '@tplab/shared';
 
 /**
  * Contrato de persistencia de projetos (RF07). A implementacao em memoria abaixo

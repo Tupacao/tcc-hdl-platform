@@ -1,8 +1,8 @@
 import { Queue } from 'bullmq';
-import type { CompileRequest, SimulationResult } from '@hdl/shared';
+import type { CompileRequest, SimulationResult } from '@tplab/shared';
 import { createRedisConnection } from '../../lib/redis.js';
 
-export const SIMULATION_QUEUE = 'hdl-simulation';
+export const SIMULATION_QUEUE = 'tplab-simulation';
 
 export type SimulationJobData = CompileRequest;
 export type SimulationJobResult = Omit<SimulationResult, 'jobId' | 'status'>;

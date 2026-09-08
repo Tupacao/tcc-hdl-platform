@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { CircuitBoard, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Diagnostic, HdlSources, SimulationResult } from '@hdl/shared';
+import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { runSimulation } from '@/lib/api';
@@ -63,7 +63,7 @@ export function Workspace() {
     <div className="flex h-full min-w-[1024px] flex-col">
       <header className="flex items-center gap-3 border-b px-4 py-2">
         <CircuitBoard aria-hidden className="size-5" />
-        <h1 className="text-sm font-semibold">HDL Platform</h1>
+        <h1 className="text-sm font-semibold">TPLab</h1>
         <span className="text-xs text-muted-foreground">Verilog</span>
 
         <div className="ml-auto flex items-center gap-2">

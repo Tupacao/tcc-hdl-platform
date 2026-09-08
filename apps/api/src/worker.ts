@@ -1,5 +1,5 @@
 import { Worker } from 'bullmq';
-import type { SimulationResult } from '@hdl/shared';
+import type { SimulationResult } from '@tplab/shared';
 import { createRedisConnection } from './lib/redis.js';
 import { env } from './config/env.js';
 import {

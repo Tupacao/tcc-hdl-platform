@@ -1,5 +1,5 @@
 import Editor, { type Monaco, type OnMount } from '@monaco-editor/react';
-import type { Diagnostic } from '@hdl/shared';
+import type { Diagnostic } from '@tplab/shared';
 import { useCallback, useEffect, useRef } from 'react';
 import type { editor } from 'monaco-editor';
 import { useTheme } from '@/hooks/use-theme';

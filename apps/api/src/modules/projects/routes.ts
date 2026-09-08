@@ -7,7 +7,7 @@ import {
   ProjectListSchema,
   ProjectSchema,
   UpdateProjectSchema,
-} from '@hdl/shared';
+} from '@tplab/shared';
 import { InMemoryProjectRepository, type ProjectRepository } from './repository.js';
 
 const notFound = {

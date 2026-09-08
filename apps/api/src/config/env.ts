@@ -10,7 +10,7 @@ const EnvSchema = z.object({
   DATABASE_URL: z.string().optional(),
 
   /** Imagem construida a partir de `infra/sandbox/Dockerfile` (iverilog + vvp). */
-  SANDBOX_IMAGE: z.string().default('hdl-sandbox:latest'),
+  SANDBOX_IMAGE: z.string().default('tplab-sandbox:latest'),
   /** Timeout duro do processo de simulacao (RNF05). */
   SANDBOX_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
   SANDBOX_MEMORY_MB: z.coerce.number().int().positive().default(128),

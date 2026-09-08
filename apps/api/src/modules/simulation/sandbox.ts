@@ -2,7 +2,7 @@ import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Docker from 'dockerode';
-import type { HdlSources, SimulationFailure } from '@hdl/shared';
+import type { HdlSources, SimulationFailure } from '@tplab/shared';
 import { env } from '../../config/env.js';
 
 const docker = new Docker();

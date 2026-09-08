@@ -2,7 +2,7 @@ import { createContext, useCallback, useEffect, useMemo, useState, type ReactNod
 
 export type Theme = 'light' | 'dark' | 'system';
 
-const STORAGE_KEY = 'hdl-theme';
+const STORAGE_KEY = 'tplab-theme';
 
 interface ThemeContextValue {
   theme: Theme;

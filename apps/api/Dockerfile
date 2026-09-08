@@ -14,7 +14,7 @@ FROM deps AS build
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/api apps/api
-RUN pnpm --filter @hdl/shared build && pnpm --filter @hdl/api build
+RUN pnpm --filter @tplab/shared build && pnpm --filter @tplab/api build
 
 FROM base AS runtime
 ENV NODE_ENV=production

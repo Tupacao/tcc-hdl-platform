@@ -1,25 +1,25 @@
 {
-  "name": "tcc-hdl-platform",
+  "name": "tplab",
   "version": "0.1.0",
   "private": true,
-  "description": "Plataforma web educacional para desenvolvimento e simulacao de circuitos digitais em HDL",
+  "description": "TPLab - plataforma web educacional para desenvolvimento e simulacao de circuitos digitais em HDL",
   "engines": {
     "node": ">=22"
   },
   "packageManager": "pnpm@12.3.4",
   "scripts": {
-    "dev": "pnpm --filter @hdl/shared build && pnpm --parallel --filter @hdl/shared --filter \"./apps/*\" dev",
-    "dev:web": "pnpm --filter @hdl/web dev",
-    "dev:api": "pnpm --filter @hdl/api dev",
-    "dev:worker": "pnpm --filter @hdl/api dev:worker",
-    "build": "pnpm --filter @hdl/shared build && pnpm --filter \"./apps/*\" build",
+    "dev": "pnpm --filter @tplab/shared build && pnpm --parallel --filter @tplab/shared --filter \"./apps/*\" dev",
+    "dev:web": "pnpm --filter @tplab/web dev",
+    "dev:api": "pnpm --filter @tplab/api dev",
+    "dev:worker": "pnpm --filter @tplab/api dev:worker",
+    "build": "pnpm --filter @tplab/shared build && pnpm --filter \"./apps/*\" build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
-    "sandbox:build": "docker build -t hdl-sandbox:latest infra/sandbox"
+    "sandbox:build": "docker build -t tplab-sandbox:latest infra/sandbox"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

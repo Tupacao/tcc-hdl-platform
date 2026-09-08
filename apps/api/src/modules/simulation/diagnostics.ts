@@ -1,4 +1,4 @@
-import type { Diagnostic } from '@hdl/shared';
+import type { Diagnostic } from '@tplab/shared';
 
 /**
  * Formatos emitidos pelo Icarus Verilog:

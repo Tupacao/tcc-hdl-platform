@@ -1,5 +1,5 @@
 {
-  "name": "@hdl/web",
+  "name": "@tplab/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "tsc -b"
   },
   "dependencies": {
-    "@hdl/shared": "workspace:*",
+    "@tplab/shared": "workspace:*",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",

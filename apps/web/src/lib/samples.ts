@@ -1,4 +1,4 @@
-import type { HdlSources } from '@hdl/shared';
+import type { HdlSources } from '@tplab/shared';
 
 /** Projeto de exemplo carregado no primeiro acesso (RF20). */
 export const SAMPLE_SOURCES: HdlSources = {

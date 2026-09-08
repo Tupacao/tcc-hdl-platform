@@ -1,4 +1,4 @@
-import type { Diagnostic, SimulationResult } from '@hdl/shared';
+import type { Diagnostic, SimulationResult } from '@tplab/shared';
 import { cn } from '@/lib/utils';
 
 interface ConsolePanelProps {
