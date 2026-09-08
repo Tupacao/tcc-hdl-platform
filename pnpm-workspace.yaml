@@ -1,0 +1,12 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+allowBuilds:
+  # esbuild precisa do postinstall para baixar o binario (Vite/tsx).
+  esbuild: true
+  # Aceleradores nativos opcionais: o fallback em JS atende o projeto.
+  cpu-features: false
+  msgpackr-extract: false
+  protobufjs: false
+  ssh2: false

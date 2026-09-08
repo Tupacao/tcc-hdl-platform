@@ -1,0 +1,28 @@
+{
+  "name": "tcc-hdl-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma web educacional para desenvolvimento e simulacao de circuitos digitais em HDL",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@12.3.4",
+  "scripts": {
+    "dev": "pnpm --filter @hdl/shared build && pnpm --parallel --filter @hdl/shared --filter \"./apps/*\" dev",
+    "dev:web": "pnpm --filter @hdl/web dev",
+    "dev:api": "pnpm --filter @hdl/api dev",
+    "dev:worker": "pnpm --filter @hdl/api dev:worker",
+    "build": "pnpm --filter @hdl/shared build && pnpm --filter \"./apps/*\" build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "sandbox:build": "docker build -t hdl-sandbox:latest infra/sandbox"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,7 @@
+* text=auto
+
+# Scripts executados dentro de containers Linux precisam de LF no working tree.
+*.sh text eol=lf
+Dockerfile text eol=lf
+
+pnpm-lock.yaml linguist-generated=true -diff
