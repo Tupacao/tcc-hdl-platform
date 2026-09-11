@@ -26,9 +26,33 @@ Requisitos pequenos tem duas issues; a feature inteira pode caber em uma branch
 quando as issues forem sequenciais e curtas.
 
 **`figma/WILL-BE-DONE.md`** lista os frames que o design precisa entregar e as
-decisoes visuais ainda em aberto. O arquivo de Figma esta em desenvolvimento;
-quando ficar pronto, substituir o placeholder pelo link dos frames. Requisitos
-puramente de infraestrutura (RNF04, RNF05, RNF07, RNF08) nao tem pasta `figma/`.
+decisoes visuais ainda em aberto. O arquivo de Figma existe em
+[HDL Lab — Plataforma Educacional HDL (MVP)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-)
+e ja cobre 11 paginas: "0 · Home" (landing), "1 · Fundamentos" (tokens,
+tipografia, glossario), "2 · Workspace" (tela principal em todos os estados
+de execucao, divisores e atalhos), "3 · Editor de código" (autocompletar,
+exemplos, abas e carregamento), "4 · Console e diagnósticos" (incluindo
+`429`/`400`/truncamento), "5 · Formas de onda", "6 · Projetos" (incluindo
+carga/erro/exportacao), "7 · Documentação e onboarding" (incluindo tour
+guiado completo), "8 · Contas e acesso" (login Google, compartilhamento e
+autorizacao) e "10 · Avulsos" (feedback, metricas, preferencias, navegador
+nao suportado). Ver `docs/FIGMA-PROTOTIPOS.md` para o mapa completo bloco a
+bloco e a lista de decisoes de design ja fechadas.
+
+Praticamente todo o design do MVP esta **feito**: RF01 a RF11, RF14 a RF20,
+RNF01, RNF02, RNF06 e RNF09 tem cobertura completa ou quase completa (o
+`WILL-BE-DONE.md` de cada um lista qualquer detalhe secundario que ainda
+falta). **RNF03 (responsividade) e o unico requisito sem nenhum frame** —
+nenhuma tela do arquivo existe fora de 1920px, o que trava o inicio de
+RF09-I01. RF12/RF13/RF21 (editor visual, pagina "9 · Editor visual") tem o
+essencial desenhado mas ainda faltam estados de interacao secundarios
+(hover/selecionado/arrastando de blocos, controles do canvas) — so relevante
+se a Fase 11 entrar no cronograma.
+
+Requisitos puramente de infraestrutura (RNF04, RNF07, RNF08) nao tem pasta
+`figma/`. RNF05 tambem nao tem, mas o arquivo publicado acabou desenhando dois
+frames marcados "RNF05" (timeout de simulacao e limites em Preferencias) — ver
+a nota em `docs/FIGMA-PROTOTIPOS.md`.
 
 Tamanhos usados nas issues: **P** ~0,5 dia, **M** ~1 dia, **G** ~2 dias.
 
