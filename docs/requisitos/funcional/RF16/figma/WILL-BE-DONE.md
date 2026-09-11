@@ -1,26 +1,26 @@
 # Design (Figma) - RF16
 
-**Status: will be done.** O arquivo de Figma ainda esta em desenvolvimento.
+**Status: feito.** Arquivo:
+[HDL Lab — Plataforma Educacional HDL (MVP)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-),
+pagina "7 · Documentação e onboarding".
 
-Frames necessarios:
+- [7.4 · Tutorial guiado de primeiro acesso (RF16)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=67-2) -
+  4 passos sobre o workspace real, com Pular/Anterior/Proximo.
+- [7.7 · Anatomia do tutorial guiado (RF16)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=110-2)
+  fecha as medidas e decisoes que faltavam:
+  - **Balao, peca por peca**: 376px de largura fixa (nunca adaptavel — um
+    balao que muda de tamanho a cada passo obriga o olho a reencontrar os
+    botoes 4 vezes), seta de 18×11px, padding 20/22/18/22, indicador de
+    progresso com o ponto ativo virando barra de 18px, e "Pular" como texto
+    simples, nunca botao — abandonar o tour nao deve ter o mesmo peso visual
+    de continuar nele.
+  - **Veu nos dois temas** — **decisao fechada**: o veu e **sempre preto**,
+    nunca branco, com opacidade menor no claro (50%) que no escuro (68%).
+    Veu branco sobre tema claro lava a tela e apaga o realce junto; preto
+    funciona nos dois porque o conteudo por baixo, no tema claro, ja e claro
+    e escurece com menos opacidade.
+  - **Como voltar depois de pular**: item "Refazer o tour" num menu de ajuda
+    junto de "Documentação" e "Atalhos de teclado".
 
-- Um frame por passo do tour, sobre o workspace real: editor, abas de arquivo,
-  botao executar, console, formas de onda, e o passo final com o convite a
-  experimentar.
-- Anatomia do balao: titulo, texto, contador de passos, acoes anterior/proximo e
-  "pular tour".
-- Tratamento do fundo: escurecimento e recorte em volta do elemento destacado,
-  nos dois temas.
-- Acao para reabrir o tour no cabecalho ou no menu de ajuda.
-- Passo final com o caminho para a documentacao completa (RF11).
-
-Restricoes que o design precisa respeitar:
-
-- o balao nao pode cobrir o elemento que esta explicando;
-- o contraste do texto sobre o fundo escurecido precisa atender AA nos dois temas
-  (RNF09);
-- em 1024px de largura (RNF03) o balao ainda precisa caber ao lado do elemento
-  destacado - e a largura mais apertada e a que o design deve validar primeiro.
-
-Quando o arquivo estiver pronto, substituir este documento pelo link dos frames e
-pelo texto final de cada passo.
+Restricoes respeitadas: o balao nao cobre o elemento que explica; o
+comportamento em 1024px ainda depende de RNF03, que nao tem frame.

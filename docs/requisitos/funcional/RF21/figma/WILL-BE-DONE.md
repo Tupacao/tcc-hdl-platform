@@ -1,24 +1,24 @@
 # Design (Figma) - RF21
 
-**Status: will be done.** O arquivo de Figma ainda esta em desenvolvimento.
+**Status: parcial (avancado).** Arquivo:
+[HDL Lab — Plataforma Educacional HDL (MVP)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-),
+pagina "9 · Editor visual".
 
-Estende o design de RF12. Frames necessarios:
+Estende RF12/RF13. [9.1 · Editor visual de circuitos 1920 (RF12 · RF13 · RF21)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=60-2)
+inclui o bloco "Flip-flop D" montado no canvas junto com as portas
+combinacionais, ja com fios de dado e conexoes distintas.
 
-- Simbolo do flip-flop tipo D: terminais de dado, clock (com o triangulo de borda
-  sensivel, convencao que o aluno reconhece do quadro), reset e saida. Estados de
-  repouso, selecionado e com erro.
-- Blocos de clock e de reset como fontes, visualmente distintos de uma entrada
-  comum.
-- Fio de clock: como se distingue dos fios de dado sem depender apenas de cor
-  (RNF09).
-- Um contador de 4 bits montado no canvas - o frame de referencia da feature.
-- Marcacao de erro especifica: realimentacao combinacional invalida versus
-  realimentacao valida atraves de flip-flop.
-- Paleta com a nova secao de blocos sequenciais.
+**Falta confirmar/detalhar:**
 
-Decisao que o design precisa fixar: o flip-flop e um bloco de 1 bit, exigindo
-quatro deles para um contador de 4 bits, ou um registrador de largura
-configuravel? A primeira opcao ensina mais e polui mais o canvas; a segunda e
-pratica e esconde o conceito. A escolha muda RF21-I01 e RF21-I02.
+- Terminais nomeados de clock (com o triangulo de borda sensivel) e reset
+  isolados dos terminais de dado.
+- Fio de clock distinguivel dos fios de dado sem depender so de cor (RNF09).
+- Um contador de 4 bits especificamente montado como frame de referencia (o
+  frame mostra o flip-flop D em uso, mas nao foi confirmado um contador
+  completo de 4 bits).
+- Marcacao de erro especifica para realimentacao combinacional invalida vs.
+  valida atraves de flip-flop.
+- Decisao sobre flip-flop de 1 bit vs. registrador de largura configuravel.
 
-Quando o arquivo estiver pronto, substituir este documento pelo link dos frames.
+Quando esses detalhes forem confirmados, atualizar este documento com os
+nomes exatos dos nos internos.

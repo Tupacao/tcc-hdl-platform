@@ -1,28 +1,31 @@
 # Design (Figma) - RNF09
 
-**Status: will be done.** O arquivo de Figma ainda esta em desenvolvimento.
+**Status: feito.** Arquivo:
+[HDL Lab — Plataforma Educacional HDL (MVP)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-),
+pagina "1 · Fundamentos".
 
-RNF09 nao tem tela propria: e uma restricao sobre todas as cores da plataforma.
-O que o Figma precisa entregar:
+RNF09 nao tem tela propria: e uma restricao sobre todas as cores da
+plataforma. O que o Figma entrega:
 
-- **Tabela de tokens com contraste verificado**: cada token de
-  `apps/web/src/index.css` com valor no tema claro e no escuro, e a razao de
-  contraste calculada contra os fundos em que e usado. Sem isso, cada issue de
-  implementacao redescobre o problema.
-- **Pares criticos** explicitamente verificados:
-  `--muted-foreground` sobre `--background` e sobre `--muted`;
-  `--destructive` e `--warning` sobre `--background` e sobre `--card`;
-  `--border` e `--input` no tema escuro (hoje branco com 12% e 18% de opacidade);
-  `--ring` como indicador de foco sobre cada fundo.
-- **Paleta do editor**: cores de token de sintaxe, caso os temas `vs` e `vs-dark`
-  do Monaco nao passem na verificacao.
-- **Paleta das formas de onda**: nivel logico, barramento, `x`, `z`, grade e
-  cursor - todas com contraste verificado nos dois temas.
-- **Canais redundantes**: como severidade de diagnostico (RF05) e nivel logico
-  (RF06) se distinguem sem depender de cor - forma, icone, tracejado, rotulo.
+- [1.1 · Tokens de cor e contraste verificado](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=34-2) -
+  tabela de tokens com valor no tema claro e no escuro, e a razao de
+  contraste calculada contra os fundos em que cada um e usado, incluindo os
+  pares criticos (`muted-foreground`, `destructive`, `warning`,
+  `border`/`input` no escuro, `ring` de foco).
+- [1.2 · Formas de onda — tokens, geometria e anatomia](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=36-2) -
+  paleta das formas de onda com contraste verificado, e como `x`/`z` se
+  distinguem sem depender de cor.
+- [1.4 · Destaque de sintaxe Verilog (RF02)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=89-2) -
+  paleta do editor.
 
-A regra para o design: um token entregue sem verificacao de contraste vira
-retrabalho na implementacao. A verificacao faz parte da entrega.
+Os valores e as razoes calculadas estao consolidados em
+`docs/design-system-fundamentos.md`.
 
-Quando o arquivo estiver pronto, substituir este documento pelo link e pela
-tabela de contraste.
+**Canal redundante de severidade (RF05) confirmado em uso real**, nao so na
+tabela de tokens: [4.1 · Console e diagnósticos — estados](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=78-2)
+usa badge ambar + texto para aviso (nunca so cor), e
+[2.3 · erro de compilação](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=48-2)
+usa icone + `arquivo:linha:coluna` + mensagem, nunca cor isolada. A aplicacao
+da paleta nos dois temas tambem foi confirmada em telas de produto inteiras
+(Workspace, Meus projetos, Documentacao, Contas), nao so na tabela de
+Fundamentos.

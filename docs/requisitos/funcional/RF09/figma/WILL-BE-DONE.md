@@ -1,29 +1,37 @@
 # Design (Figma) - RF09
 
-**Status: will be done.** O arquivo de Figma ainda esta em desenvolvimento.
+**Status: feito, exceto responsividade.** Arquivo:
+[HDL Lab — Plataforma Educacional HDL (MVP)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-),
+pagina "2 · Workspace".
 
 RF09 e a tela principal da plataforma: o frame mestre do qual os demais
-requisitos sao recortes. Frames necessarios:
+requisitos sao recortes.
 
-- Workspace completo, tema claro e tema escuro, em 1024, 1366 e 1920 px de
-  largura.
-- Cabecalho: identidade, projeto aberto e indicador de nao salvo (RF07-I03),
-  acao de executar em cada estado (RF04-I03), alternador de tema, acesso a
-  documentacao (RF11) e a lista de projetos (RF07).
-- Barra de estado no rodape: desfecho da ultima execucao, duracao, contagem de
-  erros e avisos.
-- Divisores: repouso, hover, arraste e foco por teclado.
-- Abas de arquivo: ativa, inativa, com erro, com alteracao nao salva.
-- Painel de atalhos de teclado (dialogo).
-- Layout logo apos o primeiro acesso, antes de qualquer execucao.
+- [2.1 · Workspace 1920 · escuro · execução concluída](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=41-2)
+  e
+  [2.2 · claro](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=47-2) -
+  layout completo com cabecalho, abas, editor, ondas, console e barra de
+  estado.
+- [2.3](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=48-2),
+  [2.5](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=55-2),
+  [2.6](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=56-2),
+  [2.7](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=56-13) e
+  [2.8](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=84-2) -
+  variacoes da mesma tela mestre (erro de compilacao, primeiro acesso,
+  carregamento inicial, servidor indisponivel, timeout). Ver o
+  `WILL-BE-DONE.md` de cada requisito.
+- [2.9 · Divisores de painel e atalhos (RF09 · RNF01)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=106-67)
+  fecha os dois itens que faltavam:
+  - **Divisor de painel**, quatro estados: repouso (linha de 1px em
+    `--border`, alca so aparece no hover), hover (alca de 8×42px, cursor
+    `col-resize`), arraste (linha laranja com medida ao vivo dos dois
+    lados), foco por teclado (anel deslocado + instrucao "← → ajustar"). O
+    alvo de 40px do sistema nao se aplica ao divisor — e uma faixa continua
+    de altura inteira, ja facil de acertar no eixo que importa.
+  - **Dialogo de atalhos de teclado**, acionado por `?` de qualquer lugar:
+    Executar (`⌘⏎`), Salvar (`⌘S`), Comentar a linha (`⌘/`), Ir ao proximo
+    erro (`F8`), Focar o proximo painel (`⌃⇥`), Abrir os atalhos (`?`). Sai
+    do rodape do editor, onde hoje e uma dica em 10px que ninguem le.
 
-Decisoes que o design precisa fixar:
-
-- proporcao padrao dos tres paineis e limites minimos de cada um;
-- altura do cabecalho e da barra de estado (hoje o codigo usa
-  `h-[calc(100%-1.75rem)]`, acoplado a uma altura fixa que o design deve
-  confirmar ou substituir);
-- onde a documentacao (RF11) e a lista de projetos (RF07) entram sem quebrar a
-  promessa de interface unica.
-
-Quando o arquivo estiver pronto, substituir este documento pelo link dos frames.
+**Falta apenas:** o workspace em 1024 e 1366px de largura (RNF03, que ainda
+nao tem nenhum frame em nenhuma pagina do arquivo).

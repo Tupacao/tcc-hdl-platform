@@ -1,20 +1,20 @@
 # Design (Figma) - RF19
 
-**Status: will be done.** O arquivo de Figma ainda esta em desenvolvimento.
+**Status: feito.** Arquivo:
+[HDL Lab — Plataforma Educacional HDL (MVP)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-).
 
-A coleta em si e invisivel; o que precisa de design e o aviso ao usuario. Frames
-necessarios:
+- [10.1 · Feedback e métricas anônimas (RF17 · RF19)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=69-2)
+  (pagina "10 · Avulsos") - `BannerConsentimento` "Ajuda a validar este
+  trabalho?", com a lista explicita "O que e enviado" (numero de execucoes e
+  se deram erro, categoria do erro do compilador) e "O que NAO e enviado" (o
+  codigo do circuito; nome/e-mail/identificador), rodape "Nao, obrigado" /
+  "Pode registrar". Decisao de design fechada: o aviso aparece uma vez, **no
+  fim da primeira execucao bem-sucedida** — nao na chegada, quando ainda nao
+  ha nada para consentir. Recusar nao degrada nada.
+- [10.3 · Preferências (RF10 · RF19 · RNF05)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=86-2) -
+  secao PRIVACIDADE com o interruptor "Enviar metricas anonimas de uso" e o
+  link "Ver exatamente o que e enviado" — cobre revogar a qualquer momento
+  depois que o aviso inicial foi dispensado.
 
-- Aviso de coleta de metricas: onde aparece, quando aparece e como sai da frente.
-  Precisa informar sem virar o banner de cookies que todo mundo fecha sem ler.
-- Detalhe do que e coletado - a lista explicita de eventos e campos, escrita para
-  o usuario, nao para o desenvolvedor.
-- Controle para recusar ou revogar, e onde ele fica depois que o aviso e
-  dispensado (menu de ajuda ou preferencias).
-- Estado "coleta desativada", confirmando a escolha.
-
-Restricao de conteudo: o texto precisa ser honesto e curto. Dizer "coletamos
-dados de uso para melhorar a plataforma" nao e suficiente para um trabalho
-academico com usuarios reais - a lista concreta precisa estar a um clique.
-
-Quando o arquivo estiver pronto, substituir este documento pelo link dos frames.
+Restricao de conteudo respeitada: a lista concreta do que e coletado fica a
+um clique, tanto no banner de consentimento quanto nas preferencias.

@@ -1,25 +1,24 @@
 # Design (Figma) - RF05
 
-**Status: will be done.** O arquivo de Figma ainda esta em desenvolvimento.
+**Status: feito.** Arquivo:
+[HDL Lab — Plataforma Educacional HDL (MVP)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-).
 
-RF05 e majoritariamente visual e precisa de frames proprios:
+- [2.3 · Workspace 1920 · escuro · erro de compilação (RF05)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=48-2)
+  (pagina "2 · Workspace") - item de erro com `arquivo:linha:coluna`,
+  tooltip do erro, acao "Ir para a linha".
+- [4.1 · Console e diagnósticos — estados](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=78-2) -
+  console vazio, saida longa, e "Apenas avisos — a execução foi bem" (badge
+  ambar + confirmacao explicita de que rodou ate o fim).
+- [7.2 · Documentação · Erros mais comuns (RF05 × RF11)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=65-2) -
+  liga o erro a explicacao na documentacao.
+- [4.2 · Limites, rejeições e diagnóstico sem linha (RF03 · RF04 · RF05)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=107-2)
+  fecha o ultimo item: **diagnostico sem linha**, lado a lado com um
+  diagnostico normal para comparar — "somador4.v:19:35" (com linha, clicavel,
+  "Ir para a linha →") vs. "projeto · Nenhum modulo de topo encontrado nos
+  arquivos · sem posicao no codigo" (sem cursor de clique, nao acende no
+  hover, nao alcancavel por Tab). Alguns diagnosticos sao do projeto inteiro,
+  nao de um ponto do arquivo — deixa-los clicaveis levaria a linha 1 sem
+  explicacao.
 
-- Item de diagnostico no console: erro, aviso e informativo, nos dois temas.
-  Cada um com icone, arquivo:linha, mensagem e estado de foco visivel.
-- Item de diagnostico sem linha (nao clicavel) - precisa parecer diferente de um
-  item desabilitado por erro.
-- Console com lista longa: agrupamento por arquivo e contagem no cabecalho
-  ("3 erros, 1 aviso").
-- Marcacao dentro do editor: sublinhado, glyph na margem e tooltip.
-- Bloco de explicacao amigavel (RF05-I03): como a explicacao em portugues convive
-  com a mensagem original do `iverilog` sem esconde-la.
-- Console vazio: antes da primeira execucao e depois de uma execucao sem erros.
-
-Restricoes de acessibilidade que o design precisa respeitar (RNF09):
-
-- severidade nunca comunicada apenas por cor;
-- contraste AA para `--destructive` e `--warning` sobre `--background` nos dois
-  temas;
-- foco visivel em todos os itens navegaveis por teclado.
-
-Quando o arquivo estiver pronto, substituir este documento pelo link dos frames.
+Restricoes de acessibilidade confirmadas em uso (RNF09): severidade nunca
+comunicada apenas por cor, contraste AA nos dois temas.

@@ -1,6 +1,12 @@
 # Design (Figma) - RNF03
 
-**Status: will be done.** O arquivo de Figma ainda esta em desenvolvimento.
+**Status: pendente.** O arquivo de Figma existe em
+[HDL Lab — Plataforma Educacional HDL (MVP)](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-)
+e ja cobre 11 paginas (Home, Fundamentos, Workspace, Editor, Console, Formas
+de onda, Projetos, Documentacao, Contas, Editor visual e Avulsos) — mas toda
+tela de produto existe apenas em 1920px. Nenhum dos tres breakpoints alvo
+(1024/1366/1920) foi desenhado ainda; RNF03 e, hoje, o unico dos blocos de
+`docs/FIGMA-PROTOTIPOS.md` sem nenhuma cobertura.
 
 Frames necessarios:
 
@@ -16,5 +22,5 @@ Frames necessarios:
 - Comportamento em tela muito larga: onde o conteudo para de crescer, sobretudo
   na documentacao de RF11, cuja linha de leitura nao deve acompanhar 1920px.
 
-Quando o arquivo estiver pronto, substituir este documento pelo link dos frames e
-pela tabela de larguras minimas por painel.
+Quando esses frames existirem, atualizar este documento com o link e a tabela
+de larguras minimas por painel.
