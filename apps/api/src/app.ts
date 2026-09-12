@@ -10,10 +10,27 @@ import {
   hasZodFastifySchemaValidationErrors,
   jsonSchemaTransform,
 } from 'fastify-type-provider-zod';
+import { projectRoutes } from './application/projects/controller/project.controller.js';
+import { InMemoryProjectRepository } from './application/projects/repository/in-memory-project.repository.js';
+import { PrismaProjectRepository } from './application/projects/repository/prisma-project.repository.js';
+import { DefaultProjectService } from './application/projects/service/project.service.js';
 import { env } from './config/env.js';
+import type { ProjectService } from './domain/projects/services/project.service.js';
+import { getPrismaClient } from './infra/prisma/client.js';
 import { healthRoutes } from './modules/health/routes.js';
-import { projectRoutes } from './modules/projects/routes.js';
 import { simulationRoutes } from './modules/simulation/routes.js';
+
+/**
+ * Com `DATABASE_URL`, persiste em Postgres via Prisma; sem ela, sobe em memoria
+ * (dev local sem banco) com aviso — `env.ts` ja exige a variavel em producao.
+ */
+function createProjectService(): ProjectService {
+  if (env.DATABASE_URL) {
+    return new DefaultProjectService(new PrismaProjectRepository(getPrismaClient()));
+  }
+  console.warn('DATABASE_URL nao definida: projetos serao persistidos em memoria (RF07).');
+  return new DefaultProjectService(new InMemoryProjectRepository());
+}
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -66,7 +83,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.register(healthRoutes);
-  await app.register(projectRoutes, { prefix: '/api' });
+  await app.register(projectRoutes, { prefix: '/api', service: createProjectService() });
   await app.register(simulationRoutes, { prefix: '/api' });
 
   return app;

@@ -1,19 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { CreateProject, Project, UpdateProject } from '@tplab/shared';
+import type { ProjectRepository } from '../../../domain/projects/repositories/project.repository.js';
 
-/**
- * Contrato de persistencia de projetos (RF07). A implementacao em memoria abaixo
- * atende o desenvolvimento local; a versao com Prisma/PostgreSQL entra depois sem
- * mudar as rotas.
- */
-export interface ProjectRepository {
-  list(): Promise<Project[]>;
-  findById(id: string): Promise<Project | null>;
-  create(input: CreateProject): Promise<Project>;
-  update(id: string, input: UpdateProject): Promise<Project | null>;
-  remove(id: string): Promise<boolean>;
-}
-
+/** Implementacao em memoria — desenvolvimento local e testes, sem Postgres. */
 export class InMemoryProjectRepository implements ProjectRepository {
   readonly #projects = new Map<string, Project>();
 

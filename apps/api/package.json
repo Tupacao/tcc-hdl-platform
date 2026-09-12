@@ -11,7 +11,10 @@
     "start": "node dist/server.js",
     "start:worker": "node dist/worker.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --import tsx --test \"src/**/*.test.ts\""
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
@@ -19,6 +22,7 @@
     "@fastify/rate-limit": "^10.3.0",
     "@fastify/swagger": "^9.8.1",
     "@fastify/swagger-ui": "^6.1.1",
+    "@prisma/client": "^6.19.3",
     "@tplab/shared": "workspace:*",
     "bullmq": "^5.58.0",
     "dockerode": "^4.0.7",
@@ -30,6 +34,7 @@
   "devDependencies": {
     "@types/dockerode": "^3.3.44",
     "@types/node": "^22.15.0",
+    "prisma": "^6.19.3",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }
