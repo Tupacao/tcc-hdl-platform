@@ -58,6 +58,9 @@ jobs:
       - name: Build do @tplab/shared
         run: pnpm --filter @tplab/shared build
 
+      - name: Gerar client do Prisma
+        run: pnpm --filter @tplab/api exec prisma generate
+
       - name: Aplicar migracoes do Prisma
         run: pnpm --filter @tplab/api exec prisma migrate deploy
 
