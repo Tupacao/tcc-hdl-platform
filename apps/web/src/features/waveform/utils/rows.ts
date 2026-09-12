@@ -18,3 +18,12 @@ export function selectDisplayRows(signals: WaveSignal[]): WaveSignal[] {
   }
   return rows;
 }
+
+/**
+ * Identidade estavel de um sinal entre execucoes (RF06-I03): o id do VCD nao e
+ * garantido estavel de uma compilacao para outra, mas o par escopo+nome e. E o
+ * que decide se a selecao de sinais e o zoom sobrevivem a uma nova simulacao.
+ */
+export function getSignalKey(signal: WaveSignal): string {
+  return signal.scope ? `${signal.scope}.${signal.name}` : signal.name;
+}

@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Feedback ao usuario |
-| Status | Em andamento — I01 (parser) e I02 (renderizacao em canvas) concluidos; I03 (zoom/deslocamento/cursor) e I04 (desempenho/acessibilidade) pendentes |
+| Status | Em andamento — I01 (parser), I02 (renderizacao em canvas) e I03 (zoom/deslocamento/cursor) concluidos; I04 (desempenho/acessibilidade) pendente |
 | Requisitos relacionados | RF04, RF09, RF10, RNF01, RNF03, RNF07, RNF09 |
 
 ## 1. Enunciado
@@ -71,13 +71,14 @@ adotada aqui e parser proprio + canvas.
 - `apps/api/src/modules/simulation/sandbox.ts` le o primeiro `.vcd` do workdir em
   `readVcd`, com teto de `MAX_VCD_BYTES`.
 - `apps/web/src/features/waveform/` tem o parser (`utils/vcd-parser.ts`, RF06-I01,
-  PR #5) e a renderizacao em canvas (`utils/render.ts` +
-  `components/waveform-canvas.tsx`, RF06-I02, PR #6), com geometria e cores
-  tiradas do Figma (frame 1.2). `apps/web/src/features/workspace/waveform-panel.tsx`
-  compoe os dois — nao e mais o placeholder que so imprimia o `.vcd` cru.
-- **Falta**: zoom, deslocamento e selecao de sinais (I03); cursor de leitura de
-  valores (I03/I04); comportamento com arquivos proximos do teto de tamanho e
-  leitura textual completa para acessibilidade (I04).
+  PR #5), a renderizacao em canvas (`utils/render.ts` +
+  `components/waveform-canvas.tsx`, RF06-I02, PR #6) e a interacao (RF06-I03):
+  `hooks/use-viewport.ts` (zoom/deslocamento), `components/signal-list.tsx`
+  (selecao de sinais) e `components/cursor-readout.tsx` (leitura de valores no
+  cursor). `apps/web/src/features/workspace/waveform-panel.tsx` compoe tudo —
+  nao e mais o placeholder que so imprimia o `.vcd` cru.
+- **Falta**: comportamento com arquivos proximos do teto de tamanho e leitura
+  textual completa para acessibilidade de arquivos grandes (I04).
 
 ## 6. Escopo
 
@@ -104,11 +105,10 @@ adotada aqui e parser proprio + canvas.
 - [x] Sinais de mais de 1 bit aparecem como barramento, com o valor escrito
       dentro do segmento quando ha espaco.
 - [x] Valores `x` e `z` sao visualmente distintos de `0` e `1`.
-- [ ] Zoom e deslocamento funcionam por mouse e por teclado. _(RF06-I03)_
-- [ ] Um cursor de tempo mostra, em texto, o valor de cada sinal selecionado
-      naquele instante. _(RF06-I03/I04 — e o que vai destravar a leitura de
-      barramentos largos, ex. um contador de 32 bits, sem espaco pro valor por
-      extenso no segmento)_
+- [x] Zoom e deslocamento funcionam por mouse e por teclado.
+- [x] Um cursor de tempo mostra, em texto, o valor de cada sinal selecionado
+      naquele instante — inclusive barramentos largos (ex. um contador de 32
+      bits) sem espaco pro valor por extenso no segmento.
 - [ ] Um VCD proximo do teto de tamanho renderiza sem travar a interface. _(RF06-I04)_
 - [x] O painel respeita o tema claro/escuro e mantem contraste AA.
 
@@ -118,7 +118,7 @@ adotada aqui e parser proprio + canvas.
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-parser-vcd.md) | Parser de VCD e modelo de sinais | `feat-RF06-01-parser-vcd-front` | M | Concluido (PR #5) |
 | [issue-02](issue-02-renderizacao-canvas.md) | Renderizacao das formas de onda em canvas | `feat-RF06-02-renderizacao-canvas-front` | G | Concluido (PR #6) |
-| [issue-03](issue-03-interacao-zoom-cursor.md) | Zoom, deslocamento, selecao de sinais e cursor de tempo | `feat-RF06-03-interacao-zoom-cursor-front` | G | Pendente |
+| [issue-03](issue-03-interacao-zoom-cursor.md) | Zoom, deslocamento, selecao de sinais e cursor de tempo | `feat-RF06-03-interacao-zoom-cursor-front` | G | Concluido |
 | [issue-04](issue-04-desempenho-acessibilidade.md) | Desempenho com arquivos grandes e acessibilidade | `feat-RF06-04-desempenho-acessibilidade-front` | M | Pendente |
 
 ## 9. Dependencias

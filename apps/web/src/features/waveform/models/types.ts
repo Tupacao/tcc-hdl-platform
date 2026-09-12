@@ -42,6 +42,12 @@ export interface Viewport {
   pixelsPerTime: number;
 }
 
+/** O intervalo de tempo do viewport, sem `pixelsPerTime` — o que `useViewport` (RF06-I03) manipula. */
+export interface ViewportRange {
+  startTime: number;
+  endTime: number;
+}
+
 /**
  * Cores lidas uma vez por mudanca de tema, via getComputedStyle dos tokens dedicados de
  * RF06 (`docs/design-system-fundamentos.md` secao 3 — geometria e anatomia vem do Figma,
@@ -58,6 +64,8 @@ export interface WaveformColors {
   waveZ: string;
   /** --wave-grid: grade vertical de tempo. */
   waveGrid: string;
+  /** --wave-cursor: linha do cursor de tempo (RF06-I03). */
+  waveCursor: string;
   /** --wave-ruler-foreground: texto da regua e dos rotulos. */
   waveRulerForeground: string;
   /** --foreground: usado so para o texto de um barramento parcialmente indefinido, que
