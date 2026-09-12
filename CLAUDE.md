@@ -134,10 +134,13 @@ Tudo abaixo e escopado a este repositorio — nada foi instalado globalmente.
   as instrucoes e os `references/*.md` funcionam normalmente.
 - **MCP** `chrome-devtools` em `.mcp.json` (versionado, sem segredo): inspeciona o
   app em `localhost:5173`, le console, tira screenshots e mede performance.
-- **MCP** `github` em `.mcp.json` (servidor remoto oficial, `api.githubcopilot.com`,
-  autenticacao via OAuth na primeira conexao — sem segredo no arquivo): consulta o
-  repositorio `https://github.com/Tupacao/tcc-hdl-platform` (branches, PRs, issues,
-  status de CI) sem depender do `gh` CLI.
+- **MCP** `github` em `.mcp.json` (`@modelcontextprotocol/server-github` via `npx`):
+  consulta e opera o repositorio `https://github.com/Tupacao/tcc-hdl-platform`
+  (branches, PRs, labels, reviewers, issues, status de CI) sem depender do `gh`
+  CLI. O servidor remoto oficial (`api.githubcopilot.com`) nao autentica neste
+  ambiente (nao suporta dynamic client registration), entao usamos este servidor
+  local com PAT. O token fica em `GITHUB_PERSONAL_ACCESS_TOKEN` no ambiente do
+  shell (nunca no `.mcp.json`, que so referencia `${GITHUB_PERSONAL_ACCESS_TOKEN}`).
 - **MCP** `context7` (documentacao atualizada das libs — o stack usa React 19,
   Tailwind v4, Zod 4, Fastify 5) fica em escopo `local`, fora do repositorio,
   porque carrega uma API key. `.mcp.json` nao expande variavel vinda de

@@ -90,3 +90,10 @@ correcao de codigo, nao correcao funcional.
   `refac:`, `style:`, `prettier:`) — ver `docs/ARCHITECTURE.md#3-git-branches-e-commits`.
 - Abrir PR contra `main`; CI (`ci-front.yml` ou `ci-back.yml`, conforme o lado)
   precisa estar verde antes do merge.
+- Todo PR sai com:
+  1. Exatamente uma label de tipo: `feature` (branch `feat-*`), `fix` (branch
+     `fix-*`) ou `documentation` (mudanca so em `docs/*`/`CLAUDE.md`, sem tocar
+     `apps/*`).
+  2. `Tupacao` (dono do repo) adicionado como reviewer.
+- Nunca fazer merge direto — mesmo com CI verde, o merge fica para o reviewer
+  aprovar e mesclar pelo GitHub.
