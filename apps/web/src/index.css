@@ -3,32 +3,39 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Tokens de tema (RF10 claro/escuro). Os pares fundo/texto seguem o preset
- * "slate" do shadcn/ui, cujo contraste atende o nivel AA do WCAG (RNF09).
+ * Tokens de tema (RF10 claro/escuro). Valores tirados de
+ * docs/design-system-fundamentos.md secao 7 ("Bloco CSS resultante"), a
+ * consolidacao do Figma (pagina "1 - Fundamentos") ja com contraste calculado
+ * (RNF09) — identidade laranja/preto/branco, nao o preset "slate" generico do
+ * shadcn/ui que estava aqui antes. Esse documento e a fonte da verdade: se este
+ * arquivo divergir dele, o documento prevalece e o CSS e ajustado, nao o
+ * contrario.
  */
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.446 0.03 256.802);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --success: oklch(0.52 0.13 155);
-  --warning: oklch(0.62 0.14 75);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --background: #ffffff;
+  --foreground: #0b0b0e;
+  --card: #ffffff;
+  --card-foreground: #0b0b0e;
+  --popover: #ffffff;
+  --popover-foreground: #0b0b0e;
+  --primary: #ff6a00;
+  --primary-foreground: #0b0b0e;
+  /* --primary como texto/icone reprova contraste (2,87:1) — usar --primary-strong. */
+  --primary-strong: #b23a0a;
+  --secondary: #f1f1f4;
+  --secondary-foreground: #0b0b0e;
+  --muted: #f1f1f4;
+  --muted-foreground: #57575f;
+  --accent: #efeff2;
+  --accent-foreground: #0b0b0e;
+  --destructive: #c81e1e;
+  --destructive-foreground: #ffffff;
+  --success: #15803d;
+  --warning: #9a5b08;
+  --border: #e2e2e7;
+  --input: #84848e;
+  --ring: #c2410c;
 
   /* RF06 — forma de onda. Nao existem no preset shadcn; valores e contraste (3:1,
      nao-texto) verificados no Figma, docs/design-system-fundamentos.md secao 3. */
@@ -42,27 +49,28 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --success: oklch(0.75 0.15 155);
-  --warning: oklch(0.8 0.14 85);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 18%);
-  --ring: oklch(0.551 0.027 264.364);
+  --background: #0b0b0e;
+  --foreground: #ffffff;
+  --card: #131318;
+  --card-foreground: #ffffff;
+  --popover: #212129;
+  --popover-foreground: #ffffff;
+  --primary: #ff6a00;
+  --primary-foreground: #0b0b0e;
+  --primary-strong: #ff9a4d;
+  --secondary: #1f1f27;
+  --secondary-foreground: #ffffff;
+  --muted: #1a1a21;
+  --muted-foreground: #a0a0ae;
+  --accent: #2b2b35;
+  --accent-foreground: #ffffff;
+  --destructive: #ff6b6b;
+  --destructive-foreground: #0b0b0e;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --border: #2b2b35;
+  --input: #6b6b7d;
+  --ring: #ff8a3d;
 
   --wave-level: #38bdf8;
   --wave-bus: #ff9a4d;
@@ -85,6 +93,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-strong: var(--primary-strong);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
