@@ -3,9 +3,10 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF06](feature.md) |
-| Branch | `feat/rf06-renderizacao-canvas` |
+| Branch | `feat-RF06-02-renderizacao-canvas-front` |
 | Tamanho | G (aprox. 2 dias) |
 | Depende de | RF06-I01 |
+| Status | **Concluido.** PR #6. |
 
 ## Contexto
 
@@ -61,15 +62,20 @@ regua, grade e nomes, seguindo os tokens de tema da aplicacao.
 
 ## Criterios de aceite
 
-- [ ] O exemplo do somador desenha os cinco sinais alinhados no tempo.
-- [ ] Barramentos aparecem como segmentos com valor legivel; segmentos estreitos
-      ficam sem texto, sem sobreposicao.
-- [ ] `x` e `z` sao distinguiveis de `0` e `1` sem depender so de cor.
-- [ ] A regua mostra tempos na unidade do `$timescale`.
-- [ ] Alternar o tema redesenha com as cores corretas, sem recarregar.
-- [ ] Arrastar o divisor do painel redesenha sem distorcer.
-- [ ] Em tela de alta densidade as linhas ficam nitidas.
-- [ ] Nenhuma dependencia de biblioteca de grafico e adicionada.
+- [x] O exemplo do somador desenha os cinco sinais alinhados no tempo.
+- [x] Barramentos aparecem como segmentos com valor legivel; segmentos estreitos
+      ficam sem texto, sem sobreposicao. **Ressalva**: o valor mostrado e o binario
+      literal por bit (conforme o Figma, nao hexadecimal); um barramento largo (ex.:
+      o contador de 32 bits do exemplo real) raramente tem segmento largo o
+      suficiente para exibir o valor por extenso nesta issue — fica sem texto ate
+      RF06-I03/I04 entregarem a leitura pelo cursor.
+- [x] `x` e `z` sao distinguiveis de `0` e `1` sem depender so de cor.
+- [x] A regua mostra tempos na unidade do `$timescale`.
+- [x] Alternar o tema redesenha com as cores corretas, sem recarregar.
+- [x] Arrastar o divisor do painel redesenha sem distorcer.
+- [x] Em tela de alta densidade as linhas ficam nitidas (validado com devicePixelRatio
+      1,25 no navegador; nao testado em hardware com DPR inteiro maior, ex. 2x/3x).
+- [x] Nenhuma dependencia de biblioteca de grafico e adicionada.
 
 ## Verificacao
 

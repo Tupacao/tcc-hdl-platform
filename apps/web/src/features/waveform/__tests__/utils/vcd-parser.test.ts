@@ -182,6 +182,120 @@ b101`;
   assert.equal(valueAt(waveform, '!', 10), '0'.repeat(8));
 });
 
+/**
+ * Captura real de `vvp -M vcd` sobre o exemplo full_adder (RF06-I02, validado no navegador
+ * via `pnpm dev` + `pnpm dev:worker`). Ao contrario da fixture sintetica acima, o iverilog
+ * emite `$date`/`$version`/`$timescale` como blocos de VARIAS linhas, com o `$end` sozinho —
+ * um parser que so entende a forma "tudo numa linha" para de ler no primeiro `$date` e nao
+ * encontra nenhum sinal (bug real encontrado ao validar esta issue manualmente).
+ */
+const IVERILOG_FULL_ADDER_VCD = `$date
+\tSat Sep 12 17:10:01 2026
+$end
+$version
+\tIcarus Verilog
+$end
+$timescale
+\t1ps
+$end
+$scope module full_adder_tb $end
+$var wire 1 ! sum $end
+$var wire 1 " cout $end
+$var reg 1 # a $end
+$var reg 1 $ b $end
+$var reg 1 % cin $end
+$var integer 32 & i [31:0] $end
+$scope module dut $end
+$var wire 1 # a $end
+$var wire 1 $ b $end
+$var wire 1 % cin $end
+$var wire 1 " cout $end
+$var wire 1 ! sum $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+b0 &
+0%
+0$
+0#
+0"
+0!
+$end
+#10000
+1!
+1%
+b1 &
+#20000
+1!
+1$
+0%
+b10 &
+#30000
+1"
+0!
+1%
+b11 &
+#40000
+0"
+1!
+1#
+0$
+0%
+b100 &
+#50000
+1"
+0!
+1%
+b101 &
+#60000
+0!
+1$
+0%
+b110 &
+#70000
+1!
+1%
+b111 &
+#80000
+b1000 &
+`;
+
+test('aceita o formato real do iverilog: $date/$version/$timescale em blocos de varias linhas', () => {
+  const waveform = parseVcd(IVERILOG_FULL_ADDER_VCD);
+
+  assert.equal(waveform.truncated, false);
+  assert.equal(waveform.timescale, 1);
+  assert.equal(waveform.timeUnit, 'ps');
+  // 6 ids unicos: sum, cout, a, b, cin, i (o dut reaproveita os 5 primeiros).
+  assert.equal(waveform.transitions.size, 6);
+});
+
+test('valores do iverilog batem com o $display do proprio testbench (i=1 e i=7 da tabela verdade)', () => {
+  const waveform = parseVcd(IVERILOG_FULL_ADDER_VCD);
+
+  // i=1: a=0 b=0 cin=1 -> sum=1 cout=0
+  assert.equal(valueAt(waveform, '#', 15000), '0');
+  assert.equal(valueAt(waveform, '$', 15000), '0');
+  assert.equal(valueAt(waveform, '%', 15000), '1');
+  assert.equal(valueAt(waveform, '!', 15000), '1');
+  assert.equal(valueAt(waveform, '"', 15000), '0');
+
+  // i=7: a=1 b=1 cin=1 -> sum=1 cout=1
+  assert.equal(valueAt(waveform, '#', 75000), '1');
+  assert.equal(valueAt(waveform, '$', 75000), '1');
+  assert.equal(valueAt(waveform, '%', 75000), '1');
+  assert.equal(valueAt(waveform, '!', 75000), '1');
+  assert.equal(valueAt(waveform, '"', 75000), '1');
+
+  // i=4, vetor de 32 bits
+  assert.equal(valueAt(waveform, '&', 45000), `${'0'.repeat(29)}100`);
+});
+
 test('o parser nao lanca excecao para nenhuma das fixtures, mesmo com lixo no corpo', () => {
   const vcd = `$var wire 1 ! a $end
 $enddefinitions $end

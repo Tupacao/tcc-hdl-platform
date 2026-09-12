@@ -29,6 +29,16 @@
   --border: oklch(0.929 0.013 255.508);
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.704 0.04 256.788);
+
+  /* RF06 — forma de onda. Nao existem no preset shadcn; valores e contraste (3:1,
+     nao-texto) verificados no Figma, docs/design-system-fundamentos.md secao 3. */
+  --wave-level: #0369a1;
+  --wave-bus: #b23a0a;
+  --wave-x: #c81e1e;
+  --wave-z: #57575f;
+  --wave-cursor: #c2410c;
+  --wave-grid: #efeff2;
+  --wave-ruler-foreground: #57575f;
 }
 
 .dark {
@@ -53,6 +63,14 @@
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.551 0.027 264.364);
+
+  --wave-level: #38bdf8;
+  --wave-bus: #ff9a4d;
+  --wave-x: #ff6b6b;
+  --wave-z: #a0a0ae;
+  --wave-cursor: #ff6a00;
+  --wave-grid: #22222b;
+  --wave-ruler-foreground: #8a8a98;
 }
 
 @theme inline {
@@ -80,6 +98,13 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-wave-level: var(--wave-level);
+  --color-wave-bus: var(--wave-bus);
+  --color-wave-x: var(--wave-x);
+  --color-wave-z: var(--wave-z);
+  --color-wave-cursor: var(--wave-cursor);
+  --color-wave-grid: var(--wave-grid);
+  --color-wave-ruler-foreground: var(--wave-ruler-foreground);
 }
 
 @layer base {
