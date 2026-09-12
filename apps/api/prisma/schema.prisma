@@ -1,0 +1,30 @@
+// Schema do Prisma (RF07-I01). O contrato publico da API continua em
+// packages/shared/src/schemas/project.ts (ProjectSchema); este schema so
+// descreve a persistencia.
+
+generator client {
+  provider      = "prisma-client-js"
+  // "native" cobre o dev local (Windows/macOS/Linux glibc); a variante musl
+  // cobre o runtime de producao (node:22-alpine no Dockerfile).
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  /// Par design/testbench (HdlSourcesSchema) — validado por Zod na borda, guardado cru.
+  sources     Json
+  /// Preparado para RF14/RNF06 (dono do projeto); nulo ate a autenticacao existir.
+  ownerId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([updatedAt])
+}

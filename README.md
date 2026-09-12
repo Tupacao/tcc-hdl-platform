@@ -55,12 +55,20 @@ pnpm sandbox:build
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 
-# 4. Aplicacoes (web + api em paralelo)
+# 4. Migracoes do Prisma (projetos persistidos em Postgres — RF07)
+pnpm --filter @tplab/api exec prisma migrate dev
+
+# 5. Aplicacoes (web + api em paralelo)
 pnpm dev
 
-# 5. Worker de simulacao, em outro terminal
+# 6. Worker de simulacao, em outro terminal
 pnpm dev:worker
 ```
+
+Sem `DATABASE_URL` (ou sem rodar a migracao) a API ainda sobe, mas os projetos
+ficam em memoria e somem a cada reinicio — util para desenvolvimento rapido sem
+Postgres, nao para uso real. Em producao (`NODE_ENV=production`) a variavel e
+obrigatoria e a API nao inicia sem ela.
 
 - Frontend: http://localhost:5173
 - API: http://localhost:3333 (`GET /health`)
@@ -69,15 +77,17 @@ O Vite faz proxy de `/api` para a API, entao nao ha CORS no desenvolvimento.
 
 ## Scripts
 
-| Comando                             | Descricao                                     |
-| ----------------------------------- | --------------------------------------------- |
-| `pnpm dev`                          | Compila `@tplab/shared` e sobe web + api      |
-| `pnpm dev:worker`                   | Worker que consome a fila e executa o sandbox |
-| `pnpm build`                        | Build de todos os pacotes                     |
-| `pnpm typecheck`                    | Verificacao de tipos em todo o monorepo       |
-| `pnpm --filter @tplab/api test`     | Testes do parser de diagnosticos              |
-| `pnpm infra:up` / `pnpm infra:down` | Stack Docker completa                         |
-| `pnpm sandbox:build`                | Constroi a imagem `tplab-sandbox:latest`      |
+| Comando                                               | Descricao                                                 |
+| ----------------------------------------------------- | --------------------------------------------------------- |
+| `pnpm dev`                                            | Compila `@tplab/shared` e sobe web + api                  |
+| `pnpm dev:worker`                                     | Worker que consome a fila e executa o sandbox             |
+| `pnpm build`                                          | Build de todos os pacotes                                 |
+| `pnpm typecheck`                                      | Verificacao de tipos em todo o monorepo                   |
+| `pnpm --filter @tplab/api test`                       | Testes (parser de diagnosticos e repositorio de projetos) |
+| `pnpm infra:up` / `pnpm infra:down`                   | Stack Docker completa                                     |
+| `pnpm sandbox:build`                                  | Constroi a imagem `tplab-sandbox:latest`                  |
+| `pnpm --filter @tplab/api exec prisma migrate dev`    | Cria/aplica migracao a partir do schema (dev)             |
+| `pnpm --filter @tplab/api exec prisma migrate deploy` | Aplica migracoes pendentes (producao/CI)                  |
 
 ## Fluxo de uma simulacao
 
@@ -99,6 +109,9 @@ Ja implementado:
 
 - Monorepo pnpm com contratos Zod compartilhados entre frontend e API
 - API Fastify com `/health`, CRUD de projetos e endpoints de simulacao
+- Persistencia de projetos em PostgreSQL via Prisma (RF07-I01), atras da
+  interface `ProjectRepository` (`apps/api/src/domain/projects/`) — sem
+  `DATABASE_URL`, cai em memoria para desenvolvimento rapido
 - Worker BullMQ, runner do sandbox Docker e parser de diagnosticos (com testes)
 - Frontend com editor Monaco (Verilog), painies redimensionaveis, console de erros
   e tema claro/escuro
@@ -124,8 +137,7 @@ simulacao de ~400 mil ciclos de clock:
 
 Pendente:
 
-- [ ] Persistencia real dos projetos (Prisma + PostgreSQL) — hoje o repositorio e em
-      memoria (`apps/api/src/modules/projects/repository.ts`)
+- [ ] Interface de gerenciamento de projetos e vinculo com o workspace (RF07-I02/I03)
 - [ ] Exportacao de projetos em `.zip` (RF08)
 - [ ] Documentacao estatica: guia de inicio rapido e referencia de sintaxe (RF11)
 - [ ] Autenticacao Google e compartilhamento por link (RF14/RF15)

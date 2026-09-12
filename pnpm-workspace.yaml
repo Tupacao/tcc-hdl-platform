@@ -10,3 +10,7 @@ allowBuilds:
   msgpackr-extract: false
   protobufjs: false
   ssh2: false
+  # Prisma precisa do postinstall para baixar os binarios de engine (query/schema engine).
+  '@prisma/engines': true
+  prisma: true
+  '@prisma/client': true

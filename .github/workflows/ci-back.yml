@@ -21,6 +21,24 @@ on:
 jobs:
   back:
     runs-on: ubuntu-latest
+    services:
+      # RF07-I01: a suite de contrato do ProjectRepository roda contra Postgres
+      # real, nao so em memoria.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: tplab
+          POSTGRES_PASSWORD: tplab
+          POSTGRES_DB: tplab
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tplab"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://tplab:tplab@localhost:5432/tplab
     steps:
       - uses: actions/checkout@v5
 
@@ -39,6 +57,9 @@ jobs:
 
       - name: Build do @tplab/shared
         run: pnpm --filter @tplab/shared build
+
+      - name: Aplicar migracoes do Prisma
+        run: pnpm --filter @tplab/api exec prisma migrate deploy
 
       - name: Typecheck
         run: pnpm --filter @tplab/api typecheck

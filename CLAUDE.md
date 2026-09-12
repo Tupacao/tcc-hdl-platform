@@ -96,9 +96,17 @@ API (RNF08).
 
 ### Persistencia
 
-`modules/projects/repository.ts` define a interface `ProjectRepository` e uma
-implementacao em memoria, injetavel via options do plugin de rotas. A troca por
-Prisma/PostgreSQL nao deve tocar as rotas. Hoje os dados somem a cada restart.
+`domain/projects/repositories/project.repository.ts` define a interface
+`ProjectRepository`; `application/projects/repository/` traz duas
+implementacoes — `InMemoryProjectRepository` (dev sem Postgres) e
+`PrismaProjectRepository` (RF07-I01). `app.ts` escolhe uma das duas por
+`DATABASE_URL` (obrigatoria quando `NODE_ENV=production`) e injeta no
+`ProjectService` (`application/projects/service/`), que o controller
+(`application/projects/controller/project.controller.ts`) usa — nunca o
+repository diretamente. Schema e migracoes do Prisma ficam em
+`apps/api/prisma/`. `projects` e o primeiro modulo migrado para o layout
+`application/domain/infra` de `ARCHITECTURE.md`; `health` e `simulation` ainda
+sao `modules/*` antigo, a migrar quando forem tocados.
 
 ### Frontend
 

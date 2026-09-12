@@ -8,7 +8,9 @@ import {
   ProjectSchema,
   UpdateProjectSchema,
 } from '@tplab/shared';
-import { InMemoryProjectRepository, type ProjectRepository } from './repository.js';
+import type { ProjectService } from '../../../domain/projects/services/project.service.js';
+import { InMemoryProjectRepository } from '../repository/in-memory-project.repository.js';
+import { DefaultProjectService } from '../service/project.service.js';
 
 const notFound = {
   statusCode: 404,
@@ -16,19 +18,19 @@ const notFound = {
   message: 'Projeto nao encontrado',
 } as const;
 
-/** CRUD de projetos (RF07). */
+/** CRUD de projetos (RF07). Entrada HTTP; toda regra passa pelo `ProjectService`. */
 export async function projectRoutes(
   app: FastifyInstance,
-  options: { repository?: ProjectRepository } = {},
+  options: { service?: ProjectService } = {},
 ): Promise<void> {
-  const repository = options.repository ?? new InMemoryProjectRepository();
+  const service = options.service ?? new DefaultProjectService(new InMemoryProjectRepository());
   const typed = app.withTypeProvider<ZodTypeProvider>();
 
   typed.get(
     '/projects',
     { schema: { tags: ['projects'], response: { 200: ProjectListSchema } } },
     async () => {
-      const items = await repository.list();
+      const items = await service.list();
       return { items, total: items.length };
     },
   );
@@ -43,7 +45,7 @@ export async function projectRoutes(
       },
     },
     async (request, reply) => {
-      const project = await repository.findById(request.params.id);
+      const project = await service.findById(request.params.id);
       return project ? reply.send(project) : reply.status(404).send(notFound);
     },
   );
@@ -57,7 +59,7 @@ export async function projectRoutes(
         response: { 201: ProjectSchema },
       },
     },
-    async (request, reply) => reply.status(201).send(await repository.create(request.body)),
+    async (request, reply) => reply.status(201).send(await service.create(request.body)),
   );
 
   typed.patch(
@@ -71,7 +73,7 @@ export async function projectRoutes(
       },
     },
     async (request, reply) => {
-      const project = await repository.update(request.params.id, request.body);
+      const project = await service.update(request.params.id, request.body);
       return project ? reply.send(project) : reply.status(404).send(notFound);
     },
   );
@@ -85,7 +87,7 @@ export async function projectRoutes(
       },
     },
     async (request, reply) => {
-      const removed = await repository.remove(request.params.id);
+      const removed = await service.remove(request.params.id);
       return removed ? reply.status(204).send() : reply.status(404).send(notFound);
     },
   );

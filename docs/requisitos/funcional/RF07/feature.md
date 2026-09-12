@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Gestao de projetos |
-| Status | Parcial (API existe em memoria; nao ha interface) |
+| Status | Parcial — I01 (persistencia Prisma/PostgreSQL) concluida; I02 (interface) e I03 (vinculo com o workspace) pendentes |
 | Requisitos relacionados | RF08, RF09, RF14, RF15, RNF06 |
 
 ## 1. Enunciado
@@ -77,11 +77,15 @@ sessao sao decisoes de produto que aparecem so aqui.
   (Map, ordenacao por `updatedAt` decrescente, `randomUUID` como id).
 - `infra/docker-compose.yml` ja sobe `postgres:17-alpine` e a API recebe
   `DATABASE_URL`; `env.ts` declara a variavel como opcional.
-- Nao ha ORM instalado, nao ha schema de banco e nao ha migracao.
+- RF07-I01: `apps/api/prisma/schema.prisma` + migracao inicial;
+  `PrismaProjectRepository` (Postgres) e `InMemoryProjectRepository` (fallback
+  sem `DATABASE_URL`) atras da interface `ProjectRepository`, escolhidas em
+  `app.ts` por ambiente. O modulo migrou de `modules/projects/` para o layout
+  `domain/application/infra` de `ARCHITECTURE.md` (primeiro modulo a faze-lo).
 - Nao ha nenhuma tela de projeto no frontend, nem chamada a `/api/projects` em
   `apps/web/src/lib/api.ts`.
-- **Falta**: implementacao Prisma, interface de gerenciamento e o vinculo entre o
-  workspace e o projeto aberto.
+- **Falta**: interface de gerenciamento e o vinculo entre o workspace e o
+  projeto aberto (I02, I03).
 
 ## 6. Escopo
 
@@ -103,23 +107,24 @@ sessao sao decisoes de produto que aparecem so aqui.
 
 ## 7. Criterios de aceite da feature
 
-- [ ] Criar um projeto, reiniciar a API e o projeto continuar la.
+- [x] Criar um projeto, reiniciar a API e o projeto continuar la. _(RF07-I01)_
 - [ ] A lista mostra nome, descricao e data de atualizacao, ordenada pela mais
-      recente.
-- [ ] Abrir um projeto carrega design e testbench no editor.
-- [ ] Renomear reflete na lista sem recarregar a pagina.
-- [ ] Excluir pede confirmacao e remove da lista.
-- [ ] Editar o codigo e salvar atualiza o projeto e o `updatedAt`.
-- [ ] Sair com alteracoes nao salvas gera aviso.
-- [ ] As rotas continuam identicas - a troca de repositorio nao mudou o contrato.
+      recente. _(interface — RF07-I02)_
+- [ ] Abrir um projeto carrega design e testbench no editor. _(RF07-I03)_
+- [ ] Renomear reflete na lista sem recarregar a pagina. _(RF07-I02)_
+- [ ] Excluir pede confirmacao e remove da lista. _(RF07-I02)_
+- [ ] Editar o codigo e salvar atualiza o projeto e o `updatedAt`. _(RF07-I03)_
+- [ ] Sair com alteracoes nao salvas gera aviso. _(RF07-I03)_
+- [x] As rotas continuam identicas - a troca de repositorio nao mudou o
+      contrato. _(RF07-I01)_
 
 ## 8. Quebra em issues
 
-| Issue | Titulo | Branch | Tamanho |
-| --- | --- | --- | --- |
-| [issue-01](issue-01-persistencia-prisma-postgres.md) | Persistencia com Prisma e PostgreSQL | `feat/rf07-persistencia-prisma-postgres` | G |
-| [issue-02](issue-02-interface-gerenciamento-projetos.md) | Interface de gerenciamento de projetos | `feat/rf07-interface-gerenciamento-projetos` | G |
-| [issue-03](issue-03-vinculo-workspace-projeto.md) | Vinculo do workspace com o projeto aberto | `feat/rf07-vinculo-workspace-projeto` | M |
+| Issue | Titulo | Branch | Tamanho | Status |
+| --- | --- | --- | --- | --- |
+| [issue-01](issue-01-persistencia-prisma-postgres.md) | Persistencia com Prisma e PostgreSQL | `feat-RF07-01-persistencia-prisma-postgres-back` | G | Concluido |
+| [issue-02](issue-02-interface-gerenciamento-projetos.md) | Interface de gerenciamento de projetos | `feat/rf07-interface-gerenciamento-projetos` | G | Pendente |
+| [issue-03](issue-03-vinculo-workspace-projeto.md) | Vinculo do workspace com o projeto aberto | `feat/rf07-vinculo-workspace-projeto` | M | Pendente |
 
 ## 9. Dependencias
 
