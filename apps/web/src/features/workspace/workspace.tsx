@@ -2,14 +2,14 @@ import { useCallback, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { CircuitBoard, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
+import type { Diagnostic, HdlSources } from '@tplab/shared';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { runSimulation } from '@/lib/api';
 import { SAMPLE_SOURCES } from '@/lib/samples';
 import { cn } from '@/lib/utils';
 import { CodeEditor } from './code-editor';
 import { ConsolePanel } from './console-panel';
+import { useRunSimulation } from './hooks/use-run-simulation';
 import { WaveformPanel } from './waveform-panel';
 
 type FileTab = 'design' | 'testbench';
@@ -21,33 +21,25 @@ type FileTab = 'design' | 'testbench';
 export function Workspace() {
   const [sources, setSources] = useState<HdlSources>(SAMPLE_SOURCES);
   const [activeTab, setActiveTab] = useState<FileTab>('design');
-  const [result, setResult] = useState<SimulationResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isRunning, setIsRunning] = useState(false);
+  const runMutation = useRunSimulation();
+
+  const result = runMutation.data ?? null;
+  const error = runMutation.error?.message ?? null;
+  const isRunning = runMutation.isPending;
 
   const updateFile = useCallback((tab: FileTab, content: string) => {
     setSources((current) => ({ ...current, [tab]: { ...current[tab], content } }));
   }, []);
 
-  const handleRun = useCallback(async () => {
-    setIsRunning(true);
-    setError(null);
-
-    try {
-      const simulation = await runSimulation(sources);
-      setResult(simulation);
-
-      if (simulation.failure) toast.error('A simulacao terminou com erros.');
-      else toast.success(`Simulacao concluida em ${simulation.durationMs} ms.`);
-    } catch (cause) {
-      const message = cause instanceof Error ? cause.message : 'Falha ao executar a simulacao';
-      setError(message);
-      setResult(null);
-      toast.error(message);
-    } finally {
-      setIsRunning(false);
-    }
-  }, [sources]);
+  const handleRun = useCallback(() => {
+    runMutation.mutate(sources, {
+      onSuccess: (simulation) => {
+        if (simulation.failure) toast.error('A simulacao terminou com erros.');
+        else toast.success(`Simulacao concluida em ${simulation.durationMs} ms.`);
+      },
+      onError: (cause) => toast.error(cause.message),
+    });
+  }, [runMutation, sources]);
 
   const focusDiagnostic = useCallback(
     (diagnostic: Diagnostic) => {
@@ -67,7 +59,7 @@ export function Workspace() {
         <span className="text-xs text-muted-foreground">Verilog</span>
 
         <div className="ml-auto flex items-center gap-2">
-          <Button onClick={() => void handleRun()} disabled={isRunning} size="sm">
+          <Button onClick={handleRun} disabled={isRunning} size="sm">
             {isRunning ? <Loader2 aria-hidden className="animate-spin" /> : <Play aria-hidden />}
             {isRunning ? 'Executando' : 'Executar'}
           </Button>
