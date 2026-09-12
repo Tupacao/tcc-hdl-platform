@@ -16,13 +16,13 @@
 
 **Violations detected:**
 
-| # | WCAG | Severity | Issue |
-|---|------|----------|-------|
-| 1 | 1.3.1 | Critical | Inputs missing associated `<label>` elements |
-| 2 | 3.3.2 | Major | Placeholder text used as only label (disappears on input) |
-| 3 | 2.1.1 | Critical | `<div @click>` not keyboard accessible |
-| 4 | 4.1.3 | Major | Error message not announced to screen readers |
-| 5 | 3.3.1 | Major | Error not programmatically associated with input |
+| #   | WCAG  | Severity | Issue                                                     |
+| --- | ----- | -------- | --------------------------------------------------------- |
+| 1   | 1.3.1 | Critical | Inputs missing associated `<label>` elements              |
+| 2   | 3.3.2 | Major    | Placeholder text used as only label (disappears on input) |
+| 3   | 2.1.1 | Critical | `<div @click>` not keyboard accessible                    |
+| 4   | 4.1.3 | Major    | Error message not announced to screen readers             |
+| 5   | 3.3.1 | Major    | Error not programmatically associated with input          |
 
 ```vue
 <!-- AFTER: src/components/LoginForm.vue -->
@@ -71,9 +71,7 @@
 ```html
 <!-- BEFORE: src/app/dashboard/dashboard.component.html -->
 <div class="tabs">
-  <div *ngFor="let tab of tabs"
-       (click)="selectTab(tab)"
-       [class.active]="tab.active">
+  <div *ngFor="let tab of tabs" (click)="selectTab(tab)" [class.active]="tab.active">
     {{ tab.label }}
   </div>
 </div>
@@ -84,11 +82,11 @@
 
 **Violations detected:**
 
-| # | WCAG | Severity | Issue |
-|---|------|----------|-------|
-| 1 | 4.1.2 | Critical | Tab widget missing ARIA roles (`tablist`, `tab`, `tabpanel`) |
-| 2 | 2.1.1 | Critical | Tabs not keyboard navigable (arrow keys, Home, End) |
-| 3 | 2.4.11 | Major | No visible focus indicator on active tab |
+| #   | WCAG   | Severity | Issue                                                        |
+| --- | ------ | -------- | ------------------------------------------------------------ |
+| 1   | 4.1.2  | Critical | Tab widget missing ARIA roles (`tablist`, `tab`, `tabpanel`) |
+| 2   | 2.1.1  | Critical | Tabs not keyboard navigable (arrow keys, Home, End)          |
+| 3   | 2.4.11 | Major    | No visible focus indicator on active tab                     |
 
 ```html
 <!-- AFTER: src/app/dashboard/dashboard.component.html -->
@@ -103,7 +101,8 @@
     (click)="selectTab(tab)"
     (keydown)="handleTabKeydown($event, i)"
     class="tab-button"
-    [class.active]="tab.active">
+    [class.active]="tab.active"
+  >
     {{ tab.label }}
   </button>
 </div>
@@ -113,7 +112,8 @@
   [id]="'panel-' + selectedTab.id"
   [attr.aria-labelledby]="'tab-' + selectedTab.id"
   tabindex="0"
-  class="tab-content">
+  class="tab-content"
+>
   {{ selectedTab.content }}
 </div>
 ```
@@ -159,11 +159,11 @@ export default function Home() {
   return (
     <main>
       <div className="text-4xl font-bold">Welcome to Acme</div>
-      <div className="mt-4">
-        Build better products with our platform.
-      </div>
-      <div className="mt-8 bg-blue-600 text-white px-6 py-3 rounded cursor-pointer"
-           onClick={() => router.push('/signup')}>
+      <div className="mt-4">Build better products with our platform.</div>
+      <div
+        className="mt-8 bg-blue-600 text-white px-6 py-3 rounded cursor-pointer"
+        onClick={() => router.push('/signup')}
+      >
         Get Started
       </div>
     </main>
@@ -173,12 +173,12 @@ export default function Home() {
 
 **Violations detected:**
 
-| # | WCAG | Severity | Issue |
-|---|------|----------|-------|
-| 1 | 1.3.1 | Major | Heading uses `<div>` instead of `<h1>` -- no semantic structure |
-| 2 | 2.4.2 | Major | Page missing `<title>` (Next.js metadata) |
-| 3 | 2.1.1 | Critical | CTA uses `<div onClick>` -- not keyboard accessible |
-| 4 | 3.1.1 | Minor | `<html>` missing `lang` attribute (check `layout.tsx`) |
+| #   | WCAG  | Severity | Issue                                                           |
+| --- | ----- | -------- | --------------------------------------------------------------- |
+| 1   | 1.3.1 | Major    | Heading uses `<div>` instead of `<h1>` -- no semantic structure |
+| 2   | 2.4.2 | Major    | Page missing `<title>` (Next.js metadata)                       |
+| 3   | 2.1.1 | Critical | CTA uses `<div onClick>` -- not keyboard accessible             |
+| 4   | 3.1.1 | Minor    | `<html>` missing `lang` attribute (check `layout.tsx`)          |
 
 ```tsx
 // AFTER: src/app/page.tsx
@@ -194,9 +194,7 @@ export default function Home() {
   return (
     <main>
       <h1 className="text-4xl font-bold">Welcome to Acme</h1>
-      <p className="mt-4">
-        Build better products with our platform.
-      </p>
+      <p className="mt-4">Build better products with our platform.</p>
       <Link
         href="/signup"
         className="mt-8 inline-block bg-blue-600 text-white px-6 py-3 rounded
@@ -242,11 +240,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 **Violations detected:**
 
-| # | WCAG | Severity | Issue |
-|---|------|----------|-------|
-| 1 | 4.1.2 | Critical | Accordion missing ARIA roles and properties |
-| 2 | 2.1.1 | Critical | Headers not keyboard accessible |
-| 3 | 2.5.8 | Minor | Click targets may be smaller than 24x24px (NEW in WCAG 2.2) |
+| #   | WCAG  | Severity | Issue                                                       |
+| --- | ----- | -------- | ----------------------------------------------------------- |
+| 1   | 4.1.2 | Critical | Accordion missing ARIA roles and properties                 |
+| 2   | 2.1.1 | Critical | Headers not keyboard accessible                             |
+| 3   | 2.5.8 | Minor    | Click targets may be smaller than 24x24px (NEW in WCAG 2.2) |
 
 ```svelte
 <!-- AFTER: src/lib/components/Accordion.svelte -->

@@ -14,7 +14,7 @@ These seven questions gate every meaningful frontend decision: framework pick, r
 
 **Kill criterion:** "all users equally" — STOP. Pull analytics or target-market data. The frontend tax for an unknown floor is paid by every user.
 
-**Canon:** Web Almanac (HTTP Archive, 2025) — device + network distribution; Addy Osmani, *Web Performance for the Modern Web* (2024); Tim Kadlec, *High Performance Images* (2016).
+**Canon:** Web Almanac (HTTP Archive, 2025) — device + network distribution; Addy Osmani, _Web Performance for the Modern Web_ (2024); Tim Kadlec, _High Performance Images_ (2016).
 
 ---
 
@@ -22,11 +22,11 @@ These seven questions gate every meaningful frontend decision: framework pick, r
 
 **Recommended answer:** a single number (e.g., "LCP < 2.0s on mobile-4G p75"). Bonus for naming the p75 / p95 split.
 
-**Why it matters:** Core Web Vitals are a Google ranking signal *and* a measured business metric (every 100ms of LCP improvement = ~1% conversion lift per Akamai 2017 and reaffirmed by Chrome UX Report 2024). "Fast" is not a target. The number gates the entire performance-investment conversation.
+**Why it matters:** Core Web Vitals are a Google ranking signal _and_ a measured business metric (every 100ms of LCP improvement = ~1% conversion lift per Akamai 2017 and reaffirmed by Chrome UX Report 2024). "Fast" is not a target. The number gates the entire performance-investment conversation.
 
 **Kill criterion:** "as fast as possible" — STOP. Pick a number. Without a target there's no way to know when to stop optimizing.
 
-**Canon:** Chrome UX Report (CrUX) public dataset; Akamai *Online Retail Performance* (2017); Google *Web Vitals* spec (web.dev/vitals, 2020–2024).
+**Canon:** Chrome UX Report (CrUX) public dataset; Akamai _Online Retail Performance_ (2017); Google _Web Vitals_ spec (web.dev/vitals, 2020–2024).
 
 **Related targets to set in the same turn:** INP < 200ms; CLS < 0.1. If the user has not heard of INP, walk them through the 2024 migration from FID → INP (Google, March 2024).
 
@@ -38,9 +38,9 @@ These seven questions gate every meaningful frontend decision: framework pick, r
 
 **Why it matters:** the rendering choice cascades into every other decision (data fetching, state management, hydration cost, server cost). Picking it implicitly (= "whatever the framework default is") locks in costs the team won't notice until production traffic shows up.
 
-**Kill criterion:** "RSC because it's newest" with no LCP measurement on a comparable SSR baseline — STOP. RSC is not faster by default; it's faster *for some workloads* and slower for others. Measure.
+**Kill criterion:** "RSC because it's newest" with no LCP measurement on a comparable SSR baseline — STOP. RSC is not faster by default; it's faster _for some workloads_ and slower for others. Measure.
 
-**Canon:** Dan Abramov, *React Server Components* spec (Vercel, 2023); Ryan Florence, *Remix data-loading patterns* (2022–2024); Astro *Islands Architecture* (Eisenberg, 2021); Rich Harris, *Frameworks Without Hydration* (Svelte 5, 2024).
+**Canon:** Dan Abramov, _React Server Components_ spec (Vercel, 2023); Ryan Florence, _Remix data-loading patterns_ (2022–2024); Astro _Islands Architecture_ (Eisenberg, 2021); Rich Harris, _Frameworks Without Hydration_ (Svelte 5, 2024).
 
 ---
 
@@ -48,11 +48,11 @@ These seven questions gate every meaningful frontend decision: framework pick, r
 
 **Recommended answer:** a per-route number (e.g., "< 80KB gzip for landing, < 150KB gzip for app routes, hard cap at 200KB"). Bonus: split between framework + app + third-party.
 
-**Why it matters:** the bundle budget is the only thing that holds the team accountable. Without a number, every new feature adds 5–20KB; in 12 months the app is 800KB and Q2's LCP target is impossible. Tim Kadlec's *Performance Budgets* (2013) framing — set the ceiling, fail the build when it's crossed.
+**Why it matters:** the bundle budget is the only thing that holds the team accountable. Without a number, every new feature adds 5–20KB; in 12 months the app is 800KB and Q2's LCP target is impossible. Tim Kadlec's _Performance Budgets_ (2013) framing — set the ceiling, fail the build when it's crossed.
 
 **Kill criterion:** no per-route budget set in CI — STOP. Add `bundlewatch` or `size-limit` to CI with a failing gate before shipping the next feature.
 
-**Canon:** Tim Kadlec, *Performance Budgets* (2013); Patrick Stox, *JavaScript and SEO* (Ahrefs, 2023); Alex Russell, *The Performance Inequality Gap* (2021–2024).
+**Canon:** Tim Kadlec, _Performance Budgets_ (2013); Patrick Stox, _JavaScript and SEO_ (Ahrefs, 2023); Alex Russell, _The Performance Inequality Gap_ (2021–2024).
 
 ---
 
@@ -64,7 +64,7 @@ These seven questions gate every meaningful frontend decision: framework pick, r
 
 **Kill criterion:** SEO-dependent + SPA-only rendering — STOP. Switch to SSR/SSG/RSC, or accept the SEO penalty in writing (signed by marketing-lead).
 
-**Canon:** Google *Search Quality Rater Guidelines* (2024); Patrick Stox, *JS-rendered pages and crawl budget* (Ahrefs, 2023); John Mueller (Google) on JS-rendering best practices (2020–2024 SearchOff Hours).
+**Canon:** Google _Search Quality Rater Guidelines_ (2024); Patrick Stox, _JS-rendered pages and crawl budget_ (Ahrefs, 2023); John Mueller (Google) on JS-rendering best practices (2020–2024 SearchOff Hours).
 
 ---
 
@@ -76,7 +76,7 @@ These seven questions gate every meaningful frontend decision: framework pick, r
 
 **Kill criterion:** team size ≥ 4 with no design-system source of truth — STOP. Pick: Figma + Style Dictionary, or shadcn/ui + Tailwind, or a headless library (Radix, Ark, React Aria). No fourth option.
 
-**Canon:** Brad Frost, *Atomic Design* (2016); Nathan Curtis, *Design Systems Handbook* (InVision, 2017); Vitaly Friedman, *Design Systems by Smashing* (2020–2024); shadcn/ui project (2023–2024) on copy-paste components vs. library lock-in.
+**Canon:** Brad Frost, _Atomic Design_ (2016); Nathan Curtis, _Design Systems Handbook_ (InVision, 2017); Vitaly Friedman, _Design Systems by Smashing_ (2020–2024); shadcn/ui project (2023–2024) on copy-paste components vs. library lock-in.
 
 ---
 
@@ -88,7 +88,7 @@ These seven questions gate every meaningful frontend decision: framework pick, r
 
 **Kill criterion:** customer-facing surface + no named a11y owner — STOP. Assign one before scaffolding. Run `engineering-team/skills/a11y-audit` as part of CI.
 
-**Canon:** W3C WCAG 2.2 (2023); Marcy Sutton, *Accessibility in JavaScript Applications* (2017+); Adrian Roselli's blog on a11y testing (a-roselli.com, 2015–2024); European Accessibility Act (EU 2019/882, enforced 2025).
+**Canon:** W3C WCAG 2.2 (2023); Marcy Sutton, _Accessibility in JavaScript Applications_ (2017+); Adrian Roselli's blog on a11y testing (a-roselli.com, 2015–2024); European Accessibility Act (EU 2019/882, enforced 2025).
 
 ---
 
@@ -96,7 +96,7 @@ These seven questions gate every meaningful frontend decision: framework pick, r
 
 1. **State the rule first** — tell the user you'll walk seven questions, one at a time, before recommending any framework or rendering model.
 2. **One question per turn.** Never bundle.
-3. **Recommend the answer.** Always cite the canon source for *why* this is the right shape.
+3. **Recommend the answer.** Always cite the canon source for _why_ this is the right shape.
 4. **Surface the kill criterion.** If the user's answer trips it, stop and surface that gap. Do not proceed.
 5. **Track the answers.** Write them to a working file (e.g., `/tmp/frontend-grill-<date>.md`).
 6. **After Q7, recommend the profile.** Match the seven answers against the profile JSON files in `../profiles/` and pick the closest fit.

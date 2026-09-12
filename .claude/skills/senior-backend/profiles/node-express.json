@@ -13,7 +13,12 @@
   "stack": {
     "runtime": "node-20-or-22-lts",
     "language": "typescript-strict",
-    "framework_options_ranked": ["fastify-v4-or-v5", "express-v5", "hono", "nest-when-clean-architecture-needed"],
+    "framework_options_ranked": [
+      "fastify-v4-or-v5",
+      "express-v5",
+      "hono",
+      "nest-when-clean-architecture-needed"
+    ],
     "orm_options": ["drizzle", "prisma", "kysely-for-typed-sql"],
     "database": "postgresql-16+",
     "cache": "redis-cluster-only-if-justified",
