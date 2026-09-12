@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '@/hooks/use-theme';
 import type { Waveform } from '../models/types';
-import { draw, ROW_HEIGHT, RULER_HEIGHT } from '../utils/render';
+import { draw, NAME_COLUMN_WIDTH, ROW_STEP, RULER_HEIGHT } from '../utils/render';
 import { selectDisplayRows } from '../utils/rows';
 import { readWaveformColors } from '../utils/theme-colors';
 
@@ -11,8 +11,10 @@ interface WaveformCanvasProps {
 
 /**
  * RF06-I02 — desenha os sinais em `<canvas>` (nao SVG/DOM: uma simulacao modesta
- * gera dezenas de milhares de transicoes). O viewport ainda e fixo — "ajustar a
- * largura" — RF06-I03 troca isso por zoom/deslocamento interativos.
+ * gera dezenas de milhares de transicoes). Geometria e cores seguem o Figma (frame
+ * "1.2 · Formas de onda — tokens, geometria e anatomia"), nao decisao livre daqui.
+ * O viewport ainda e fixo — "ajustar a largura" — RF06-I03 troca isso por
+ * zoom/deslocamento interativos.
  */
 export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
   const { resolvedTheme } = useTheme();
@@ -21,7 +23,7 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
   const [containerWidth, setContainerWidth] = useState(0);
 
   const rows = useMemo(() => selectDisplayRows(waveform.signals), [waveform.signals]);
-  const contentHeight = RULER_HEIGHT + rows.length * ROW_HEIGHT;
+  const contentHeight = RULER_HEIGHT + rows.length * ROW_STEP;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -66,14 +68,14 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
 
   return (
     <div className="flex h-full overflow-auto">
-      <div className="w-32 shrink-0 border-r bg-background">
-        <div style={{ height: RULER_HEIGHT }} className="border-b" aria-hidden />
+      <div className="shrink-0 border-r bg-background" style={{ width: NAME_COLUMN_WIDTH }}>
+        <div style={{ height: RULER_HEIGHT }} aria-hidden />
         {rows.map((row) => (
           <div
             key={row.id}
-            style={{ height: ROW_HEIGHT }}
+            style={{ height: ROW_STEP }}
             title={row.scope ? `${row.scope}.${row.name}` : row.name}
-            className="flex items-center border-b px-2 text-xs text-muted-foreground"
+            className="flex items-center px-2 text-xs text-muted-foreground"
           >
             <span className="truncate">{row.name}</span>
           </div>

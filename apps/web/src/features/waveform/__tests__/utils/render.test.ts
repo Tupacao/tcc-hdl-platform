@@ -61,15 +61,16 @@ test('computeTicks com range degenerado nao lanca excecao', () => {
   assert.deepEqual(computeTicks({ startTime: 0, endTime: 100, pixelsPerTime: 1 }, 0), [0]);
 });
 
-test('formatBusValue reconhece valor totalmente desconhecido', () => {
-  assert.deepEqual(formatBusValue('x101', 4), { kind: 'unknown' });
+test('formatBusValue mostra o valor literal, sem converter para hexadecimal (Figma 5.1: "0011", "10xx")', () => {
+  assert.deepEqual(formatBusValue('0011'), { text: '0011', hasUnknown: false, isHighZ: false });
+  assert.deepEqual(formatBusValue('1111'), { text: '1111', hasUnknown: false, isHighZ: false });
 });
 
-test('formatBusValue reconhece alta impedancia', () => {
-  assert.deepEqual(formatBusValue('zzzz', 4), { kind: 'high-z' });
+test('formatBusValue reconhece bits parcialmente indefinidos e preserva o texto com os x', () => {
+  assert.deepEqual(formatBusValue('10xx'), { text: '10xx', hasUnknown: true, isHighZ: false });
 });
 
-test('formatBusValue converte para hexadecimal preenchido conforme a largura', () => {
-  assert.deepEqual(formatBusValue('0101', 4), { kind: 'value', text: '5' });
-  assert.deepEqual(formatBusValue('00000001', 8), { kind: 'value', text: '01' });
+test('formatBusValue reconhece alta impedancia so quando nao ha nenhum bit indefinido', () => {
+  assert.deepEqual(formatBusValue('zzzz'), { text: 'zzzz', hasUnknown: false, isHighZ: true });
+  assert.deepEqual(formatBusValue('xzzz'), { text: 'xzzz', hasUnknown: true, isHighZ: false });
 });

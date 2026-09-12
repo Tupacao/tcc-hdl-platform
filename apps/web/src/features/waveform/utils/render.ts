@@ -1,10 +1,22 @@
 import type { Viewport, WaveformColors, WaveTransition } from '../models/types';
 
-export const ROW_HEIGHT = 28;
+/**
+ * Geometria fixada pelo design (Figma, frame "1.2 · Formas de onda — tokens,
+ * geometria e anatomia"; ver docs/requisitos/funcional/RF06/figma/WILL-BE-DONE.md).
+ * Nao redecidir estes valores no codigo.
+ */
+export const BAND_HEIGHT = 24;
+const ROW_GAP = 20;
+export const ROW_STEP = BAND_HEIGHT + ROW_GAP;
+export const NAME_COLUMN_WIDTH = 168;
+const WAVE_LINE_WIDTH = 2;
+const GRID_LINE_WIDTH = 1;
+const BUS_TIP_WIDTH = 7;
+const BUS_TEXT_MIN_WIDTH = 44;
+const BUS_FONT = '11px ui-monospace, monospace';
+
 export const RULER_HEIGHT = 24;
-const ROW_PADDING = 6;
 const MIN_PIXELS_BETWEEN_TICKS = 60;
-const BUS_TIP_WIDTH = 6;
 const HATCH_SPACING = 5;
 
 export interface WaveSegment {
@@ -71,22 +83,28 @@ export function computeTicks(viewport: Viewport, canvasWidth: number): number[] 
   return ticks;
 }
 
-export type BusRepresentation =
-  { kind: 'unknown' } | { kind: 'high-z' } | { kind: 'value'; text: string };
+export interface BusRepresentation {
+  /** O valor tal como armazenado (0/1/x/z por bit) — o design mostra o texto literal,
+   * nao uma conversao para hexadecimal (frame 5.1: "0011", "1111", "10xx"). */
+  text: string;
+  /** Algum bit indefinido: hachura em --wave-x, cor de texto de contraste (nao --wave-x). */
+  hasUnknown: boolean;
+  /** Nenhum bit indefinido, mas algum em alta impedancia: contorno tracejado em --wave-z. */
+  isHighZ: boolean;
+}
 
-/** Decide como um valor de barramento vira texto: hex quando totalmente definido. */
-export function formatBusValue(value: string, width: number): BusRepresentation {
-  if (value.includes('x')) return { kind: 'unknown' };
-  if (value.includes('z')) return { kind: 'high-z' };
-  const hexDigits = Math.ceil(width / 4);
-  const text = BigInt(`0b${value}`).toString(16).toUpperCase().padStart(hexDigits, '0');
-  return { kind: 'value', text };
+/** Decide a aparencia de um segmento de barramento a partir do valor bruto (sem conversao). */
+export function formatBusValue(value: string): BusRepresentation {
+  const hasUnknown = value.includes('x');
+  const isHighZ = !hasUnknown && value.includes('z');
+  return { text: value, hasUnknown, isHighZ };
 }
 
 function timeToX(time: number, viewport: Viewport): number {
   return (time - viewport.startTime) * viewport.pixelsPerTime;
 }
 
+/** Hachura diagonal a 45 graus ocupando a altura toda — anatomia do "x" (frame 1.2). */
 function drawHatchRect(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -100,7 +118,6 @@ function drawHatchRect(
   ctx.rect(x, y, w, h);
   ctx.clip();
   ctx.strokeStyle = color;
-  ctx.globalAlpha = 0.7;
   ctx.lineWidth = 1;
   for (let offset = -h; offset < w + h; offset += HATCH_SPACING) {
     ctx.beginPath();
@@ -111,25 +128,22 @@ function drawHatchRect(
   ctx.restore();
 }
 
-function referenceY(value: string, rowTop: number, rowBottom: number): number {
-  if (value === '1') return rowTop + ROW_PADDING;
-  if (value === '0') return rowBottom - ROW_PADDING;
-  return (rowTop + rowBottom) / 2;
+function referenceY(value: string, bandTop: number, bandBottom: number): number {
+  if (value === '1') return bandTop;
+  if (value === '0') return bandBottom;
+  return (bandTop + bandBottom) / 2;
 }
 
 function drawScalarRow(
   ctx: CanvasRenderingContext2D,
   segments: WaveSegment[],
   viewport: Viewport,
-  rowTop: number,
-  rowBottom: number,
+  bandTop: number,
+  bandBottom: number,
   colors: WaveformColors,
   canvasWidth: number,
 ): void {
-  const highY = rowTop + ROW_PADDING;
-  const lowY = rowBottom - ROW_PADDING;
-  const midY = (rowTop + rowBottom) / 2;
-
+  const midY = (bandTop + bandBottom) / 2;
   let previousY: number | null = null;
 
   for (const segment of segments) {
@@ -137,11 +151,11 @@ function drawScalarRow(
     const x1 = Math.min(canvasWidth, timeToX(segment.end, viewport));
     if (x1 <= x0) continue;
 
-    const y = referenceY(segment.value, rowTop, rowBottom);
+    const y = referenceY(segment.value, bandTop, bandBottom);
 
     if (previousY !== null) {
-      ctx.strokeStyle = colors.foreground;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = colors.waveLevel;
+      ctx.lineWidth = WAVE_LINE_WIDTH;
       ctx.beginPath();
       ctx.moveTo(x0, previousY);
       ctx.lineTo(x0, y);
@@ -149,15 +163,15 @@ function drawScalarRow(
     }
 
     if (segment.value === '0' || segment.value === '1') {
-      ctx.strokeStyle = colors.foreground;
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = colors.waveLevel;
+      ctx.lineWidth = WAVE_LINE_WIDTH;
       ctx.beginPath();
       ctx.moveTo(x0, y);
       ctx.lineTo(x1, y);
       ctx.stroke();
     } else if (segment.value === 'z') {
-      ctx.strokeStyle = colors.warning;
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = colors.waveZ;
+      ctx.lineWidth = WAVE_LINE_WIDTH;
       ctx.setLineDash([4, 3]);
       ctx.beginPath();
       ctx.moveTo(x0, midY);
@@ -165,20 +179,38 @@ function drawScalarRow(
       ctx.stroke();
       ctx.setLineDash([]);
     } else {
-      drawHatchRect(ctx, x0, highY, x1 - x0, lowY - highY, colors.destructive);
+      drawHatchRect(ctx, x0, bandTop, x1 - x0, bandBottom - bandTop, colors.waveX);
     }
 
     previousY = y;
   }
 }
 
+function busPath(
+  ctx: CanvasRenderingContext2D,
+  x0: number,
+  x1: number,
+  top: number,
+  bottom: number,
+  leftTip: number,
+  rightTip: number,
+): void {
+  ctx.beginPath();
+  ctx.moveTo(x0 + leftTip, top);
+  ctx.lineTo(x1 - rightTip, top);
+  ctx.lineTo(x1, (top + bottom) / 2);
+  ctx.lineTo(x1 - rightTip, bottom);
+  ctx.lineTo(x0 + leftTip, bottom);
+  ctx.lineTo(x0, (top + bottom) / 2);
+  ctx.closePath();
+}
+
 function drawBusSegment(
   ctx: CanvasRenderingContext2D,
   segment: WaveSegment,
-  width: number,
   viewport: Viewport,
-  rowTop: number,
-  rowBottom: number,
+  bandTop: number,
+  bandBottom: number,
   colors: WaveformColors,
   canvasWidth: number,
   isFirst: boolean,
@@ -188,64 +220,40 @@ function drawBusSegment(
   const x1 = Math.min(canvasWidth, timeToX(segment.end, viewport));
   if (x1 <= x0) return;
 
-  const top = rowTop + ROW_PADDING;
-  const bottom = rowBottom - ROW_PADDING;
   const segmentWidth = x1 - x0;
   const tip = Math.min(BUS_TIP_WIDTH, segmentWidth / 4);
   const leftTip = isFirst ? 0 : tip;
   const rightTip = isLast ? 0 : tip;
 
-  const representation = formatBusValue(segment.value, width);
-  const strokeColor = representation.kind === 'high-z' ? colors.warning : colors.foreground;
+  const representation = formatBusValue(segment.value);
 
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(x0 + leftTip, top);
-  ctx.lineTo(x1 - rightTip, top);
-  ctx.lineTo(x1, (top + bottom) / 2);
-  ctx.lineTo(x1 - rightTip, bottom);
-  ctx.lineTo(x0 + leftTip, bottom);
-  ctx.lineTo(x0, (top + bottom) / 2);
-  ctx.closePath();
-
-  if (representation.kind === 'unknown') {
-    ctx.clip();
-    drawHatchRect(ctx, x0, top, segmentWidth, bottom - top, colors.destructive);
-    ctx.restore();
+  if (representation.hasUnknown) {
     ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(x0 + leftTip, top);
-    ctx.lineTo(x1 - rightTip, top);
-    ctx.lineTo(x1, (top + bottom) / 2);
-    ctx.lineTo(x1 - rightTip, bottom);
-    ctx.lineTo(x0 + leftTip, bottom);
-    ctx.lineTo(x0, (top + bottom) / 2);
-    ctx.closePath();
-    ctx.strokeStyle = colors.destructive;
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    busPath(ctx, x0, x1, bandTop, bandBottom, leftTip, rightTip);
+    ctx.clip();
+    drawHatchRect(ctx, x0, bandTop, segmentWidth, bandBottom - bandTop, colors.waveX);
     ctx.restore();
-    return;
   }
 
-  if (representation.kind === 'high-z') {
-    ctx.setLineDash([4, 3]);
-  }
-  ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = 1;
+  busPath(ctx, x0, x1, bandTop, bandBottom, leftTip, rightTip);
+  ctx.strokeStyle = representation.hasUnknown ? colors.waveX : colors.waveBus;
+  ctx.lineWidth = WAVE_LINE_WIDTH;
+  if (representation.isHighZ) ctx.setLineDash([4, 3]);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.restore();
 
-  if (representation.kind === 'value') {
-    const availableWidth = segmentWidth - 2 * Math.max(leftTip, rightTip) - 4;
-    ctx.font = '11px ui-monospace, monospace';
-    const textWidth = ctx.measureText(representation.text).width;
-    if (textWidth <= availableWidth) {
-      ctx.fillStyle = colors.foreground;
+  if (segmentWidth >= BUS_TEXT_MIN_WIDTH) {
+    // O piso de 44px (frame 1.2) foi calibrado com os exemplos de 4 bits do proprio
+    // Figma ("0011", "10xx"); um barramento largo (ex.: um contador de 32 bits) pode
+    // ultrapassar esse piso e ainda nao caber o texto por extenso — medir evita
+    // sobrepor o segmento vizinho nesse caso que o frame nao cobriu.
+    ctx.font = BUS_FONT;
+    const availableWidth = segmentWidth - leftTip - rightTip - 4;
+    if (ctx.measureText(representation.text).width <= availableWidth) {
+      ctx.fillStyle = representation.hasUnknown ? colors.foreground : colors.waveBus;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(representation.text, (x0 + x1) / 2, (top + bottom) / 2);
+      ctx.fillText(representation.text, (x0 + x1) / 2, (bandTop + bandBottom) / 2);
     }
   }
 }
@@ -290,42 +298,34 @@ export function draw({
 
   for (const tick of ticks) {
     const x = timeToX(tick, viewport);
-    ctx.strokeStyle = colors.border;
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = colors.waveGrid;
+    ctx.lineWidth = GRID_LINE_WIDTH;
     ctx.beginPath();
     ctx.moveTo(x, RULER_HEIGHT);
     ctx.lineTo(x, height);
     ctx.stroke();
 
-    ctx.fillStyle = colors.mutedForeground;
+    ctx.fillStyle = colors.waveRulerForeground;
     ctx.fillText(`${tick * timescale}${timeUnit}`, x, 2);
   }
 
   rows.forEach((row, index) => {
-    const rowTop = RULER_HEIGHT + index * ROW_HEIGHT;
-    const rowBottom = rowTop + ROW_HEIGHT;
-
-    ctx.strokeStyle = colors.border;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, rowBottom);
-    ctx.lineTo(width, rowBottom);
-    ctx.stroke();
+    const bandTop = RULER_HEIGHT + index * ROW_STEP;
+    const bandBottom = bandTop + BAND_HEIGHT;
 
     const transitions = transitionsBySignal.get(row.id) ?? [];
     const segments = buildSegments(transitions, endTime, row.width);
 
     if (row.width <= 1) {
-      drawScalarRow(ctx, segments, viewport, rowTop, rowBottom, colors, width);
+      drawScalarRow(ctx, segments, viewport, bandTop, bandBottom, colors, width);
     } else {
       segments.forEach((segment, segmentIndex) => {
         drawBusSegment(
           ctx,
           segment,
-          row.width,
           viewport,
-          rowTop,
-          rowBottom,
+          bandTop,
+          bandBottom,
           colors,
           width,
           segmentIndex === 0,
