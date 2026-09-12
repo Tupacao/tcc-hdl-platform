@@ -29,3 +29,24 @@ export interface Waveform {
   /** true quando o arquivo terminou de forma abrupta (RF04-I02) e o parser parou no ultimo registro completo. */
   truncated: boolean;
 }
+
+/**
+ * Trecho do tempo desenhado no canvas. E a unica entrada que RF06-I03 (zoom e
+ * deslocamento) vai alterar — o desenho em si nunca conhece o restante do estado
+ * de interacao.
+ */
+export interface Viewport {
+  startTime: number;
+  endTime: number;
+  /** Escala horizontal: pixels de canvas por unidade de $timescale. */
+  pixelsPerTime: number;
+}
+
+/** Cores lidas uma vez por mudanca de tema, via getComputedStyle dos tokens de RF10. */
+export interface WaveformColors {
+  foreground: string;
+  mutedForeground: string;
+  border: string;
+  destructive: string;
+  warning: string;
+}

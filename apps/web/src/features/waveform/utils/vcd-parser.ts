@@ -1,6 +1,15 @@
 import type { WaveSignal, WaveTransition, Waveform } from '../models/types';
 
-const IGNORED_DIRECTIVES = new Set(['$dumpvars', '$dumpall', '$dumpon', '$dumpoff', '$comment']);
+const IGNORED_DIRECTIVES = new Set(['$dumpvars', '$dumpall', '$dumpon', '$dumpoff']);
+
+/**
+ * $date, $version, $comment e $timescale sao "declaration_command"s do VCD cujo
+ * conteudo pode vir em uma unica linha (`$timescale 1ns $end`) ou espalhado por
+ * varias, com o `$end` sozinho numa linha propria — e exatamente o que o
+ * iverilog emite (`$date\n\tSat ...\n$end`). Precisam de um modo "bloco pendente"
+ * em vez do despacho linha-a-linha usado para o resto do cabecalho.
+ */
+const BLOCK_DIRECTIVES = new Set(['$date', '$version', '$comment', '$timescale']);
 
 class MalformedLineError extends Error {}
 
@@ -12,6 +21,8 @@ interface ParserState {
   timescale: number;
   timeUnit: string;
   endTime: number;
+  pendingBlock: 'timescale' | 'skip' | null;
+  pendingTokens: string[];
 }
 
 function currentScope(state: ParserState): string {
@@ -36,16 +47,42 @@ function* iterateLines(text: string): Generator<string> {
   }
 }
 
-function parseTimescale(line: string, state: ParserState): void {
-  const rest = line.slice('$timescale'.length).trim();
-  const tokens = rest.split(/\s+/).filter((token) => token.length > 0 && token !== '$end');
+/** Aplica o texto acumulado de um bloco `$timescale`. Texto que nao casa e ignorado (mantem o padrao). */
+function applyTimescale(tokens: string[], state: ParserState): void {
   const combined = tokens.join('');
   const match = /^(\d+)([a-zA-Z]+)$/.exec(combined);
-  if (!match) {
-    throw new MalformedLineError(`$timescale invalido: "${line}"`);
-  }
+  if (!match) return;
   state.timescale = Number(match[1]);
   state.timeUnit = match[2] ?? '';
+}
+
+/** Abre um bloco `$date`/`$version`/`$comment`/`$timescale`, resolvendo de imediato a forma de uma linha so. */
+function openBlock(directive: string, line: string, state: ParserState): void {
+  const tokens = line.split(/\s+/).filter((token) => token.length > 0);
+  const endIndex = tokens.indexOf('$end');
+  const kind: 'timescale' | 'skip' = directive === '$timescale' ? 'timescale' : 'skip';
+
+  if (endIndex !== -1) {
+    if (kind === 'timescale') applyTimescale(tokens.slice(1, endIndex), state);
+    return;
+  }
+  state.pendingBlock = kind;
+  state.pendingTokens = tokens.slice(1);
+}
+
+/** Continua um bloco aberto por `openBlock` ate encontrar o `$end` que o fecha. */
+function consumePendingBlock(line: string, state: ParserState): void {
+  const tokens = line.split(/\s+/).filter((token) => token.length > 0);
+  const endIndex = tokens.indexOf('$end');
+
+  if (endIndex === -1) {
+    state.pendingTokens.push(...tokens);
+    return;
+  }
+  state.pendingTokens.push(...tokens.slice(0, endIndex));
+  if (state.pendingBlock === 'timescale') applyTimescale(state.pendingTokens, state);
+  state.pendingBlock = null;
+  state.pendingTokens = [];
 }
 
 function parseScope(line: string, state: ParserState): void {
@@ -157,6 +194,10 @@ function parseTimeMarker(line: string, state: ParserState): void {
 }
 
 function parseLine(line: string, state: ParserState): void {
+  if (state.pendingBlock !== null) {
+    consumePendingBlock(line, state);
+    return;
+  }
   if (line.length === 0 || line === '$end') {
     return;
   }
@@ -165,8 +206,9 @@ function parseLine(line: string, state: ParserState): void {
     parseTimeMarker(line, state);
     return;
   }
-  if (line.startsWith('$timescale')) {
-    parseTimescale(line, state);
+  const directive = line.split(/\s+/)[0];
+  if (directive && BLOCK_DIRECTIVES.has(directive)) {
+    openBlock(directive, line, state);
     return;
   }
   if (line.startsWith('$scope')) {
@@ -184,7 +226,6 @@ function parseLine(line: string, state: ParserState): void {
   if (line.startsWith('$enddefinitions')) {
     return;
   }
-  const directive = line.split(/\s+/)[0];
   if (directive && IGNORED_DIRECTIVES.has(directive)) {
     return;
   }
@@ -218,6 +259,8 @@ export function parseVcd(text: string): Waveform {
     timescale: 1,
     timeUnit: '',
     endTime: 0,
+    pendingBlock: null,
+    pendingTokens: [],
   };
 
   let truncated = false;
