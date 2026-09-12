@@ -4,11 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import type { WaveSignal } from '../models/types';
 import { getSignalKey } from '../utils/rows';
-import {
-  formatBitWidthLabel,
-  formatSignalCountLabel,
-  SIGNAL
-} from '../utils/messages';
+import { formatBitWidthLabel, formatSignalCountLabel, SIGNAL } from '../utils/messages';
 
 interface SignalListProps {
   rows: WaveSignal[];
@@ -65,7 +61,7 @@ export function SignalList({ rows, selectedKeys, onChange }: SignalListProps) {
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="flex h-8 items-center gap-1 rounded-md border border-input bg-background px-2.5 text-xs font-medium text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="flex h-8 items-center gap-1 rounded-md border border-input bg-background px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-accent active:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         {formatSignalCountLabel(selectedKeys.size, rows.length)}
       </button>

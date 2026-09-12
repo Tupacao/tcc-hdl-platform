@@ -15,7 +15,7 @@ export const SIGNAL = {
   SELECT_ALL_LABEL: 'selecionar todos',
   CLEAR_LABEL: 'limpar',
   LIST_EMPTY_MESSAGE: 'Nenhum sinal encontrado.',
-}
+};
 
 export function formatBitWidthLabel(width: number): string {
   return width === 1 ? '1 bit' : `${width} bits`;

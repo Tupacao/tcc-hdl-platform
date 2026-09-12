@@ -31,14 +31,11 @@ export function CursorReadout({ waveform, rows, cursorTime }: CursorReadoutProps
           {rows.map((row) => {
             const value = valueAt(waveform, row.id, cursorTime);
             return (
-              <div
-                key={row.id}
-                className="flex items-center justify-between gap-2 rounded-md bg-muted px-2 py-1.5"
-              >
-                <span className="truncate text-xs text-muted-foreground">{row.name}</span>
-                <span className="shrink-0 font-mono text-xs font-medium">
+              <div key={row.id} className="min-w-0 rounded-md bg-muted px-2 py-1.5">
+                <p className="truncate text-xs text-muted-foreground">{row.name}</p>
+                <p className="break-all font-mono text-xs font-medium">
                   {toVerilogLiteral(value, row.width)}
-                </span>
+                </p>
               </div>
             );
           })}

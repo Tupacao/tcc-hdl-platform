@@ -29,9 +29,17 @@ export interface UseViewportResult {
  * responsabilidade de quem desenha (depende da largura do canvas, nao do
  * viewport em si).
  */
+/**
+ * Zoom maximo: 100x o enquadramento total (ex.: 10000% na barra). Sem um teto o
+ * zoom "some" na pratica - o piso do vao (`minSpan`) so ficava pequeno o
+ * suficiente pra virar um numero gigante e sem sentido no rotulo de porcentagem,
+ * nunca travando de verdade.
+ */
+const MAX_ZOOM_FACTOR = 100;
+
 export function useViewport(totalEndTime: number): UseViewportResult {
   const clampedTotal = Math.max(totalEndTime, 1e-9);
-  const minSpan = clampedTotal / 10000;
+  const minSpan = clampedTotal / MAX_ZOOM_FACTOR;
 
   const [range, setRangeState] = useState<ViewportRange>({ startTime: 0, endTime: clampedTotal });
 

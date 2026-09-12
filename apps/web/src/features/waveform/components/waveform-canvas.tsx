@@ -7,6 +7,7 @@ import {
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
   type WheelEvent as ReactWheelEvent,
 } from 'react';
 import { useTheme } from '@/hooks/use-theme';
@@ -47,6 +48,32 @@ interface DragState {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+interface ZoomButtonProps {
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+}
+
+/**
+ * Botao de icone da barra de zoom. `title` da a dica nativa do navegador ao
+ * passar o mouse (o icone sozinho nao diz o que faz); `active:` da feedback de
+ * clique visivel nos dois temas — `hover:bg-accent` sozinho e quase invisivel
+ * no tema claro (`--accent` e bem proximo de `--background` la).
+ */
+function ZoomButton({ label, onClick, children }: ZoomButtonProps) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className="flex size-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground active:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {children}
+    </button>
+  );
 }
 
 /**
@@ -287,59 +314,40 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
         <div className="ml-auto flex items-center gap-2">
           <SignalList rows={rows} selectedKeys={selectedKeys} onChange={setSelectedKeys} />
           <div className="flex items-center gap-0.5">
-            <button
-              type="button"
-              aria-label={ZOOM.GO_TO_START_LABEL}
-              onClick={() => viewport.goToStart()}
-              className="flex size-7 items-center justify-center rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
+            <ZoomButton label={ZOOM.GO_TO_START_LABEL} onClick={() => viewport.goToStart()}>
               <SkipBack aria-hidden className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              aria-label={ZOOM.OUT_LABEL}
+            </ZoomButton>
+            <ZoomButton
+              label={ZOOM.OUT_LABEL}
               onClick={() =>
                 viewport.zoomAt(
                   (viewport.range.startTime + viewport.range.endTime) / 2,
                   1 / ZOOM_FACTOR,
                 )
               }
-              className="flex size-7 items-center justify-center rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <ZoomOut aria-hidden className="size-3.5" />
-            </button>
+            </ZoomButton>
             <span className="w-10 text-center text-xs tabular-nums text-muted-foreground">
               {formatZoomPercentLabel(viewport.zoomPercent)}
             </span>
-            <button
-              type="button"
-              aria-label={ZOOM.IN_LABEL}
+            <ZoomButton
+              label={ZOOM.IN_LABEL}
               onClick={() =>
                 viewport.zoomAt(
                   (viewport.range.startTime + viewport.range.endTime) / 2,
                   ZOOM_FACTOR,
                 )
               }
-              className="flex size-7 items-center justify-center rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <ZoomIn aria-hidden className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              aria-label={ZOOM.GO_TO_END_LABEL}
-              onClick={() => viewport.goToEnd()}
-              className="flex size-7 items-center justify-center rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
+            </ZoomButton>
+            <ZoomButton label={ZOOM.GO_TO_END_LABEL} onClick={() => viewport.goToEnd()}>
               <SkipForward aria-hidden className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              aria-label={ZOOM.FIT_ALL_LABEL}
-              onClick={() => viewport.fitAll()}
-              className="flex size-7 items-center justify-center rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
+            </ZoomButton>
+            <ZoomButton label={ZOOM.FIT_ALL_LABEL} onClick={() => viewport.fitAll()}>
               <Maximize2 aria-hidden className="size-3.5" />
-            </button>
+            </ZoomButton>
           </div>
         </div>
       </div>
