@@ -8,6 +8,17 @@ estao em `docs/PROJECT_CONTEXT.md` — consulte antes de introduzir dependencias
 mudar arquitetura. `README.md` traz o passo a passo de setup e o estado atual
 (feito / pendente).
 
+## Antes de implementar qualquer coisa
+
+1. `docs/ARCHITECTURE.md` — estrutura obrigatoria de pastas (feature-based no
+   front, camadas `application/domain/infra` no back) e convencao de branch/commit.
+2. `docs/WORKFLOW.md` — processo fixo a seguir: criar branch no padrao > consultar
+   a arquitetura > implementar a funcionalidade **por completo** > validar/corrigir
+   > so entao escrever os testes (espelhando a arvore, nunca antes da
+   implementacao estar correta) > commit/PR.
+
+Essas duas leituras vem antes de qualquer edicao de codigo nesta tarefa.
+
 ## Comandos
 
 ```bash
@@ -33,6 +44,10 @@ pnpm --filter @tplab/api exec node --import tsx --test --test-name-pattern="warn
 
 Para trabalhar de verdade e preciso: Redis no ar (sem ele `POST /api/simulations`
 responde 503), imagem `tplab-sandbox:latest` construida e o worker rodando.
+
+CI (`.github/workflows/ci-front.yml` e `ci-back.yml`) roda format check + typecheck
++ build/test, cada um disparando so quando o respectivo `apps/*` muda. `main` e
+protegida: todo codigo entra via PR com CI verde.
 
 ## Arquitetura
 
