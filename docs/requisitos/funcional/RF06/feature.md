@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Feedback ao usuario |
-| Status | Em andamento — I01 (parser), I02 (renderizacao em canvas) e I03 (zoom/deslocamento/cursor) concluidos; I04 (desempenho/acessibilidade) pendente |
+| Status | Concluido — I01 (parser), I02 (renderizacao em canvas), I03 (zoom/deslocamento/cursor) e I04 (desempenho/acessibilidade) concluidos |
 | Requisitos relacionados | RF04, RF09, RF10, RNF01, RNF03, RNF07, RNF09 |
 
 ## 1. Enunciado
@@ -77,8 +77,12 @@ adotada aqui e parser proprio + canvas.
   (selecao de sinais) e `components/cursor-readout.tsx` (leitura de valores no
   cursor). `apps/web/src/features/workspace/waveform-panel.tsx` compoe tudo —
   nao e mais o placeholder que so imprimia o `.vcd` cru.
-- **Falta**: comportamento com arquivos proximos do teto de tamanho e leitura
-  textual completa para acessibilidade de arquivos grandes (I04).
+- RF06-I04: parse em Web Worker (`workers/vcd-worker.ts` +
+  `hooks/use-parsed-vcd.ts`), recorte de transicoes por viewport e reducao de
+  segmentos por coluna de pixel em `utils/render.ts`, tabela acessivel em
+  `components/cursor-readout.tsx` e canvas com `role="application"` +
+  `aria-describedby` para os atalhos de teclado. Numeros de desempenho
+  documentados no `README.md` (RNF07).
 
 ## 6. Escopo
 
@@ -109,7 +113,7 @@ adotada aqui e parser proprio + canvas.
 - [x] Um cursor de tempo mostra, em texto, o valor de cada sinal selecionado
       naquele instante — inclusive barramentos largos (ex. um contador de 32
       bits) sem espaco pro valor por extenso no segmento.
-- [ ] Um VCD proximo do teto de tamanho renderiza sem travar a interface. _(RF06-I04)_
+- [x] Um VCD proximo do teto de tamanho renderiza sem travar a interface. _(RF06-I04)_
 - [x] O painel respeita o tema claro/escuro e mantem contraste AA.
 
 ## 8. Quebra em issues
@@ -119,7 +123,7 @@ adotada aqui e parser proprio + canvas.
 | [issue-01](issue-01-parser-vcd.md) | Parser de VCD e modelo de sinais | `feat-RF06-01-parser-vcd-front` | M | Concluido (PR #5) |
 | [issue-02](issue-02-renderizacao-canvas.md) | Renderizacao das formas de onda em canvas | `feat-RF06-02-renderizacao-canvas-front` | G | Concluido (PR #6) |
 | [issue-03](issue-03-interacao-zoom-cursor.md) | Zoom, deslocamento, selecao de sinais e cursor de tempo | `feat-RF06-03-interacao-zoom-cursor-front` | G | Concluido |
-| [issue-04](issue-04-desempenho-acessibilidade.md) | Desempenho com arquivos grandes e acessibilidade | `feat-RF06-04-desempenho-acessibilidade-front` | M | Pendente |
+| [issue-04](issue-04-desempenho-acessibilidade.md) | Desempenho com arquivos grandes e acessibilidade | `feat-RF06-04-desempenho-acessibilidade-front` | M | Concluido |
 
 ## 9. Dependencias
 

@@ -8,6 +8,8 @@ export const WAVEFORM_EMPTY_STATE = {
   AFTER_DUMPVARS: ' no testbench e execute a simulacao.',
 };
 
+export const WAVEFORM_LOADING_MESSAGE = 'Interpretando a forma de onda...';
+
 export const WAVEFORM_UNPARSEABLE_MESSAGE =
   'Nao foi possivel interpretar a forma de onda recebida.';
 

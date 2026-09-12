@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
-import { Activity } from 'lucide-react';
+import { Activity, Loader2 } from 'lucide-react';
 import { WaveformCanvas } from '@/features/waveform/components/waveform-canvas';
-import { parseVcd } from '@/features/waveform/utils/vcd-parser';
+import { useParsedVcd } from '@/features/waveform/hooks/use-parsed-vcd';
 import {
   WAVEFORM_EMPTY_STATE,
+  WAVEFORM_LOADING_MESSAGE,
   WAVEFORM_TRUNCATED_MESSAGE,
   WAVEFORM_UNPARSEABLE_MESSAGE,
 } from './utils/messages';
@@ -14,9 +14,9 @@ interface WaveformPanelProps {
 
 /** RF06 — visualizador grafico interativo de formas de onda. */
 export function WaveformPanel({ vcd }: WaveformPanelProps) {
-  const waveform = useMemo(() => (vcd ? parseVcd(vcd) : null), [vcd]);
+  const { waveform, isLoading } = useParsedVcd(vcd);
 
-  if (!waveform) {
+  if (!vcd) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground">
         <Activity aria-hidden className="size-6" />
@@ -27,6 +27,20 @@ export function WaveformPanel({ vcd }: WaveformPanelProps) {
           <code>{WAVEFORM_EMPTY_STATE.DUMPVARS}</code>
           {WAVEFORM_EMPTY_STATE.AFTER_DUMPVARS}
         </p>
+      </div>
+    );
+  }
+
+  // Worker de RF06-I04 ainda processando — a interface (editor, console) segue
+  // utilizavel, so este painel mostra o estado de carregamento.
+  if (isLoading || !waveform) {
+    return (
+      <div
+        role="status"
+        className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground"
+      >
+        <Loader2 aria-hidden className="size-6 animate-spin" />
+        <p>{WAVEFORM_LOADING_MESSAGE}</p>
       </div>
     );
   }
