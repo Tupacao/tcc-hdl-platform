@@ -3,11 +3,7 @@ import { Activity } from 'lucide-react';
 import { WaveformCanvas } from '@/features/waveform/components/waveform-canvas';
 import { parseVcd } from '@/features/waveform/utils/vcd-parser';
 import {
-  WAVEFORM_EMPTY_STATE_AFTER_DUMPVARS,
-  WAVEFORM_EMPTY_STATE_BEFORE_DUMPFILE,
-  WAVEFORM_EMPTY_STATE_BETWEEN_DIRECTIVES,
-  WAVEFORM_EMPTY_STATE_DUMPFILE,
-  WAVEFORM_EMPTY_STATE_DUMPVARS,
+  WAVEFORM_EMPTY_STATE,
   WAVEFORM_TRUNCATED_MESSAGE,
   WAVEFORM_UNPARSEABLE_MESSAGE,
 } from './utils/messages';
@@ -25,11 +21,11 @@ export function WaveformPanel({ vcd }: WaveformPanelProps) {
       <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground">
         <Activity aria-hidden className="size-6" />
         <p>
-          {WAVEFORM_EMPTY_STATE_BEFORE_DUMPFILE}
-          <code>{WAVEFORM_EMPTY_STATE_DUMPFILE}</code>
-          {WAVEFORM_EMPTY_STATE_BETWEEN_DIRECTIVES}
-          <code>{WAVEFORM_EMPTY_STATE_DUMPVARS}</code>
-          {WAVEFORM_EMPTY_STATE_AFTER_DUMPVARS}
+          {WAVEFORM_EMPTY_STATE.BEFORE_DUMPFILE}
+          <code>{WAVEFORM_EMPTY_STATE.DUMPFILE}</code>
+          {WAVEFORM_EMPTY_STATE.BETWEEN_DIRECTIVES}
+          <code>{WAVEFORM_EMPTY_STATE.DUMPVARS}</code>
+          {WAVEFORM_EMPTY_STATE.AFTER_DUMPVARS}
         </p>
       </div>
     );
