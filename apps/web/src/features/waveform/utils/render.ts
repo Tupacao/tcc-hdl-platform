@@ -60,6 +60,92 @@ export function buildSegments(
   return segments;
 }
 
+/** Indice da ultima transicao com `time <= t` (busca binaria; `transitions` ja vem ordenada por tempo). */
+function lastIndexAtOrBefore(transitions: WaveTransition[], t: number): number {
+  let low = 0;
+  let high = transitions.length - 1;
+  let result = -1;
+  while (low <= high) {
+    const mid = (low + high) >> 1;
+    const candidate = transitions[mid];
+    if (candidate && candidate.time <= t) {
+      result = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return result;
+}
+
+/**
+ * Fatia so a janela de transicoes relevante ao viewport (RF06-I04): um `.vcd`
+ * proximo do teto de tamanho de RF04-I02 tem centenas de milhares de
+ * transicoes por sinal, e reconstruir segmentos a partir de todas elas a cada
+ * redesenho (pan/zoom/tema) fica caro demais para continuar fluido. Inclui a
+ * transicao imediatamente anterior ao inicio do viewport, para que o primeiro
+ * segmento visivel comece com o valor correto em vez de "desconhecido".
+ */
+export function sliceTransitionsForViewport(
+  transitions: WaveTransition[],
+  viewport: Viewport,
+): WaveTransition[] {
+  if (transitions.length === 0) return transitions;
+  const from = Math.max(lastIndexAtOrBefore(transitions, viewport.startTime), 0);
+  const lastVisible = lastIndexAtOrBefore(transitions, viewport.endTime);
+  const to = lastVisible === -1 ? from : lastVisible;
+  return transitions.slice(from, to + 1);
+}
+
+/**
+ * Reduz segmentos que caem na mesma coluna de pixel a um so, antes de
+ * desenhar (RF06-I04) — sem isso, mais transicoes do que pixels de largura
+ * gera uma chamada de desenho por transicao, mesmo quando dezenas delas
+ * ocupam o mesmo pixel. `x`/`z` tem prioridade dentro do grupo: um pulso mais
+ * estreito que um pixel ainda precisa aparecer como marca visivel, nao pode
+ * "sumir" atras de um valor definido vizinho no mesmo pixel.
+ */
+export function reduceSegmentsForPixels(
+  segments: WaveSegment[],
+  viewport: Viewport,
+): WaveSegment[] {
+  if (segments.length === 0) return segments;
+
+  const reduced: WaveSegment[] = [];
+  let bucketColumn: number | null = null;
+  let bucketStart = 0;
+  let bucketEnd = 0;
+  let bucketValue = '';
+  let bucketHasSpecial = false;
+
+  function flush(): void {
+    if (bucketColumn === null) return;
+    reduced.push({ start: bucketStart, end: bucketEnd, value: bucketValue });
+  }
+
+  for (const segment of segments) {
+    const column = Math.floor(timeToX(segment.start, viewport));
+    const isSpecial = segment.value.includes('x') || segment.value.includes('z');
+
+    if (bucketColumn === null || column !== bucketColumn) {
+      flush();
+      bucketColumn = column;
+      bucketStart = segment.start;
+      bucketEnd = segment.end;
+      bucketValue = segment.value;
+      bucketHasSpecial = isSpecial;
+    } else {
+      bucketEnd = segment.end;
+      if (isSpecial || !bucketHasSpecial) {
+        bucketValue = segment.value;
+        bucketHasSpecial = bucketHasSpecial || isSpecial;
+      }
+    }
+  }
+  flush();
+  return reduced;
+}
+
 /** Arredonda para 1/2/5 * 10^n — o passo "redondo" classico de regua de eixo. */
 function niceStep(rawStep: number): number {
   if (rawStep <= 0) return 1;
@@ -272,7 +358,6 @@ export interface DrawParams {
   ctx: CanvasRenderingContext2D;
   rows: DrawRow[];
   transitionsBySignal: Map<string, WaveTransition[]>;
-  endTime: number;
   timescale: number;
   timeUnit: string;
   viewport: Viewport;
@@ -288,7 +373,6 @@ export function draw({
   ctx,
   rows,
   transitionsBySignal,
-  endTime,
   timescale,
   timeUnit,
   viewport,
@@ -321,8 +405,14 @@ export function draw({
     const bandTop = RULER_HEIGHT + index * ROW_STEP;
     const bandBottom = bandTop + BAND_HEIGHT;
 
-    const transitions = transitionsBySignal.get(row.id) ?? [];
-    const segments = buildSegments(transitions, endTime, row.width);
+    const allTransitions = transitionsBySignal.get(row.id) ?? [];
+    const visibleTransitions = sliceTransitionsForViewport(allTransitions, viewport);
+    let segments = buildSegments(visibleTransitions, viewport.endTime, row.width);
+    // RF06-I04: mais transicoes do que pixels de largura — reduzir antes de
+    // desenhar, ou o navegador emite uma chamada de canvas por transicao.
+    if (segments.length > width) {
+      segments = reduceSegmentsForPixels(segments, viewport);
+    }
 
     if (row.width <= 1) {
       drawScalarRow(ctx, segments, viewport, bandTop, bandBottom, colors, width);

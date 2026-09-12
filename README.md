@@ -102,18 +102,30 @@ Ja implementado:
 - Worker BullMQ, runner do sandbox Docker e parser de diagnosticos (com testes)
 - Frontend com editor Monaco (Verilog), painies redimensionaveis, console de erros
   e tema claro/escuro
-- Visualizador de formas de onda (RF06): parser de `.vcd`, renderizacao em canvas
-  (sinais escalares e barramentos, cores/geometria do Figma), zoom/deslocamento
-  por mouse e teclado, selecao de sinais com busca e cursor de tempo com leitura
-  textual dos valores — falta desempenho com arquivos proximos do teto de tamanho
-  (RF06-I04)
+- Visualizador de formas de onda (RF06): parser de `.vcd` em Web Worker,
+  renderizacao em canvas (sinais escalares e barramentos, cores/geometria do
+  Figma), zoom/deslocamento por mouse e teclado, selecao de sinais com busca,
+  cursor de tempo com leitura textual dos valores em tabela acessivel e recorte
+  de transicoes por viewport para arquivos grandes (RF06-I04)
+
+Evidencia de desempenho (RNF07), medida com o painel de performance do Chrome
+sobre um `.vcd` real de ~8 MiB (teto do sandbox, truncado) gerado por uma
+simulacao de ~400 mil ciclos de clock:
+
+- Parse (worker, incluindo ida e volta de `postMessage`): **~1823 ms**, fora da
+  main thread — a UI permanece responsiva durante a interpretacao.
+- Primeiro desenho apos os dados chegarem (`draw()`, zoom "ajustar tudo"):
+  **~113 ms**.
+- Gesto de zoom (sucessivos cliques de "aumentar zoom", viewport encolhendo):
+  **~112 ms -> ~33 ms -> ~41 ms -> ~27 ms -> ~28 ms -> ~8 ms**, decrescendo
+  porque `sliceTransitionsForViewport` (busca binaria) e
+  `reduceSegmentsForPixels` (reducao por coluna de pixel) limitam o trabalho de
+  desenho ao intervalo de tempo realmente visivel.
 
 Pendente:
 
 - [ ] Persistencia real dos projetos (Prisma + PostgreSQL) — hoje o repositorio e em
       memoria (`apps/api/src/modules/projects/repository.ts`)
-- [ ] Desempenho e acessibilidade do visualizador de formas de onda com arquivos
-      grandes (RF06-I04)
 - [ ] Exportacao de projetos em `.zip` (RF08)
 - [ ] Documentacao estatica: guia de inicio rapido e referencia de sintaxe (RF11)
 - [ ] Autenticacao Google e compartilhamento por link (RF14/RF15)

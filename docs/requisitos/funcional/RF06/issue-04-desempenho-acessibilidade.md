@@ -58,13 +58,29 @@ da forma de onda seja acessivel sem enxergar o grafico.
 
 ## Criterios de aceite
 
-- [ ] Um `.vcd` no teto de tamanho e interpretado sem travar a interface.
-- [ ] O tempo de parse e de primeiro desenho estao medidos e documentados.
-- [ ] Com zoom afastado o desenho continua fluido, sem perder transicoes de
+- [x] Um `.vcd` no teto de tamanho e interpretado sem travar a interface.
+- [x] O tempo de parse e de primeiro desenho estao medidos e documentados.
+- [x] Com zoom afastado o desenho continua fluido, sem perder transicoes de
       `x`/`z`.
-- [ ] A tabela de valores tem semantica de tabela e e navegavel por teclado.
-- [ ] O canvas tem descricao acessivel e aponta para a alternativa textual.
-- [ ] A auditoria de acessibilidade do painel nao acusa violacao de nivel A ou AA.
+- [x] A tabela de valores tem semantica de tabela e e navegavel por teclado.
+- [x] O canvas tem descricao acessivel e aponta para a alternativa textual.
+- [x] A auditoria de acessibilidade do painel nao acusa violacao de nivel A ou AA.
+
+### Notas de implementacao (desvios do passo a passo)
+
+- Passo 6 previa `role="img"` no canvas. A auditoria de acessibilidade (passo 8)
+  apontou que isso e semanticamente incorreto aqui: o canvas responde a teclado
+  (setas, +/-, Home/End, 0), e `role="img"` diz a leitores de tela que o elemento
+  e estatico - em alguns leitores isso pode ate impedir que as teclas cheguem ao
+  `onKeyDown` (modo de navegacao por texto engolindo as setas). Trocado para
+  `role="application"`, o papel ARIA correto para um widget que assume o proprio
+  tratamento de teclado, mais `aria-describedby` apontando para o texto de atalhos
+  (`WAVEFORM_SHORTCUTS_HINT`) que ja existia abaixo do painel.
+- A auditoria tambem achou que o popover de selecao de sinais (`SignalList`)
+  fechava com Esc/clique fora sem devolver o foco ao botao que o abriu - um beco
+  sem saida para quem navega so por teclado (padrao WAI-ARIA de disclosure).
+  Corrigido guardando um `ref` do botao-gatilho e chamando `.focus()` nele ao
+  fechar por Esc.
 
 ## Verificacao
 

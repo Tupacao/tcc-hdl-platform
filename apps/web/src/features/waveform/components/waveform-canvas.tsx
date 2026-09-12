@@ -15,12 +15,12 @@ import { useViewport } from '../hooks/use-viewport';
 import type { Viewport, Waveform } from '../models/types';
 import { nearestTransitionTime } from '../utils/cursor';
 import {
+  formatBitWidthLabel,
   formatSignalCountLabel,
+  formatWaveformCanvasAriaLabel,
   formatZoomPercentLabel,
-  WAVEFORM_CANVAS_ARIA_LABEL,
   WAVEFORM_SHORTCUTS_HINT,
   ZOOM,
-  formatBitWidthLabel,
 } from '../utils/messages';
 import { draw, NAME_COLUMN_WIDTH, ROW_STEP, RULER_HEIGHT, xToTime } from '../utils/render';
 import { getSignalKey, selectDisplayRows } from '../utils/rows';
@@ -156,7 +156,6 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
       ctx,
       rows: visibleRows,
       transitionsBySignal: waveform.transitions,
-      endTime: waveform.endTime,
       timescale: waveform.timescale,
       timeUnit: waveform.timeUnit,
       viewport: currentViewport,
@@ -370,8 +369,15 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
         <div ref={containerRef} className="relative min-w-0 flex-1">
           <canvas
             ref={canvasRef}
-            role="img"
-            aria-label={WAVEFORM_CANVAS_ARIA_LABEL}
+            role="application"
+            aria-label={formatWaveformCanvasAriaLabel(
+              visibleRows.length,
+              currentViewport.startTime,
+              currentViewport.endTime,
+              waveform.timescale,
+              waveform.timeUnit,
+            )}
+            aria-describedby="waveform-shortcuts-hint"
             tabIndex={0}
             onWheel={handleWheel}
             onPointerDown={handlePointerDown}
@@ -395,7 +401,10 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
       </div>
 
       <CursorReadout waveform={waveform} rows={visibleRows} cursorTime={cursorTime} />
-      <p className="border-t px-3 py-1 text-[11px] text-muted-foreground">
+      <p
+        id="waveform-shortcuts-hint"
+        className="border-t px-3 py-1 text-[11px] text-muted-foreground"
+      >
         {WAVEFORM_SHORTCUTS_HINT}
       </p>
       <p className="sr-only" aria-live="polite">

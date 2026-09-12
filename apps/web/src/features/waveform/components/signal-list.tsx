@@ -21,6 +21,7 @@ export function SignalList({ rows, selectedKeys, onChange }: SignalListProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -31,7 +32,12 @@ export function SignalList({ rows, selectedKeys, onChange }: SignalListProps) {
       }
     }
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape') {
+        setOpen(false);
+        // Padrao WAI-ARIA de disclosure: fechar sem devolver o foco ao gatilho
+        // deixa o foco cair para o <body>, um beco sem saida para quem navega so por teclado.
+        triggerRef.current?.focus();
+      }
     }
 
     document.addEventListener('pointerdown', handlePointerDown);
@@ -57,6 +63,7 @@ export function SignalList({ rows, selectedKeys, onChange }: SignalListProps) {
   return (
     <div ref={containerRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         aria-haspopup="true"
         aria-expanded={open}
