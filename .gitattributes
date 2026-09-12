@@ -1,6 +1,12 @@
-* text=auto
+## Sem isto, `* text=auto` sozinho deixa o fim de linha do checkout a cargo de
+## `core.eol`/`core.autocrlf` (que aqui estao unset) — o padrao vira "native", ou
+## seja CRLF no Windows. O Prettier (`endOfLine: "lf"`, ver .prettierrc) e o proprio
+## editor sempre escrevem LF, entao todo arquivo de texto virava falso-positivo de
+## "modificado" so por causa do fim de linha. Forcar eol=lf elimina o descompasso.
+* text=auto eol=lf
 
-# Scripts executados dentro de containers Linux precisam de LF no working tree.
+# Scripts executados dentro de containers Linux precisam de LF no working tree
+# (redundante com a regra acima, mantido para deixar a intencao explicita).
 *.sh text eol=lf
 Dockerfile text eol=lf
 
