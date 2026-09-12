@@ -18,11 +18,7 @@ import {
   formatZoomPercentLabel,
   WAVEFORM_CANVAS_ARIA_LABEL,
   WAVEFORM_SHORTCUTS_HINT,
-  ZOOM_FIT_ALL_LABEL,
-  ZOOM_GO_TO_END_LABEL,
-  ZOOM_GO_TO_START_LABEL,
-  ZOOM_IN_LABEL,
-  ZOOM_OUT_LABEL,
+  ZOOM,
   formatBitWidthLabel,
 } from '../utils/messages';
 import { draw, NAME_COLUMN_WIDTH, ROW_STEP, RULER_HEIGHT, xToTime } from '../utils/render';
@@ -293,7 +289,7 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
           <div className="flex items-center gap-0.5">
             <button
               type="button"
-              aria-label={ZOOM_GO_TO_START_LABEL}
+              aria-label={ZOOM.GO_TO_START_LABEL}
               onClick={() => viewport.goToStart()}
               className="flex size-7 items-center justify-center rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -301,7 +297,7 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
             </button>
             <button
               type="button"
-              aria-label={ZOOM_OUT_LABEL}
+              aria-label={ZOOM.OUT_LABEL}
               onClick={() =>
                 viewport.zoomAt(
                   (viewport.range.startTime + viewport.range.endTime) / 2,
@@ -317,7 +313,7 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
             </span>
             <button
               type="button"
-              aria-label={ZOOM_IN_LABEL}
+              aria-label={ZOOM.IN_LABEL}
               onClick={() =>
                 viewport.zoomAt(
                   (viewport.range.startTime + viewport.range.endTime) / 2,
@@ -330,7 +326,7 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
             </button>
             <button
               type="button"
-              aria-label={ZOOM_GO_TO_END_LABEL}
+              aria-label={ZOOM.GO_TO_END_LABEL}
               onClick={() => viewport.goToEnd()}
               className="flex size-7 items-center justify-center rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
@@ -338,7 +334,7 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
             </button>
             <button
               type="button"
-              aria-label={ZOOM_FIT_ALL_LABEL}
+              aria-label={ZOOM.FIT_ALL_LABEL}
               onClick={() => viewport.fitAll()}
               className="flex size-7 items-center justify-center rounded hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >

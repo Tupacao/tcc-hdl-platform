@@ -7,11 +7,7 @@ import { getSignalKey } from '../utils/rows';
 import {
   formatBitWidthLabel,
   formatSignalCountLabel,
-  SIGNAL_CLEAR_LABEL,
-  SIGNAL_LIST_ARIA_LABEL,
-  SIGNAL_LIST_EMPTY_MESSAGE,
-  SIGNAL_SEARCH_PLACEHOLDER,
-  SIGNAL_SELECT_ALL_LABEL,
+  SIGNAL
 } from '../utils/messages';
 
 interface SignalListProps {
@@ -77,14 +73,14 @@ export function SignalList({ rows, selectedKeys, onChange }: SignalListProps) {
       {open && (
         <div
           role="group"
-          aria-label={SIGNAL_LIST_ARIA_LABEL}
+          aria-label={SIGNAL.LIST_ARIA_LABEL}
           className="absolute right-0 top-full z-10 mt-1 w-64 rounded-md border bg-popover p-2 text-popover-foreground shadow-md"
         >
           <Input
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={SIGNAL_SEARCH_PLACEHOLDER}
+            placeholder={SIGNAL.SEARCH_PLACEHOLDER}
             className="mb-2 h-8 text-xs"
           />
           <div className="mb-1 flex gap-1">
@@ -95,7 +91,7 @@ export function SignalList({ rows, selectedKeys, onChange }: SignalListProps) {
               className="h-auto p-0 text-xs"
               onClick={() => onChange(new Set(rows.map(getSignalKey)))}
             >
-              {SIGNAL_SELECT_ALL_LABEL}
+              {SIGNAL.SELECT_ALL_LABEL}
             </Button>
             <span aria-hidden className="text-xs text-muted-foreground">
               ·
@@ -107,13 +103,13 @@ export function SignalList({ rows, selectedKeys, onChange }: SignalListProps) {
               className="h-auto p-0 text-xs"
               onClick={() => onChange(new Set())}
             >
-              {SIGNAL_CLEAR_LABEL}
+              {SIGNAL.CLEAR_LABEL}
             </Button>
           </div>
           <ul className="max-h-64 overflow-auto">
             {filteredRows.length === 0 && (
               <li className="px-1 py-2 text-xs text-muted-foreground">
-                {SIGNAL_LIST_EMPTY_MESSAGE}
+                {SIGNAL.LIST_EMPTY_MESSAGE}
               </li>
             )}
             {filteredRows.map((row) => {
