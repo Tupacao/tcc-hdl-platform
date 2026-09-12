@@ -2,10 +2,13 @@ import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import {
   serializerCompiler,
   validatorCompiler,
   hasZodFastifySchemaValidationErrors,
+  jsonSchemaTransform,
 } from 'fastify-type-provider-zod';
 import { env } from './config/env.js';
 import { healthRoutes } from './modules/health/routes.js';
@@ -28,6 +31,20 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
   // Barreira simples contra abuso do endpoint de simulacao (RNF05).
   await app.register(rateLimit, { max: 60, timeWindow: '1 minute' });
+
+  // Documentacao OpenAPI gerada a partir dos mesmos schemas Zod das rotas.
+  await app.register(swagger, {
+    openapi: {
+      info: { title: 'TPLab API', version: process.env.npm_package_version ?? '0.1.0' },
+      tags: [
+        { name: 'system', description: 'Status da API' },
+        { name: 'projects', description: 'CRUD de projetos (RF07)' },
+        { name: 'simulation', description: 'Compilacao e simulacao de HDL (RF03/RF04)' },
+      ],
+    },
+    transform: jsonSchemaTransform,
+  });
+  await app.register(swaggerUi, { routePrefix: '/docs' });
 
   app.setErrorHandler((error: FastifyError, request, reply) => {
     if (hasZodFastifySchemaValidationErrors(error)) {
