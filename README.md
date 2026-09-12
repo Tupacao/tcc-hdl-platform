@@ -102,12 +102,16 @@ Ja implementado:
 - Worker BullMQ, runner do sandbox Docker e parser de diagnosticos (com testes)
 - Frontend com editor Monaco (Verilog), painies redimensionaveis, console de erros
   e tema claro/escuro
+- Visualizador de formas de onda (RF06): parser de `.vcd` e renderizacao em canvas
+  (sinais escalares e barramentos, cores/geometria do Figma) — falta zoom,
+  deslocamento, cursor de leitura e desempenho com arquivos grandes (RF06-I03/I04)
 
 Pendente:
 
 - [ ] Persistencia real dos projetos (Prisma + PostgreSQL) — hoje o repositorio e em
       memoria (`apps/api/src/modules/projects/repository.ts`)
-- [ ] Renderizacao grafica do `.vcd` no `WaveformPanel` (RF06)
+- [ ] Zoom, deslocamento e cursor de leitura no visualizador de formas de onda
+      (RF06-I03/I04)
 - [ ] Exportacao de projetos em `.zip` (RF08)
 - [ ] Documentacao estatica: guia de inicio rapido e referencia de sintaxe (RF11)
 - [ ] Autenticacao Google e compartilhamento por link (RF14/RF15)

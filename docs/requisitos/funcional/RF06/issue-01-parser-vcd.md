@@ -3,9 +3,10 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF06](feature.md) |
-| Branch | `feat/rf06-parser-vcd` |
+| Branch | `feat-RF06-01-parser-vcd-front` |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | - |
+| Status | **Concluido.** PR #5, mesclado. |
 
 ## Contexto
 
@@ -66,15 +67,17 @@ e sem depender do renderizador.
 
 ## Criterios de aceite
 
-- [ ] O `.vcd` do exemplo `full_adder` produz o conjunto correto de sinais, com
+- [x] O `.vcd` do exemplo `full_adder` produz o conjunto correto de sinais, com
       largura e caminho de escopo corretos.
-- [ ] Transicoes ficam ordenadas por tempo e sem duplicidade.
-- [ ] `valueAt` devolve o valor vigente em qualquer instante, inclusive antes da
+- [x] Transicoes ficam ordenadas por tempo e sem duplicidade.
+- [x] `valueAt` devolve o valor vigente em qualquer instante, inclusive antes da
       primeira transicao.
-- [ ] Vetores tem os zeros a esquerda restaurados conforme a largura declarada.
-- [ ] Arquivo truncado e interpretado ate onde da, com `truncated: true`.
-- [ ] O parser nao lanca excecao em nenhuma das fixtures de teste.
-- [ ] Nao ha dependencia nova no `package.json` para essa etapa.
+- [x] Vetores tem os zeros a esquerda restaurados conforme a largura declarada.
+- [x] Arquivo truncado e interpretado ate onde da, com `truncated: true`.
+- [x] O parser nao lanca excecao em nenhuma das fixtures de teste.
+- [x] Nao ha dependencia nova no `package.json` para essa etapa (o unico item novo,
+      `tsx`, e um runner de teste `devDependency`, previsto no proprio texto desta
+      issue, nao uma lib de parsing).
 
 ## Verificacao
 
