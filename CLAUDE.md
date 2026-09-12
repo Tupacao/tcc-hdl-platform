@@ -141,6 +141,16 @@ Tudo abaixo e escopado a este repositorio — nada foi instalado globalmente.
   ambiente (nao suporta dynamic client registration), entao usamos este servidor
   local com PAT. O token fica em `GITHUB_PERSONAL_ACCESS_TOKEN` no ambiente do
   shell (nunca no `.mcp.json`, que so referencia `${GITHUB_PERSONAL_ACCESS_TOKEN}`).
+  Este servidor roda via `npx` (processo Node): matar processos `node` na maquina
+  (ex.: `taskkill /F /IM node.exe`, ou equivalente para liberar uma porta) derruba
+  o MCP para o resto da sessao — preferir localizar e encerrar o PID especifico
+  (`netstat -ano` + `taskkill /F /PID <pid>`) a matar todos os processos `node`.
+  Se o MCP cair e o `gh` CLI nao estiver instalado, criar/gerenciar PR direto pela
+  API REST do GitHub com `curl`, usando o mesmo `GITHUB_PERSONAL_ACCESS_TOKEN`
+  do ambiente (`Authorization: Bearer $GITHUB_PERSONAL_ACCESS_TOKEN`) — cobre
+  `POST /repos/:owner/:repo/pulls`, labels (`POST .../issues/:n/labels`) e
+  reviewers (`POST .../pulls/:n/requested_reviewers`; falha com 422 se o PAT for
+  do proprio autor do PR, que e o caso aqui — `Tupacao` nao pode se auto-revisar).
 - **MCP** `context7` (documentacao atualizada das libs — o stack usa React 19,
   Tailwind v4, Zod 4, Fastify 5) fica em escopo `local`, fora do repositorio,
   porque carrega uma API key. `.mcp.json` nao expande variavel vinda de
