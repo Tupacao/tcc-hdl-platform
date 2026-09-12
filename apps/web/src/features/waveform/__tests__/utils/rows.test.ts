@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { WaveSignal } from '../../models/types';
-import { selectDisplayRows } from '../../utils/rows';
+import { getSignalKey, selectDisplayRows } from '../../utils/rows';
 
 function signal(overrides: Partial<WaveSignal>): WaveSignal {
   return { id: '!', name: 'a', scope: 'tb', width: 1, type: 'wire', ...overrides };
@@ -31,4 +31,12 @@ test('preserva a ordem de primeira ocorrencia', () => {
     rows.map((r) => r.id),
     ['#', '!'],
   );
+});
+
+test('getSignalKey combina escopo e nome, para sobreviver a troca de id entre execucoes', () => {
+  assert.equal(getSignalKey(signal({ scope: 'tb', name: 'a' })), 'tb.a');
+});
+
+test('getSignalKey sem escopo usa so o nome', () => {
+  assert.equal(getSignalKey(signal({ scope: '', name: 'a' })), 'a');
 });

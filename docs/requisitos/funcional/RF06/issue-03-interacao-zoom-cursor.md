@@ -3,9 +3,10 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF06](feature.md) |
-| Branch | `feat/rf06-interacao-zoom-cursor` |
+| Branch | `feat-RF06-03-interacao-zoom-cursor-front` |
 | Tamanho | G (aprox. 2 dias) |
 | Depende de | RF06-I02 |
+| Status | **Concluido.** |
 
 ## Contexto
 
@@ -59,15 +60,34 @@ reporta valores em texto - por mouse e por teclado.
 
 ## Criterios de aceite
 
-- [ ] Zoom com a roda aproxima no ponto sob o cursor, nao no centro.
-- [ ] Arrastar desloca o tempo, sem permitir sair do intervalo simulado.
-- [ ] O ajuste automatico enquadra toda a simulacao.
-- [ ] Clicar fixa o cursor; `Shift` + setas pula de transicao em transicao.
-- [ ] A leitura mostra o valor correto de cada sinal no instante do cursor, em
-      binario e hexadecimal.
-- [ ] A busca filtra a lista de sinais e a selecao altera o desenho.
-- [ ] Toda a interacao e possivel apenas pelo teclado.
-- [ ] Reexecutar a simulacao com os mesmos sinais preserva selecao e zoom.
+- [x] Zoom com a roda aproxima no ponto sob o cursor, nao no centro. (`Ctrl`+roda —
+      roda sozinha continua fazendo a rolagem vertical padrao quando ha mais
+      sinais do que cabem no painel.)
+- [x] Arrastar desloca o tempo, sem permitir sair do intervalo simulado.
+- [x] O ajuste automatico enquadra toda a simulacao.
+- [x] Clicar fixa o cursor; `Shift` + setas pula de transicao em transicao.
+- [x] A leitura mostra o valor correto de cada sinal no instante do cursor.
+      **Ressalva**: o formato e o literal Verilog dimensionado (`4'b1111`), nao
+      "binario e hexadecimal" — e o que o frame 8.2 do Figma mostra de verdade
+      (ver comentario em `utils/verilog-literal.ts`); segui o frame, nao o texto
+      desta issue, no mesmo espirito da divergencia ja registrada em RF06-I02.
+- [x] A busca filtra a lista de sinais e a selecao altera o desenho.
+- [x] Toda a interacao e possivel apenas pelo teclado.
+- [x] Reexecutar a simulacao com os mesmos sinais preserva selecao e zoom.
+      Achado ao validar: `useMutation` limpa `data` a cada novo `mutate()`
+      (mesmo com os mesmos sinais), o que desmontava `WaveformCanvas` e apagava
+      todo o estado a cada execucao — corrigido em `workspace.tsx` guardando o
+      ultimo resultado a parte (ver commit).
+
+**Simplificacao registrada** (autorizada pela propria secao de riscos): sem
+reordenacao de sinais por arrastar nem por botoes — a lista mantem a ordem de
+declaracao do VCD. Nao e criterio de aceite explicito e o custo de
+acessibilidade do drag-and-drop nao parecia justificado nesta rodada.
+
+**Pendencia registrada**: o passo 3 pede documentar os atalhos "junto com os de
+RF09-I02", mas esse dialogo de atalhos ainda nao existe no codigo (RF09-I02 nao
+foi implementada). Por ora os atalhos ficam so numa legenda de texto abaixo do
+canvas (`WAVEFORM_SHORTCUTS_HINT`); quando RF09-I02 for feita, mover para la.
 
 ## Verificacao
 

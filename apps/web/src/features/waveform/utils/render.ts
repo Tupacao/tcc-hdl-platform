@@ -14,6 +14,7 @@ const GRID_LINE_WIDTH = 1;
 const BUS_TIP_WIDTH = 7;
 const BUS_TEXT_MIN_WIDTH = 44;
 const BUS_FONT = '11px ui-monospace, monospace';
+const CURSOR_LINE_WIDTH = 1.5;
 
 export const RULER_HEIGHT = 24;
 const MIN_PIXELS_BETWEEN_TICKS = 60;
@@ -100,8 +101,12 @@ export function formatBusValue(value: string): BusRepresentation {
   return { text: value, hasUnknown, isHighZ };
 }
 
-function timeToX(time: number, viewport: Viewport): number {
+export function timeToX(time: number, viewport: Viewport): number {
   return (time - viewport.startTime) * viewport.pixelsPerTime;
+}
+
+export function xToTime(x: number, viewport: Viewport): number {
+  return viewport.startTime + x / viewport.pixelsPerTime;
 }
 
 /** Hachura diagonal a 45 graus ocupando a altura toda — anatomia do "x" (frame 1.2). */
@@ -274,6 +279,8 @@ export interface DrawParams {
   colors: WaveformColors;
   width: number;
   height: number;
+  /** Instante fixado por clique/teclado (RF06-I03). null quando nada foi fixado ainda. */
+  cursorTime?: number | null;
 }
 
 /** Desenho puro: nenhuma dependencia de React ou DOM alem do CanvasRenderingContext2D recebido. */
@@ -288,6 +295,7 @@ export function draw({
   colors,
   width,
   height,
+  cursorTime,
 }: DrawParams): void {
   ctx.clearRect(0, 0, width, height);
 
@@ -334,4 +342,16 @@ export function draw({
       });
     }
   });
+
+  if (cursorTime !== null && cursorTime !== undefined) {
+    const x = timeToX(cursorTime, viewport);
+    if (x >= 0 && x <= width) {
+      ctx.strokeStyle = colors.waveCursor;
+      ctx.lineWidth = CURSOR_LINE_WIDTH;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+  }
 }

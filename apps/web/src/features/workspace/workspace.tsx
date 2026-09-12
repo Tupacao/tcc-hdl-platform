@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { CircuitBoard, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Diagnostic, HdlSources } from '@tplab/shared';
+import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SAMPLE_SOURCES } from '@/lib/samples';
@@ -22,8 +22,14 @@ export function Workspace() {
   const [sources, setSources] = useState<HdlSources>(SAMPLE_SOURCES);
   const [activeTab, setActiveTab] = useState<FileTab>('design');
   const runMutation = useRunSimulation();
+  // `useMutation` limpa `data` assim que uma nova chamada comeca (fica undefined
+  // durante o pending), nao so no mount inicial - re-executar apagaria o
+  // resultado (e desmontaria o WaveformCanvas, derrubando zoom/selecao/cursor de
+  // RF06-I03) por um instante a cada execucao. Guardar o ultimo resultado a parte
+  // mantem a tela estavel enquanto a nova simulacao roda.
+  const [lastResult, setLastResult] = useState<SimulationResult | null>(null);
 
-  const result = runMutation.data ?? null;
+  const result = lastResult;
   const error = runMutation.error?.message ?? null;
   const isRunning = runMutation.isPending;
 
@@ -34,6 +40,7 @@ export function Workspace() {
   const handleRun = useCallback(() => {
     runMutation.mutate(sources, {
       onSuccess: (simulation) => {
+        setLastResult(simulation);
         if (simulation.failure) toast.error('A simulacao terminou com erros.');
         else toast.success(`Simulacao concluida em ${simulation.durationMs} ms.`);
       },

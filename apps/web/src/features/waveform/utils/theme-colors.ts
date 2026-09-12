@@ -17,6 +17,7 @@ export function readWaveformColors(root: HTMLElement = document.documentElement)
     waveX: readVar(styles, '--wave-x'),
     waveZ: readVar(styles, '--wave-z'),
     waveGrid: readVar(styles, '--wave-grid'),
+    waveCursor: readVar(styles, '--wave-cursor'),
     waveRulerForeground: readVar(styles, '--wave-ruler-foreground'),
     foreground: readVar(styles, '--foreground'),
   };
