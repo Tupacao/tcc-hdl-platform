@@ -83,7 +83,7 @@ a11y-audit:
     when: always
   rules:
     - changes:
-        - "src/**/*.{tsx,vue,html,svelte}"
+        - 'src/**/*.{tsx,vue,html,svelte}'
 ```
 
 ## Azure DevOps

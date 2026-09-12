@@ -68,10 +68,7 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 const query = `SELECT * FROM users WHERE email = '${email}'`;
 
 // GOOD: Parameterized queries
-const result = await db.query(
-  'SELECT * FROM users WHERE email = $1',
-  [email]
-);
+const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
 ```
 
 ### A04: Insecure Design
@@ -138,9 +135,8 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({
     error: {
       code: 'INTERNAL_ERROR',
-      message: process.env.NODE_ENV === 'development'
-        ? err.message
-        : 'An unexpected error occurred',
+      message:
+        process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred',
       requestId,
     },
   });
@@ -209,30 +205,23 @@ app.post('/login', async (req, res) => {
 // Verify webhook signatures (e.g., Stripe)
 import Stripe from 'stripe';
 
-app.post('/webhooks/stripe',
-  express.raw({ type: 'application/json' }),
-  async (req, res) => {
-    const sig = req.headers['stripe-signature'] as string;
-    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'] as string;
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-    let event: Stripe.Event;
+  let event: Stripe.Event;
 
-    try {
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        sig,
-        endpointSecret
-      );
-    } catch (err) {
-      logger.warn({ err }, 'Webhook signature verification failed');
-      return res.status(400).json({ error: 'Invalid signature' });
-    }
-
-    // Process verified event
-    await handleStripeEvent(event);
-    res.json({ received: true });
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    logger.warn({ err }, 'Webhook signature verification failed');
+    return res.status(400).json({ error: 'Invalid signature' });
   }
-);
+
+  // Process verified event
+  await handleStripeEvent(event);
+  res.json({ received: true });
+});
 ```
 
 ### A09: Security Logging Failures
@@ -254,11 +243,14 @@ function logSecurityEvent(event: {
   userAgent: string;
   details?: Record<string, unknown>;
 }) {
-  logger.info({
-    security: true,
-    ...event,
-    timestamp: new Date().toISOString(),
-  }, `Security event: ${event.type}`);
+  logger.info(
+    {
+      security: true,
+      ...event,
+      timestamp: new Date().toISOString(),
+    },
+    `Security event: ${event.type}`,
+  );
 }
 
 // Usage
@@ -316,7 +308,7 @@ function isAllowedUrl(urlString: string): boolean {
       /^169\.254\.169\.254$/,
     ];
 
-    if (blockedPatterns.some(p => p.test(url.hostname))) {
+    if (blockedPatterns.some((p) => p.test(url.hostname))) {
       return false;
     }
 
@@ -360,7 +352,8 @@ import { z } from 'zod';
 // Define schemas
 const CreateUserSchema = z.object({
   email: z.string().email().max(255).toLowerCase(),
-  password: z.string()
+  password: z
+    .string()
     .min(8, 'Password must be at least 8 characters')
     .max(72, 'Password must be at most 72 characters') // bcrypt limit
     .regex(/[A-Z]/, 'Password must contain uppercase letter')
@@ -382,7 +375,7 @@ function validate<T>(schema: z.ZodSchema<T>) {
     const result = schema.safeParse(req.body);
 
     if (!result.success) {
-      const details = result.error.errors.map(err => ({
+      const details = result.error.errors.map((err) => ({
         field: err.path.join('.'),
         code: err.code,
         message: err.message,
@@ -460,16 +453,10 @@ const email = "'; DROP TABLE users; --";
 db.query(`SELECT * FROM users WHERE email = '${email}'`);
 
 // GOOD: Parameterized query (pg)
-const result = await db.query(
-  'SELECT * FROM users WHERE email = $1',
-  [email]
-);
+const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
 
 // GOOD: Parameterized query (mysql2)
-const [rows] = await connection.execute(
-  'SELECT * FROM users WHERE email = ?',
-  [email]
-);
+const [rows] = await connection.execute('SELECT * FROM users WHERE email = ?', [email]);
 ```
 
 ### Query Builders
@@ -549,20 +536,22 @@ res.json({ message: userInput }); // JSON.stringify escapes by default
 ```typescript
 import helmet from 'helmet';
 
-app.use(helmet.contentSecurityPolicy({
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'strict-dynamic'"],
-    styleSrc: ["'self'", "'unsafe-inline'"], // Consider using nonces
-    imgSrc: ["'self'", "data:", "https:"],
-    fontSrc: ["'self'"],
-    objectSrc: ["'none'"],
-    frameAncestors: ["'none'"],
-    baseUri: ["'self'"],
-    formAction: ["'self'"],
-    upgradeInsecureRequests: [],
-  },
-}));
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'strict-dynamic'"],
+      styleSrc: ["'self'", "'unsafe-inline'"], // Consider using nonces
+      imgSrc: ["'self'", 'data:', 'https:'],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      upgradeInsecureRequests: [],
+    },
+  }),
+);
 ```
 
 ### API Response Safety
@@ -678,20 +667,22 @@ import { createClient } from 'redis';
 
 const redisClient = createClient({ url: process.env.REDIS_URL });
 
-app.use(session({
-  store: new RedisStore({ client: redisClient }),
-  name: 'sessionId', // Don't use default 'connect.sid'
-  secret: process.env.SESSION_SECRET!,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: 'strict',
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    domain: process.env.COOKIE_DOMAIN,
-  },
-}));
+app.use(
+  session({
+    store: new RedisStore({ client: redisClient }),
+    name: 'sessionId', // Don't use default 'connect.sid'
+    secret: process.env.SESSION_SECRET!,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      domain: process.env.COOKIE_DOMAIN,
+    },
+  }),
+);
 
 // Regenerate session on privilege change
 async function elevateSession(req: Request): Promise<void> {
@@ -725,9 +716,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 };
 
 function hasPermission(userRoles: Role[], required: Permission): boolean {
-  return userRoles.some(role =>
-    ROLE_PERMISSIONS[role]?.includes(required)
-  );
+  return userRoles.some((role) => ROLE_PERMISSIONS[role]?.includes(required));
 }
 
 // Middleware
@@ -743,11 +732,7 @@ function requirePermission(permission: Permission) {
 }
 
 // Usage
-app.delete('/users/:id',
-  authenticate,
-  requirePermission('delete:users'),
-  deleteUserHandler
-);
+app.delete('/users/:id', authenticate, requirePermission('delete:users'), deleteUserHandler);
 ```
 
 ### Attribute-Based Access Control (ABAC)
@@ -772,9 +757,7 @@ const policies: Policy[] = [
   },
   {
     name: 'same-department-read',
-    condition: (ctx) =>
-      ctx.action === 'read' &&
-      ctx.resource.department === ctx.user.department,
+    condition: (ctx) => ctx.action === 'read' && ctx.resource.department === ctx.user.department,
   },
   {
     name: 'admin-override',
@@ -790,7 +773,7 @@ const policies: Policy[] = [
 ];
 
 function evaluateAccess(ctx: AccessContext): boolean {
-  return policies.some(policy => policy.condition(ctx));
+  return policies.some((policy) => policy.condition(ctx));
 }
 ```
 
@@ -803,65 +786,69 @@ function evaluateAccess(ctx: AccessContext): boolean {
 ```typescript
 import helmet from 'helmet';
 
-app.use(helmet({
-  // Content Security Policy
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://api.example.com"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'none'"],
-      frameSrc: ["'none'"],
+app.use(
+  helmet({
+    // Content Security Policy
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https://api.example.com'],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'none'"],
+        frameSrc: ["'none'"],
+      },
     },
-  },
-  // Strict Transport Security
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true,
-  },
-  // Prevent clickjacking
-  frameguard: { action: 'deny' },
-  // Prevent MIME sniffing
-  noSniff: true,
-  // XSS filter (legacy browsers)
-  xssFilter: true,
-  // Hide X-Powered-By
-  hidePoweredBy: true,
-  // Referrer policy
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  // Cross-origin policies
-  crossOriginEmbedderPolicy: false, // Enable if using SharedArrayBuffer
-  crossOriginOpenerPolicy: { policy: 'same-origin' },
-  crossOriginResourcePolicy: { policy: 'same-origin' },
-}));
+    // Strict Transport Security
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    // Prevent clickjacking
+    frameguard: { action: 'deny' },
+    // Prevent MIME sniffing
+    noSniff: true,
+    // XSS filter (legacy browsers)
+    xssFilter: true,
+    // Hide X-Powered-By
+    hidePoweredBy: true,
+    // Referrer policy
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    // Cross-origin policies
+    crossOriginEmbedderPolicy: false, // Enable if using SharedArrayBuffer
+    crossOriginOpenerPolicy: { policy: 'same-origin' },
+    crossOriginResourcePolicy: { policy: 'same-origin' },
+  }),
+);
 
 // CORS configuration
 import cors from 'cors';
 
-app.use(cors({
-  origin: ['https://example.com', 'https://app.example.com'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  maxAge: 86400, // 24 hours
-}));
+app.use(
+  cors({
+    origin: ['https://example.com', 'https://app.example.com'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    maxAge: 86400, // 24 hours
+  }),
+);
 ```
 
 ### Header Reference
 
-| Header | Purpose | Value |
-|--------|---------|-------|
-| `Strict-Transport-Security` | Force HTTPS | `max-age=31536000; includeSubDomains; preload` |
-| `Content-Security-Policy` | Prevent XSS | See above |
-| `X-Content-Type-Options` | Prevent MIME sniffing | `nosniff` |
-| `X-Frame-Options` | Prevent clickjacking | `DENY` |
-| `Referrer-Policy` | Control referrer info | `strict-origin-when-cross-origin` |
-| `Permissions-Policy` | Feature restrictions | `geolocation=(), microphone=()` |
+| Header                      | Purpose               | Value                                          |
+| --------------------------- | --------------------- | ---------------------------------------------- |
+| `Strict-Transport-Security` | Force HTTPS           | `max-age=31536000; includeSubDomains; preload` |
+| `Content-Security-Policy`   | Prevent XSS           | See above                                      |
+| `X-Content-Type-Options`    | Prevent MIME sniffing | `nosniff`                                      |
+| `X-Frame-Options`           | Prevent clickjacking  | `DENY`                                         |
+| `Referrer-Policy`           | Control referrer info | `strict-origin-when-cross-origin`              |
+| `Permissions-Policy`        | Feature restrictions  | `geolocation=(), microphone=()`                |
 
 ---
 
@@ -993,11 +980,14 @@ interface SecurityEvent {
 }
 
 function logSecurityEvent(event: SecurityEvent): void {
-  logger.info({
-    security: true,
-    ...event,
-    timestamp: new Date().toISOString(),
-  }, `Security: ${event.type}`);
+  logger.info(
+    {
+      security: true,
+      ...event,
+      timestamp: new Date().toISOString(),
+    },
+    `Security: ${event.type}`,
+  );
 }
 ```
 
@@ -1006,44 +996,47 @@ function logSecurityEvent(event: SecurityEvent): void {
 ```typescript
 import pinoHttp from 'pino-http';
 
-app.use(pinoHttp({
-  logger,
-  genReqId: (req) => req.headers['x-request-id'] || crypto.randomUUID(),
-  serializers: {
-    req: (req) => ({
-      id: req.id,
-      method: req.method,
-      url: req.url,
-      remoteAddress: req.remoteAddress,
-      // Don't log headers by default (may contain sensitive data)
-    }),
-    res: (res) => ({
-      statusCode: res.statusCode,
-    }),
-  },
-  customLogLevel: (req, res, err) => {
-    if (res.statusCode >= 500 || err) return 'error';
-    if (res.statusCode >= 400) return 'warn';
-    return 'info';
-  },
-}));
+app.use(
+  pinoHttp({
+    logger,
+    genReqId: (req) => req.headers['x-request-id'] || crypto.randomUUID(),
+    serializers: {
+      req: (req) => ({
+        id: req.id,
+        method: req.method,
+        url: req.url,
+        remoteAddress: req.remoteAddress,
+        // Don't log headers by default (may contain sensitive data)
+      }),
+      res: (res) => ({
+        statusCode: res.statusCode,
+      }),
+    },
+    customLogLevel: (req, res, err) => {
+      if (res.statusCode >= 500 || err) return 'error';
+      if (res.statusCode >= 400) return 'warn';
+      return 'info';
+    },
+  }),
+);
 ```
 
 ### Alerting Thresholds
 
-| Metric | Warning | Critical |
-|--------|---------|----------|
-| Failed logins per IP (15 min) | > 5 | > 10 |
-| Failed logins per account (1 hour) | > 3 | > 5 |
-| 403 responses per IP (5 min) | > 10 | > 50 |
-| 500 errors (5 min) | > 5 | > 20 |
-| Request rate per IP (1 min) | > 100 | > 500 |
+| Metric                             | Warning | Critical |
+| ---------------------------------- | ------- | -------- |
+| Failed logins per IP (15 min)      | > 5     | > 10     |
+| Failed logins per account (1 hour) | > 3     | > 5      |
+| 403 responses per IP (5 min)       | > 10    | > 50     |
+| 500 errors (5 min)                 | > 5     | > 20     |
+| Request rate per IP (1 min)        | > 100   | > 500    |
 
 ---
 
 ## Quick Reference: Security Checklist
 
 ### Authentication
+
 - [ ] bcrypt with cost >= 12 for password hashing
 - [ ] JWT with RS256, short expiry (15-30 min)
 - [ ] Refresh token rotation with family detection
@@ -1051,12 +1044,14 @@ app.use(pinoHttp({
 - [ ] Secure cookie flags (httpOnly, secure, sameSite)
 
 ### Input Validation
+
 - [ ] Schema validation on all inputs (Zod)
 - [ ] Parameterized queries (never string concat)
 - [ ] File path sanitization
 - [ ] Content-Type validation
 
 ### Headers
+
 - [ ] Strict-Transport-Security
 - [ ] Content-Security-Policy
 - [ ] X-Content-Type-Options: nosniff
@@ -1064,12 +1059,14 @@ app.use(pinoHttp({
 - [ ] CORS with specific origins
 
 ### Logging
+
 - [ ] Redact sensitive fields
 - [ ] Log security events
 - [ ] Include request IDs
 - [ ] Alert on anomalies
 
 ### Dependencies
+
 - [ ] npm audit in CI
 - [ ] Automated dependency updates
 - [ ] Lock file committed

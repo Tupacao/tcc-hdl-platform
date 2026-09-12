@@ -19,23 +19,23 @@ Concrete patterns for REST and GraphQL API design with examples.
 
 ### When to Use REST
 
-| Scenario | Why REST |
-|----------|----------|
-| Simple CRUD operations | Less complexity, widely understood |
-| Public APIs | Better caching, easier documentation |
-| File uploads/downloads | Native HTTP support |
-| Microservices communication | Simpler service-to-service calls |
-| Caching is critical | HTTP caching built-in |
+| Scenario                    | Why REST                             |
+| --------------------------- | ------------------------------------ |
+| Simple CRUD operations      | Less complexity, widely understood   |
+| Public APIs                 | Better caching, easier documentation |
+| File uploads/downloads      | Native HTTP support                  |
+| Microservices communication | Simpler service-to-service calls     |
+| Caching is critical         | HTTP caching built-in                |
 
 ### When to Use GraphQL
 
-| Scenario | Why GraphQL |
-|----------|-------------|
-| Mobile apps with bandwidth constraints | Request only needed fields |
-| Complex nested data | Single request for related data |
-| Rapidly changing frontend requirements | Frontend-driven queries |
-| Multiple client types | Each client queries what it needs |
-| Real-time subscriptions needed | Built-in subscription support |
+| Scenario                               | Why GraphQL                       |
+| -------------------------------------- | --------------------------------- |
+| Mobile apps with bandwidth constraints | Request only needed fields        |
+| Complex nested data                    | Single request for related data   |
+| Rapidly changing frontend requirements | Frontend-driven queries           |
+| Multiple client types                  | Each client queries what it needs |
+| Real-time subscriptions needed         | Built-in subscription support     |
 
 ### Hybrid Approach
 
@@ -81,13 +81,13 @@ GET    /orders?user_id=123&status=pending
 
 ### Naming Rules
 
-| Rule | Good | Bad |
-|------|------|-----|
-| Use plural nouns | `/users` | `/user` |
-| Use lowercase | `/user-profiles` | `/userProfiles` |
-| Use hyphens | `/order-items` | `/order_items` |
-| No verbs in URLs | `POST /orders` | `POST /createOrder` |
-| No file extensions | `/users/123` | `/users/123.json` |
+| Rule               | Good             | Bad                 |
+| ------------------ | ---------------- | ------------------- |
+| Use plural nouns   | `/users`         | `/user`             |
+| Use lowercase      | `/user-profiles` | `/userProfiles`     |
+| Use hyphens        | `/order-items`   | `/order_items`      |
+| No verbs in URLs   | `POST /orders`   | `POST /createOrder` |
+| No file extensions | `/users/123`     | `/users/123.json`   |
 
 ---
 
@@ -95,11 +95,11 @@ GET    /orders?user_id=123&status=pending
 
 ### Strategy Comparison
 
-| Strategy | Example | Pros | Cons |
-|----------|---------|------|------|
-| URL Path | `/api/v1/users` | Explicit, easy routing | URL changes |
-| Header | `Accept: application/vnd.api+json;version=1` | Clean URLs | Hidden version |
-| Query Param | `/users?version=1` | Easy to test | Pollutes query string |
+| Strategy    | Example                                      | Pros                   | Cons                  |
+| ----------- | -------------------------------------------- | ---------------------- | --------------------- |
+| URL Path    | `/api/v1/users`                              | Explicit, easy routing | URL changes           |
+| Header      | `Accept: application/vnd.api+json;version=1` | Clean URLs             | Hidden version        |
+| Query Param | `/users?version=1`                           | Easy to test           | Pollutes query string |
 
 ### Recommended: URL Path Versioning
 
@@ -116,22 +116,28 @@ app.use('/api/v2', v2Routes);
 
 ```typescript
 // Add deprecation headers
-app.use('/api/v1', (req, res, next) => {
-  res.set('Deprecation', 'true');
-  res.set('Sunset', 'Sat, 01 Jun 2025 00:00:00 GMT');
-  res.set('Link', '</api/v2>; rel="successor-version"');
-  next();
-}, v1Routes);
+app.use(
+  '/api/v1',
+  (req, res, next) => {
+    res.set('Deprecation', 'true');
+    res.set('Sunset', 'Sat, 01 Jun 2025 00:00:00 GMT');
+    res.set('Link', '</api/v2>; rel="successor-version"');
+    next();
+  },
+  v1Routes,
+);
 ```
 
 ### Breaking vs Non-Breaking Changes
 
 **Non-breaking (safe):**
+
 - Adding new endpoints
 - Adding optional fields
 - Adding new enum values at end
 
 **Breaking (requires new version):**
+
 - Removing endpoints or fields
 - Renaming fields
 - Changing field types
@@ -285,20 +291,23 @@ interface CursorPagination {
 
 async function paginatedQuery<T>(
   query: QueryBuilder,
-  { limit, cursor, direction = 'forward' }: CursorPagination
+  { limit, cursor, direction = 'forward' }: CursorPagination,
 ): Promise<{ data: T[]; nextCursor?: string; hasMore: boolean }> {
   // Decode cursor
   const decoded = cursor ? JSON.parse(Buffer.from(cursor, 'base64').toString()) : null;
 
   // Apply cursor condition
   if (decoded) {
-    query = direction === 'forward'
-      ? query.where('id', '>', decoded.id)
-      : query.where('id', '<', decoded.id);
+    query =
+      direction === 'forward'
+        ? query.where('id', '>', decoded.id)
+        : query.where('id', '<', decoded.id);
   }
 
   // Fetch one extra to check if more exist
-  const results = await query.limit(limit + 1).orderBy('id', direction === 'forward' ? 'asc' : 'desc');
+  const results = await query
+    .limit(limit + 1)
+    .orderBy('id', direction === 'forward' ? 'asc' : 'desc');
 
   const hasMore = results.length > limit;
   const data = hasMore ? results.slice(0, -1) : results;
@@ -362,7 +371,7 @@ function generateTokens(user: User): { accessToken: string; refreshToken: string
   const refreshToken = jwt.sign(
     { userId: user.id, tokenVersion: user.tokenVersion },
     process.env.JWT_REFRESH_SECRET!,
-    { expiresIn: '7d', algorithm: 'RS256' }
+    { expiresIn: '7d', algorithm: 'RS256' },
   );
 
   return { accessToken, refreshToken };
@@ -506,7 +515,7 @@ const idempotencyMiddleware: RequestHandler = async (req, res, next) => {
     redis.setex(
       `idempotency:${idempotencyKey}`,
       86400, // 24 hours
-      JSON.stringify({ statusCode: res.statusCode, body })
+      JSON.stringify({ statusCode: res.statusCode, body }),
     );
     return originalJson(body);
   };
@@ -519,12 +528,12 @@ const idempotencyMiddleware: RequestHandler = async (req, res, next) => {
 
 ## Quick Reference: HTTP Methods
 
-| Method | Idempotent | Safe | Cacheable | Request Body |
-|--------|------------|------|-----------|--------------|
-| GET | Yes | Yes | Yes | No |
-| HEAD | Yes | Yes | Yes | No |
-| POST | No | No | Conditional | Yes |
-| PUT | Yes | No | No | Yes |
-| PATCH | No | No | No | Yes |
-| DELETE | Yes | No | No | Optional |
-| OPTIONS | Yes | Yes | No | No |
+| Method  | Idempotent | Safe | Cacheable   | Request Body |
+| ------- | ---------- | ---- | ----------- | ------------ |
+| GET     | Yes        | Yes  | Yes         | No           |
+| HEAD    | Yes        | Yes  | Yes         | No           |
+| POST    | No         | No   | Conditional | Yes          |
+| PUT     | Yes        | No   | No          | Yes          |
+| PATCH   | No         | No   | No          | Yes          |
+| DELETE  | Yes        | No   | No          | Optional     |
+| OPTIONS | Yes        | Yes  | No          | No           |

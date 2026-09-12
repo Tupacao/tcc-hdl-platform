@@ -30,7 +30,7 @@ async function ProductsPage() {
 
   return (
     <div className="grid grid-cols-3 gap-4">
-      {products.map(product => (
+      {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
     </div>
@@ -41,6 +41,7 @@ async function ProductsPage() {
 ### Client Components
 
 Use `'use client'` only when you need:
+
 - Event handlers (onClick, onChange)
 - State (useState, useReducer)
 - Effects (useEffect)
@@ -225,9 +226,7 @@ const MapComponent = dynamic(() => import('@/components/Map'), {
 });
 
 // Named exports
-const Modal = dynamic(() =>
-  import('@/components/ui').then(mod => mod.Modal)
-);
+const Modal = dynamic(() => import('@/components/ui').then((mod) => mod.Modal));
 
 // With suspense
 const DashboardCharts = dynamic(() => import('@/components/DashboardCharts'), {
@@ -378,12 +377,12 @@ fetch('https://api.example.com/data', { cache: 'no-store' });
 
 // Revalidate after time
 fetch('https://api.example.com/data', {
-  next: { revalidate: 3600 } // 1 hour
+  next: { revalidate: 3600 }, // 1 hour
 });
 
 // Tag-based revalidation
 fetch('https://api.example.com/products', {
-  next: { tags: ['products'] }
+  next: { tags: ['products'] },
 });
 
 // Later, revalidate by tag
@@ -405,7 +404,7 @@ export const dynamic = 'force-dynamic';
 // Generate static params at build
 export async function generateStaticParams() {
   const products = await getProducts();
-  return products.map(p => ({ id: p.id }));
+  return products.map((p) => ({ id: p.id }));
 }
 ```
 
@@ -423,7 +422,7 @@ const getCachedUser = unstable_cache(
   {
     revalidate: 3600, // 1 hour
     tags: ['users'],
-  }
+  },
 );
 
 // Usage
@@ -606,16 +605,10 @@ export default function Layout({ children }) {
         {children}
 
         {/* Load analytics after page is interactive */}
-        <Script
-          src="https://analytics.example.com/script.js"
-          strategy="afterInteractive"
-        />
+        <Script src="https://analytics.example.com/script.js" strategy="afterInteractive" />
 
         {/* Load chat widget when idle */}
-        <Script
-          src="https://chat.example.com/widget.js"
-          strategy="lazyOnload"
-        />
+        <Script src="https://chat.example.com/widget.js" strategy="lazyOnload" />
       </body>
     </html>
   );
@@ -623,7 +616,7 @@ export default function Layout({ children }) {
 
 // Use web workers for heavy computation
 // app/components/DataProcessor.tsx
-'use client';
+('use client');
 
 import { useEffect, useState } from 'react';
 
@@ -686,15 +679,15 @@ export function PerformanceMonitor() {
 
 ### Performance Checklist
 
-| Area | Optimization | Impact |
-|------|-------------|--------|
-| Images | Use next/image with priority for LCP | High |
-| Fonts | Use next/font with display: swap | Medium |
-| Code | Dynamic imports for heavy components | High |
-| Data | Parallel fetching with Promise.all | High |
-| Render | Server Components by default | High |
-| Cache | Configure revalidate appropriately | Medium |
-| Bundle | Tree-shake imports, analyze size | Medium |
+| Area   | Optimization                         | Impact |
+| ------ | ------------------------------------ | ------ |
+| Images | Use next/image with priority for LCP | High   |
+| Fonts  | Use next/font with display: swap     | Medium |
+| Code   | Dynamic imports for heavy components | High   |
+| Data   | Parallel fetching with Promise.all   | High   |
+| Render | Server Components by default         | High   |
+| Cache  | Configure revalidate appropriately   | Medium |
+| Bundle | Tree-shake imports, analyze size     | Medium |
 
 ### Config Template
 

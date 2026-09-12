@@ -14,7 +14,7 @@ These seven questions gate every meaningful backend decision: pattern pick (mono
 
 **Kill criterion:** "we'll need to scale" with no QPS number — STOP. Pull current traffic from metrics; use the team's funding-stage growth model. Without numbers, every architecture choice is a guess.
 
-**Canon:** Martin Kleppmann, *Designing Data-Intensive Applications* (2017), ch. 1 + ch. 5 (replication); Pat Helland, *Life beyond Distributed Transactions* (2007); Werner Vogels, *Eventually Consistent* (ACM, 2008).
+**Canon:** Martin Kleppmann, _Designing Data-Intensive Applications_ (2017), ch. 1 + ch. 5 (replication); Pat Helland, _Life beyond Distributed Transactions_ (2007); Werner Vogels, _Eventually Consistent_ (ACM, 2008).
 
 ---
 
@@ -26,7 +26,7 @@ These seven questions gate every meaningful backend decision: pattern pick (mono
 
 **Kill criterion:** "single-tenant for every customer" without an enterprise-pricing model — STOP. Single-tenant cost economics only work at $100K+ ARR per tenant; for everything else, shared with isolation guarantees.
 
-**Canon:** AWS *SaaS Tenant Isolation Strategies* whitepaper (2021); Tomasz Tunguz, *Multi-tenancy economics for SaaS* (2019); Aaron Patterson + Rails security advisories (2014–2024) on row-level isolation patterns.
+**Canon:** AWS _SaaS Tenant Isolation Strategies_ whitepaper (2021); Tomasz Tunguz, _Multi-tenancy economics for SaaS_ (2019); Aaron Patterson + Rails security advisories (2014–2024) on row-level isolation patterns.
 
 ---
 
@@ -38,7 +38,7 @@ These seven questions gate every meaningful backend decision: pattern pick (mono
 
 **Kill criterion:** "event-driven across all services" with team size < 20 — STOP. Reduce to sync-default with an explicit async lane for genuinely-async work (emails, webhooks, batch processing).
 
-**Canon:** Donald Reinertsen, *Principles of Product Development Flow* (2009), Principle Q5 (queueing theory); Pat Helland, *Life beyond Distributed Transactions* (2007); Martin Fowler, *What do you mean by Event-Driven?* (martinfowler.com, 2017); Bernd Rücker, *Practical Process Automation* (2021).
+**Canon:** Donald Reinertsen, _Principles of Product Development Flow_ (2009), Principle Q5 (queueing theory); Pat Helland, _Life beyond Distributed Transactions_ (2007); Martin Fowler, _What do you mean by Event-Driven?_ (martinfowler.com, 2017); Bernd Rücker, _Practical Process Automation_ (2021).
 
 ---
 
@@ -50,7 +50,7 @@ These seven questions gate every meaningful backend decision: pattern pick (mono
 
 **Kill criterion:** PHI or PCI in scope + no named compliance owner + no encryption-at-rest plan — STOP. Bring in `ra-qm-team` skill (HIPAA / FDA) or escalate to `cs-ciso-advisor`.
 
-**Canon:** HIPAA Security Rule (45 CFR § 164); PCI-DSS v4.0 (2024); GDPR Articles 5, 25, 32 (EU 2016/679); NIST SP 800-53 rev. 5 (security controls); CISA *Secure by Design* guidance (2023+).
+**Canon:** HIPAA Security Rule (45 CFR § 164); PCI-DSS v4.0 (2024); GDPR Articles 5, 25, 32 (EU 2016/679); NIST SP 800-53 rev. 5 (security controls); CISA _Secure by Design_ guidance (2023+).
 
 ---
 
@@ -58,11 +58,11 @@ These seven questions gate every meaningful backend decision: pattern pick (mono
 
 **Recommended answer:** modular monolith default for team size < 30; microservices ONLY when (a) team size ≥ 30 with named domain owners, (b) bounded contexts have provably-independent deployment cadence, AND (c) a platform team exists or is funded. Anything else → modular monolith.
 
-**Why it matters:** Sam Newman's *MonolithFirst* is the canon. Premature microservices distribute the design problem across N services + a network. Andy Hunt's *Pragmatic Programmer* second edition (2019) reaffirms: the cost of a microservice is the cost of a system, not a module.
+**Why it matters:** Sam Newman's _MonolithFirst_ is the canon. Premature microservices distribute the design problem across N services + a network. Andy Hunt's _Pragmatic Programmer_ second edition (2019) reaffirms: the cost of a microservice is the cost of a system, not a module.
 
 **Kill criterion:** "microservices because [reason that isn't team-size + bounded-context independence + platform team]" — STOP. Modular monolith with clear module boundaries. Extract a service only when the second team needs to own it.
 
-**Canon:** Sam Newman, *Building Microservices* 2e (2021), ch. 3 "Splitting the Monolith"; Martin Fowler, *MonolithFirst* (2015); Susan Fowler, *Production-Ready Microservices* (2017); Matthew Skelton & Manuel Pais, *Team Topologies* (2019); Eric Evans, *Domain-Driven Design* (2003).
+**Canon:** Sam Newman, _Building Microservices_ 2e (2021), ch. 3 "Splitting the Monolith"; Martin Fowler, _MonolithFirst_ (2015); Susan Fowler, _Production-Ready Microservices_ (2017); Matthew Skelton & Manuel Pais, _Team Topologies_ (2019); Eric Evans, _Domain-Driven Design_ (2003).
 
 ---
 
@@ -74,7 +74,7 @@ These seven questions gate every meaningful backend decision: pattern pick (mono
 
 **Kill criterion:** customer-facing prod database + no RPO/RTO documented — STOP. Define them. Then implement the runbook + restore drill BEFORE the launch.
 
-**Canon:** Google SRE Workbook (Beyer et al., 2018), ch. 7 + ch. 8 on disaster recovery; ISO 22301 (Business Continuity); AWS *Disaster Recovery of Workloads on AWS* whitepaper (2024).
+**Canon:** Google SRE Workbook (Beyer et al., 2018), ch. 7 + ch. 8 on disaster recovery; ISO 22301 (Business Continuity); AWS _Disaster Recovery of Workloads on AWS_ whitepaper (2024).
 
 ---
 
@@ -86,7 +86,7 @@ These seven questions gate every meaningful backend decision: pattern pick (mono
 
 **Kill criterion:** "we want high availability" with no SLO number AND no budget consumer — STOP. Pick a number (99%, 99.5%, 99.9%, 99.99%) and the consumer (engineering, product, executive). No SLO = no error budget = no reliability work prioritization.
 
-**Canon:** Google SRE Workbook (2018), ch. 2–4; Niall Murphy + Betsy Beyer, *Site Reliability Engineering* (2016); Andrew Clay Shafer, *The SLO Handbook* (2019); Google *Implementing SLOs* (engineering.google.com, 2024).
+**Canon:** Google SRE Workbook (2018), ch. 2–4; Niall Murphy + Betsy Beyer, _Site Reliability Engineering_ (2016); Andrew Clay Shafer, _The SLO Handbook_ (2019); Google _Implementing SLOs_ (engineering.google.com, 2024).
 
 ---
 

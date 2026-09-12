@@ -1,25 +1,25 @@
 # Frontend Engineer — Composition Map
 
-**Principle (Karpathy #2, Simplicity First):** do not reimplement scope that the POWERFUL-tier specialists already own. This skill is the *frontend orchestrator*; the specialists are the *implementers*.
+**Principle (Karpathy #2, Simplicity First):** do not reimplement scope that the POWERFUL-tier specialists already own. This skill is the _frontend orchestrator_; the specialists are the _implementers_.
 
 This map is the routing table for the `cs-frontend-engineer` agent and the `/cs:frontend-review` command.
 
 ## Composition routing table
 
-| User concern | Fork into | When to fork | Path |
-|---|---|---|---|
-| WCAG audit, contrast checks, screen-reader gaps | **a11y-audit** | After Q7 (WCAG target) is set | `../../../engineering-team/skills/a11y-audit/` |
-| Bundle profiling, Lighthouse perf, runtime CPU/memory | **performance-profiler** | After Q2 (LCP target) is set | `../../../engineering/skills/performance-profiler/` |
-| Cinematic / parallax / scroll-storytelling landing | **epic-design** | When `marketing-site` or `landing-page` profile applies | `../../../engineering-team/skills/epic-design/` |
-| Pre-commit Karpathy review on changed files | **cs-karpathy-reviewer** | Before EVERY commit this skill produces | `../../../engineering/karpathy-coder/` |
-| Pre-flight architecture grill | **cs-grill-master** | Before locking framework or rendering model | `../../../engineering/grill-me/` |
-| Monorepo coordination (Turbo / Nx / pnpm) | **monorepo-navigator** | When frontend shares repo with backend / mobile / extension | `../../../engineering/skills/monorepo-navigator/` |
-| Dependency vulnerability sweep | **dependency-auditor** | Before every major release | `../../../engineering/skills/dependency-auditor/` |
-| Visual / accessibility regression in CI | **api-test-suite-builder** (extend for visual) + **playwright-pro** | After Q7 (WCAG target) is set | `../../../engineering-team/playwright-pro/` |
-| Apple HIG / iOS / macOS / visionOS app review | **apple-hig-expert** | When the surface is Apple-platform-native | `../../../product-team/skills/apple-hig-expert/` |
-| AEO (Answer Engine Optimization) — visibility in LLM search | **aeo** | After Q5 (SEO-dependent surface) is confirmed | `../../../marketing-skill/skills/aeo/` |
-| SEO crawlability + meta + structured data | **seo-auditor** (if present) | After Q5 (SEO-dependent surface) | search `skills/` for the SEO auditor entry point |
-| API contract from the consumer side | **api-design-reviewer** | When frontend defines/consumes a new API contract | `../../../engineering/skills/api-design-reviewer/` |
+| User concern                                                | Fork into                                                           | When to fork                                                | Path                                                |
+| ----------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------- |
+| WCAG audit, contrast checks, screen-reader gaps             | **a11y-audit**                                                      | After Q7 (WCAG target) is set                               | `../../../engineering-team/skills/a11y-audit/`      |
+| Bundle profiling, Lighthouse perf, runtime CPU/memory       | **performance-profiler**                                            | After Q2 (LCP target) is set                                | `../../../engineering/skills/performance-profiler/` |
+| Cinematic / parallax / scroll-storytelling landing          | **epic-design**                                                     | When `marketing-site` or `landing-page` profile applies     | `../../../engineering-team/skills/epic-design/`     |
+| Pre-commit Karpathy review on changed files                 | **cs-karpathy-reviewer**                                            | Before EVERY commit this skill produces                     | `../../../engineering/karpathy-coder/`              |
+| Pre-flight architecture grill                               | **cs-grill-master**                                                 | Before locking framework or rendering model                 | `../../../engineering/grill-me/`                    |
+| Monorepo coordination (Turbo / Nx / pnpm)                   | **monorepo-navigator**                                              | When frontend shares repo with backend / mobile / extension | `../../../engineering/skills/monorepo-navigator/`   |
+| Dependency vulnerability sweep                              | **dependency-auditor**                                              | Before every major release                                  | `../../../engineering/skills/dependency-auditor/`   |
+| Visual / accessibility regression in CI                     | **api-test-suite-builder** (extend for visual) + **playwright-pro** | After Q7 (WCAG target) is set                               | `../../../engineering-team/playwright-pro/`         |
+| Apple HIG / iOS / macOS / visionOS app review               | **apple-hig-expert**                                                | When the surface is Apple-platform-native                   | `../../../product-team/skills/apple-hig-expert/`    |
+| AEO (Answer Engine Optimization) — visibility in LLM search | **aeo**                                                             | After Q5 (SEO-dependent surface) is confirmed               | `../../../marketing-skill/skills/aeo/`              |
+| SEO crawlability + meta + structured data                   | **seo-auditor** (if present)                                        | After Q5 (SEO-dependent surface)                            | search `skills/` for the SEO auditor entry point    |
+| API contract from the consumer side                         | **api-design-reviewer**                                             | When frontend defines/consumes a new API contract           | `../../../engineering/skills/api-design-reviewer/`  |
 
 ## Composition rules
 

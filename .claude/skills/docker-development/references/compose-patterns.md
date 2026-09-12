@@ -11,7 +11,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - '3000:3000'
     env_file:
       - .env
     depends_on:
@@ -20,7 +20,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
       interval: 30s
       timeout: 3s
       retries: 3
@@ -39,7 +39,7 @@ services:
     env_file:
       - .env.db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -52,7 +52,7 @@ services:
     image: redis:7-alpine
     command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 3
@@ -71,6 +71,7 @@ networks:
 ```
 
 ### Key Patterns
+
 - **Healthchecks on every service** — enables depends_on with condition
 - **Named volumes** — data persists across container recreation
 - **Explicit networks** — backend is internal (no external access)
@@ -82,33 +83,36 @@ networks:
 ## Development Override Pattern
 
 ### docker-compose.yml (base — production-like)
+
 ```yaml
 services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     restart: unless-stopped
 ```
 
 ### docker-compose.override.yml (dev — auto-loaded)
+
 ```yaml
 services:
   app:
     build:
       target: development
     volumes:
-      - .:/app          # Bind mount for hot reload
-      - /app/node_modules  # Preserve container node_modules
+      - .:/app # Bind mount for hot reload
+      - /app/node_modules # Preserve container node_modules
     environment:
       - NODE_ENV=development
       - DEBUG=true
     ports:
-      - "9229:9229"     # Debug port
-    restart: "no"
+      - '9229:9229' # Debug port
+    restart: 'no'
 ```
 
 ### Usage
+
 ```bash
 # Development (auto-loads override)
 docker compose up
@@ -130,8 +134,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     networks:
       - frontend
 
@@ -160,6 +164,7 @@ networks:
 ```
 
 ### Why This Matters
+
 - Database and cache are **not accessible from outside**
 - Only nginx and app handle external traffic
 - Lateral movement limited if one container is compromised
@@ -176,7 +181,7 @@ services:
       target: runtime
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     ports:
-      - "8000:8000"
+      - '8000:8000'
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -202,9 +207,9 @@ services:
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     ports:
-      - "15672:15672"  # Management UI (dev only)
+      - '15672:15672' # Management UI (dev only)
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      test: ['CMD', 'rabbitmq-diagnostics', 'check_running']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -218,14 +223,15 @@ services:
 services:
   app:
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
-        tag: "{{.Name}}/{{.ID}}"
+        max-size: '10m'
+        max-file: '3'
+        tag: '{{.Name}}/{{.ID}}'
 ```
 
 ### Why
+
 - **max-size** prevents disk exhaustion
 - **max-file** rotates logs automatically
 - Default Docker logging has NO size limit — production servers can run out of disk
@@ -235,6 +241,7 @@ services:
 ## Environment Variable Patterns
 
 ### .env.example (committed to repo)
+
 ```env
 # Database
 DATABASE_URL=postgres://user:password@db:5432/appname
@@ -258,6 +265,7 @@ LOG_LEVEL=info
 ```
 
 ### Variable Substitution in Compose
+
 ```yaml
 services:
   app:
@@ -271,12 +279,12 @@ services:
 
 ## Troubleshooting Checklist
 
-| Symptom | Likely Cause | Fix |
-|---------|-------------|-----|
-| Container exits immediately | CMD/ENTRYPOINT crashes, missing env vars | Check logs: `docker compose logs service` |
-| Port already in use | Another service or host process on same port | Change host port: `"3001:3000"` |
-| Volume permissions denied | Container user doesn't own mounted path | Match UID/GID or use named volumes |
-| Build cache not working | COPY . . invalidates cache early | Reorder: copy deps first, then source |
-| depends_on doesn't wait | No healthcheck condition | Add `condition: service_healthy` |
-| Container OOM killed | No memory limit or limit too low | Set appropriate `mem_limit` |
-| Network connectivity issues | Wrong network or service name | Services communicate by service name within shared network |
+| Symptom                     | Likely Cause                                 | Fix                                                        |
+| --------------------------- | -------------------------------------------- | ---------------------------------------------------------- |
+| Container exits immediately | CMD/ENTRYPOINT crashes, missing env vars     | Check logs: `docker compose logs service`                  |
+| Port already in use         | Another service or host process on same port | Change host port: `"3001:3000"`                            |
+| Volume permissions denied   | Container user doesn't own mounted path      | Match UID/GID or use named volumes                         |
+| Build cache not working     | COPY . . invalidates cache early             | Reorder: copy deps first, then source                      |
+| depends_on doesn't wait     | No healthcheck condition                     | Add `condition: service_healthy`                           |
+| Container OOM killed        | No memory limit or limit too low             | Set appropriate `mem_limit`                                |
+| Network connectivity issues | Wrong network or service name                | Services communicate by service name within shared network |
