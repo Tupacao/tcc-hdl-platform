@@ -7,6 +7,13 @@
 Ordem fixa. Nao pular etapas, nao inverter a ordem 4↔5 (implementar so depois
 valida e escreve teste — nunca o contrario).
 
+## 0. Repositorio
+
+`https://github.com/Tupacao/tcc-hdl-platform` — usar esta URL (via MCP do GitHub,
+quando disponivel, ou `gh`/`git`) para checar branches, PRs abertos, status de CI
+e issues antes de comecar uma tarefa, sempre que a tarefa depender do estado atual
+do remoto.
+
 ## 1. Identificar o escopo e o lado (front/back)
 
 - Determinar se a tarefa e front, back, ou as duas coisas.
