@@ -2,6 +2,15 @@ import { useMemo } from 'react';
 import { Activity } from 'lucide-react';
 import { WaveformCanvas } from '@/features/waveform/components/waveform-canvas';
 import { parseVcd } from '@/features/waveform/utils/vcd-parser';
+import {
+  WAVEFORM_EMPTY_STATE_AFTER_DUMPVARS,
+  WAVEFORM_EMPTY_STATE_BEFORE_DUMPFILE,
+  WAVEFORM_EMPTY_STATE_BETWEEN_DIRECTIVES,
+  WAVEFORM_EMPTY_STATE_DUMPFILE,
+  WAVEFORM_EMPTY_STATE_DUMPVARS,
+  WAVEFORM_TRUNCATED_MESSAGE,
+  WAVEFORM_UNPARSEABLE_MESSAGE,
+} from './utils/messages';
 
 interface WaveformPanelProps {
   vcd: string | null;
@@ -16,8 +25,11 @@ export function WaveformPanel({ vcd }: WaveformPanelProps) {
       <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground">
         <Activity aria-hidden className="size-6" />
         <p>
-          Nenhuma forma de onda ainda. Use <code>$dumpfile</code> e <code>$dumpvars</code> no
-          testbench e execute a simulacao.
+          {WAVEFORM_EMPTY_STATE_BEFORE_DUMPFILE}
+          <code>{WAVEFORM_EMPTY_STATE_DUMPFILE}</code>
+          {WAVEFORM_EMPTY_STATE_BETWEEN_DIRECTIVES}
+          <code>{WAVEFORM_EMPTY_STATE_DUMPVARS}</code>
+          {WAVEFORM_EMPTY_STATE_AFTER_DUMPVARS}
         </p>
       </div>
     );
@@ -27,7 +39,7 @@ export function WaveformPanel({ vcd }: WaveformPanelProps) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground">
         <Activity aria-hidden className="size-6" />
-        <p>Nao foi possivel interpretar a forma de onda recebida.</p>
+        <p>{WAVEFORM_UNPARSEABLE_MESSAGE}</p>
       </div>
     );
   }
@@ -36,7 +48,7 @@ export function WaveformPanel({ vcd }: WaveformPanelProps) {
     <div className="flex h-full flex-col">
       {waveform.truncated && (
         <p className="border-b bg-warning/10 px-3 py-1 text-xs text-warning">
-          O arquivo .vcd foi truncado; a forma de onda pode estar incompleta.
+          {WAVEFORM_TRUNCATED_MESSAGE}
         </p>
       )}
       <div className="min-h-0 flex-1">

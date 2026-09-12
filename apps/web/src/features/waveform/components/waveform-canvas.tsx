@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme } from '@/hooks/use-theme';
 import type { Waveform } from '../models/types';
+import { WAVEFORM_CANVAS_ARIA_LABEL } from '../utils/messages';
 import { draw, NAME_COLUMN_WIDTH, ROW_STEP, RULER_HEIGHT } from '../utils/render';
 import { selectDisplayRows } from '../utils/rows';
 import { readWaveformColors } from '../utils/theme-colors';
@@ -82,7 +83,7 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
         ))}
       </div>
       <div ref={containerRef} className="min-w-0 flex-1">
-        <canvas ref={canvasRef} role="img" aria-label="Formas de onda da simulacao" />
+        <canvas ref={canvasRef} role="img" aria-label={WAVEFORM_CANVAS_ARIA_LABEL} />
       </div>
     </div>
   );
