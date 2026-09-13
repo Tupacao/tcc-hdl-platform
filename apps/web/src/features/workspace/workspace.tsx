@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { CircuitBoard, Loader2, Play } from 'lucide-react';
+import { CircuitBoard, FolderOpen, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
 import { Button } from '@/components/ui/button';
@@ -10,16 +10,24 @@ import { cn } from '@/lib/utils';
 import { CodeEditor } from './code-editor';
 import { ConsolePanel } from './console-panel';
 import { useRunSimulation } from './hooks/use-run-simulation';
+import { OPEN_PROJECTS_BUTTON_LABEL } from './utils/messages';
 import { WaveformPanel } from './waveform-panel';
 
 type FileTab = 'design' | 'testbench';
+
+interface WorkspaceProps {
+  /** Fonte inicial do editor. Sem projeto aberto (RF07), o exemplo padrao de RF20. */
+  initialSources?: HdlSources;
+  /** RF07-I02: navega para "Meus projetos". Omitido quando nao ha lista de projetos por perto. */
+  onOpenProjects?: () => void;
+}
 
 /**
  * RF09 — editor, compilador, simulador e visualizador em uma unica interface.
  * Os painies sao redimensionaveis para caber em telas a partir de 1024px (RNF03).
  */
-export function Workspace() {
-  const [sources, setSources] = useState<HdlSources>(SAMPLE_SOURCES);
+export function Workspace({ initialSources = SAMPLE_SOURCES, onOpenProjects }: WorkspaceProps) {
+  const [sources, setSources] = useState<HdlSources>(initialSources);
   const [activeTab, setActiveTab] = useState<FileTab>('design');
   const runMutation = useRunSimulation();
   // `useMutation` limpa `data` assim que uma nova chamada comeca (fica undefined
@@ -66,6 +74,12 @@ export function Workspace() {
         <span className="text-xs text-muted-foreground">Verilog</span>
 
         <div className="ml-auto flex items-center gap-2">
+          {onOpenProjects && (
+            <Button variant="ghost" size="sm" onClick={onOpenProjects}>
+              <FolderOpen aria-hidden />
+              {OPEN_PROJECTS_BUTTON_LABEL}
+            </Button>
+          )}
           <Button onClick={handleRun} disabled={isRunning} size="sm">
             {isRunning ? <Loader2 aria-hidden className="animate-spin" /> : <Play aria-hidden />}
             {isRunning ? 'Executando' : 'Executar'}

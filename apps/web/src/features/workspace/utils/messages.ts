@@ -15,3 +15,5 @@ export const WAVEFORM_UNPARSEABLE_MESSAGE =
 
 export const WAVEFORM_TRUNCATED_MESSAGE =
   'O arquivo .vcd foi truncado; a forma de onda pode estar incompleta.';
+
+export const OPEN_PROJECTS_BUTTON_LABEL = 'Meus projetos';

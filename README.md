@@ -112,6 +112,10 @@ Ja implementado:
 - Persistencia de projetos em PostgreSQL via Prisma (RF07-I01), atras da
   interface `ProjectRepository` (`apps/api/src/domain/projects/`) — sem
   `DATABASE_URL`, cai em memoria para desenvolvimento rapido
+- Pagina "Meus projetos" (RF07-I02): criar, listar, renomear e excluir, com
+  busca e undo na exclusao — persistidos no `localStorage` do navegador por
+  enquanto (RF14/login ainda nao existe; o backend de RF07-I01 fica pronto
+  para quando existir)
 - Worker BullMQ, runner do sandbox Docker e parser de diagnosticos (com testes)
 - Frontend com editor Monaco (Verilog), painies redimensionaveis, console de erros
   e tema claro/escuro
@@ -137,7 +141,8 @@ simulacao de ~400 mil ciclos de clock:
 
 Pendente:
 
-- [ ] Interface de gerenciamento de projetos e vinculo com o workspace (RF07-I02/I03)
+- [ ] Vinculo continuo entre o workspace e o projeto aberto - auto-salvar,
+      aviso de alteracoes nao salvas (RF07-I03)
 - [ ] Exportacao de projetos em `.zip` (RF08)
 - [ ] Documentacao estatica: guia de inicio rapido e referencia de sintaxe (RF11)
 - [ ] Autenticacao Google e compartilhamento por link (RF14/RF15)
