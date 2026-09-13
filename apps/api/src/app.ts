@@ -10,6 +10,7 @@ import {
   hasZodFastifySchemaValidationErrors,
   jsonSchemaTransform,
 } from 'fastify-type-provider-zod';
+import { healthRoutes } from './application/health/controller/health.controller.js';
 import { projectRoutes } from './application/projects/controller/project.controller.js';
 import { InMemoryProjectRepository } from './application/projects/repository/in-memory-project.repository.js';
 import { PrismaProjectRepository } from './application/projects/repository/prisma-project.repository.js';
@@ -17,7 +18,6 @@ import { DefaultProjectService } from './application/projects/service/project.se
 import { env } from './config/env.js';
 import type { ProjectService } from './domain/projects/services/project.service.js';
 import { getPrismaClient } from './infra/prisma/client.js';
-import { healthRoutes } from './modules/health/routes.js';
 import { simulationRoutes } from './modules/simulation/routes.js';
 
 /**
