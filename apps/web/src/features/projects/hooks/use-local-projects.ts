@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { CreateLocalProjectInput, LocalProject } from '../models/types';
 import { STORAGE_ERROR } from '../utils/messages';
 import { readProjects, writeProjects } from '../utils/storage';
+import { buildCopyName } from '../utils/validation';
 
 /** `getItem` pode lancar em navegadores que bloqueiam o `localStorage` (modo privado antigo, cookies desabilitados). */
 function readProjectsSafely(): { projects: LocalProject[]; error: string | null } {
@@ -88,13 +89,10 @@ export function useLocalProjects(): UseLocalProjectsResult {
       const source = projects.find((project) => project.id === id);
       if (!source) throw new Error(`Projeto ${id} nao encontrado para duplicar`);
 
-      const existingNames = new Set(projects.map((p) => p.name.toLowerCase()));
-      let name = `${source.name}_copia`;
-      let suffix = 2;
-      while (existingNames.has(name.toLowerCase())) {
-        name = `${source.name}_copia${suffix}`;
-        suffix += 1;
-      }
+      const name = buildCopyName(
+        source.name,
+        projects.map((p) => p.name),
+      );
 
       const now = new Date().toISOString();
       const copy: LocalProject = {

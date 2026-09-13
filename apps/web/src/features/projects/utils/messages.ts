@@ -77,7 +77,7 @@ export const NEW_PROJECT_DIALOG = {
 
 export const PROJECT_NAME_ERRORS = {
   REQUIRED: 'Informe um nome para o projeto.',
-  TOO_LONG: 'O nome pode ter no maximo 120 caracteres.',
+  TOO_LONG: 'O nome pode ter no maximo 35 caracteres.',
   INVALID_CHARACTERS: 'Use apenas letras, numeros e sublinhado, comecando com letra ou _.',
   DUPLICATE: 'Ja existe um projeto com esse nome neste navegador.',
 };
