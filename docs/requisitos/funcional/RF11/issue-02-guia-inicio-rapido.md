@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF11](feature.md) |
-| Branch | `feat/rf11-guia-inicio-rapido` |
+| Branch | `feat-RF11-02-guia-inicio-rapido-front` |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | RF11-I01 |
 
@@ -59,15 +59,48 @@ portugues, para quem nunca escreveu HDL.
 
 ## Criterios de aceite
 
-- [ ] Uma pessoa sem conhecimento previo chega a uma forma de onda seguindo so o
+- [x] Uma pessoa sem conhecimento previo chega a uma forma de onda seguindo so o
       guia.
-- [ ] Todo bloco de codigo e copiavel e pode ser aberto no editor.
-- [ ] O contrato do testbench esta explicito, incluindo `$dumpfile`,
+- [x] Todo bloco de codigo e copiavel e pode ser aberto no editor.
+- [x] O contrato do testbench esta explicito, incluindo `$dumpfile`,
       `$dumpvars` e `$finish`.
-- [ ] Os limites de tempo e tamanho estao mencionados.
-- [ ] A lista de atalhos vem da mesma fonte usada pela aplicacao.
-- [ ] A secao de erros comuns mostra o texto real que aparece no console.
+- [x] Os limites de tempo e tamanho estao mencionados.
+- [ ] A lista de atalhos vem da mesma fonte usada pela aplicacao. _(RF09-I02
+      ainda nao existe - nao ha fonte de dados para referenciar; ver Nota de
+      implementacao)_
+- [x] A secao de erros comuns mostra o texto real que aparece no console.
 - [ ] O guia foi lido e seguido por alguem de fora antes de fechar a issue.
+      _(passo humano - nao pode ser feito por quem implementa; fica pendente
+      ate alguem de fora seguir o texto)_
+
+## Nota de implementacao
+
+- **Atalhos de teclado (passo 4) ficaram de fora.** RF09-I02 (fonte de dados
+  dos atalhos) ainda nao existe no codigo - so ha um handler solto de
+  `Ctrl+S` em `use-project-link.ts` e as dicas do visualizador de ondas
+  (RF06-I03/I04). Escrever a lista a mao aqui duplicaria dado e desatualizaria
+  sozinho, contra o proprio risco que este doc ja registrava. Reavaliar quando
+  RF09-I02 existir.
+- **Uma unica pagina, nao tres.** O indice do Figma 7.1 lista "Primeiro
+  projeto", "Como funciona a execucao" e "Entendendo as formas de onda" como
+  itens separados, mas so "Primeiro projeto" tinha mockup completo - os
+  outros dois sao rotulos de navegacao sem conteudo proprio desenhado. Como o
+  guia se propoe a ser um passeio continuo de ~5 minutos (a propria frase de
+  abertura promete isso), virou um unico artigo em
+  `content/inicio-rapido.tsx` com "Como funciona a execucao"/"Entendendo as
+  formas de onda" como secoes (`h2`) dentro dele, em vez de tres paginas que
+  fragmentariam a leitura. Se o volume crescer (RF11-I03 ou revisoes
+  futuras), separar fica mais facil que juntar.
+- **Os tres erros usam texto real de console**, capturado rodando
+  `iverilog -g2012` contra versoes quebradas do proprio exemplo dentro da
+  imagem `tplab-sandbox:latest` - nao aproximado nem inventado.
+- **Link profundo "Ver na documentacao" no console de diagnosticos (RF05)
+  ficou fora do escopo desta issue**, por decisao explicita: o Figma de
+  "Erros mais comuns" (7.2) desenha um botao no console que abriria a
+  documentacao numa ancora estavel (`/docs/erros#syntax-error`), o que e
+  RF05 × RF11 - maior que "escrever um texto" e caberia melhor como issue
+  propria. Registrado como pendencia em
+  `docs/requisitos/funcional/RF05/feature.md`.
 
 ## Verificacao
 
