@@ -21,15 +21,15 @@ import { DocsSearchEmpty } from './docs-search-empty';
 
 interface DocsPageProps {
   onNavigateBack: () => void;
-  /** RF07-I03: quem monta a pagina decide se avisa sobre alteracoes nao salvas. */
+  /** RF07-I03: quem monta a página decide se avisa sobre alterações não salvas. */
   onOpenInEditor: (sources: HdlSources) => void;
 }
 
 /**
- * Documentacao (RF11-I01) - pagina propria, nao sobreposta ao workspace
- * (decisao fechada no Figma: `docs/requisitos/funcional/RF11/figma/
- * WILL-BE-DONE.md`, "documentacao e pagina propria"). Troca de tela como
- * "Meus projetos" ja faz - App.tsx desmonta o Workspace, o rascunho local
+ * Documentação (RF11-I01) - página própria, não sobreposta ao workspace
+ * (decisão fechada no Figma: `docs/requisitos/funcional/RF11/figma/
+ * WILL-BE-DONE.md`, "documentação é página própria"). Troca de tela como
+ * "Meus projetos" já faz - App.tsx desmonta o Workspace, o rascunho local
  * de RF07-I03 cobre o intervalo.
  */
 export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
@@ -54,7 +54,7 @@ export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
     <div className="flex h-full min-w-[1024px] flex-col overflow-hidden">
       <header className="flex items-center gap-3 border-b px-4 py-2">
         <CircuitBoard aria-hidden className="size-5" />
-        <h1 className="text-sm font-semibold">TPLab</h1>
+        <h1 className="text-sm font-semibold">TP Lab</h1>
         <span className="text-xs text-muted-foreground">{PAGE_BREADCRUMB}</span>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={onNavigateBack}>

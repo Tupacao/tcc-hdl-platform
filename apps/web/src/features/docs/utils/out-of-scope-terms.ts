@@ -1,9 +1,9 @@
 /**
- * Termos de SystemVerilog/VHDL que o publico-alvo (vindo de tutorial na
- * internet) tenta colar e o Icarus (`-g2012`) nao aceita (RF11-I01, Figma
- * 7.6 "Busca sem resultado"). Deliberadamente pequeno - so os que ja
+ * Termos de SystemVerilog/VHDL que o público-alvo (vindo de tutorial na
+ * internet) tenta colar e o Icarus (`-g2012`) não aceita (RF11-I01, Figma
+ * 7.6 "Busca sem resultado"). Deliberadamente pequeno - só os que já
  * aparecem citados como fora de escopo em `docs/requisitos/funcional/RF11/
- * feature.md` e na secao "O que o TP Lab nao faz"; crescer sem criterio vira
+ * feature.md` e na seção "O que o TP Lab não faz"; crescer sem critério vira
  * um LRM ruim (risco registrado em RF11-I03).
  */
 const OUT_OF_SCOPE_TERMS: Record<string, string> = {

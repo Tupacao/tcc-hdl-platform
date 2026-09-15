@@ -1,8 +1,8 @@
 import type { DocSection } from '../models/types';
 
 /**
- * Filtro simples por titulo e resumo (RF11-I01) - sem indexador, o volume de
- * secoes nao justifica. `query` vazia devolve tudo.
+ * Filtro simples por título e resumo (RF11-I01) - sem indexador, o volume de
+ * seções não justifica. `query` vazia devolve tudo.
  */
 export function filterSections(sections: DocSection[], query: string): DocSection[] {
   const normalized = query.trim().toLowerCase();

@@ -278,6 +278,11 @@ endpoint). O usuário lê "erro", "aviso" e "Problemas".
   --wave-x: #C81E1E;                  --wave-z: #57575F;
   --wave-cursor: #C2410C;             --wave-grid: #EFEFF2;
   --wave-ruler-foreground: #57575F;
+
+  --code-foreground: #1C1C22;         --code-keyword: #B23A0A;
+  --code-type: #9A3412;               --code-directive: #7C3AED;
+  --code-number: #0369A1;             --code-string: #15803D;
+  --code-comment: #5F6570;            --code-operator: #1C1C22;
 }
 
 .dark {
@@ -298,6 +303,11 @@ endpoint). O usuário lê "erro", "aviso" e "Problemas".
   --wave-x: #FF6B6B;                  --wave-z: #A0A0AE;
   --wave-cursor: #FF6A00;             --wave-grid: #22222B;
   --wave-ruler-foreground: #8A8A98;
+
+  --code-foreground: #E4E4E7;         --code-keyword: #FF8A3D;
+  --code-type: #FFA866;               --code-directive: #C084FC;
+  --code-number: #38BDF8;             --code-string: #4ADE80;
+  --code-comment: #7B8290;            --code-operator: #C7C7CE;
 }
 ```
 
@@ -326,3 +336,15 @@ construídos sobre esta paleta e não há garantia de AA sobre `--card`.
 
 Palavra-chave em laranja não é decoração: amarra o destaque de sintaxe à
 identidade sem introduzir uma sétima cor no sistema.
+
+**Estado da implementação (RF11).** As oito primeiras linhas da tabela (texto
+normal, palavra-chave, tipo, tarefa de sistema/diretiva, número, string,
+comentário, operador) viraram tokens `--code-*` em `apps/web/src/index.css` e
+alimentam um destacador leve por expressão regular em
+`apps/web/src/features/docs/components/code-block.tsx` — sem dependência
+nova, os blocos de código da documentação são só leitura e curtos, então um
+tokenizador simples é suficiente. As quatro últimas linhas (fundo do editor,
+número de linha, linha atual, seleção, linha com erro) são específicas do
+Monaco e permanecem pendentes: `apps/web/src/lib/monaco.ts` ainda usa os
+temas padrão `vs`/`vs-dark`, sem o tema customizado que esta seção pede
+(RF02, fora do escopo desta correção).

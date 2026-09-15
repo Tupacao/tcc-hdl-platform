@@ -46,6 +46,17 @@
   --wave-cursor: #c2410c;
   --wave-grid: #efeff2;
   --wave-ruler-foreground: #57575f;
+
+  /* RF11 — destaque de sintaxe Verilog nos blocos de codigo da documentacao.
+     docs/design-system-fundamentos.md secao 8. */
+  --code-foreground: #1c1c22;
+  --code-keyword: #b23a0a;
+  --code-type: #9a3412;
+  --code-directive: #7c3aed;
+  --code-number: #0369a1;
+  --code-string: #15803d;
+  --code-comment: #5f6570;
+  --code-operator: #1c1c22;
 }
 
 .dark {
@@ -79,6 +90,15 @@
   --wave-cursor: #ff6a00;
   --wave-grid: #22222b;
   --wave-ruler-foreground: #8a8a98;
+
+  --code-foreground: #e4e4e7;
+  --code-keyword: #ff8a3d;
+  --code-type: #ffa866;
+  --code-directive: #c084fc;
+  --code-number: #38bdf8;
+  --code-string: #4ade80;
+  --code-comment: #7b8290;
+  --code-operator: #c7c7ce;
 }
 
 @theme inline {
@@ -114,6 +134,14 @@
   --color-wave-cursor: var(--wave-cursor);
   --color-wave-grid: var(--wave-grid);
   --color-wave-ruler-foreground: var(--wave-ruler-foreground);
+  --color-code-foreground: var(--code-foreground);
+  --color-code-keyword: var(--code-keyword);
+  --color-code-type: var(--code-type);
+  --color-code-directive: var(--code-directive);
+  --color-code-number: var(--code-number);
+  --color-code-string: var(--code-string);
+  --color-code-comment: var(--code-comment);
+  --color-code-operator: var(--code-operator);
 }
 
 @layer base {

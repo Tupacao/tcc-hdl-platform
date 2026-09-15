@@ -84,6 +84,27 @@ do roteiro do tour.
   `$dumpfile`/`$dumpvars`/`$finish`, geracao de clock), comentarios e
   diretivas, e o que fica fora desta versao (SystemVerilog). Todo exemplo
   compilado de verdade com `iverilog -g2012`.
+- **Passe de fidelidade visual e de português** (feedback direto do usuário:
+  "erros de português" e "falta cor, sublinhados, coloração no código"):
+  - Acentuação correta em todo o texto de toda a feature - a regra antiga de
+    "sem acentuação" do `CLAUDE.md` foi revertida (testada como segura neste
+    ambiente Windows antes de aplicar) porque estava sendo lida como erro de
+    português, não como convenção deliberada.
+  - Destaque de sintaxe Verilog real nos blocos de código
+    (`utils/verilog-highlight.ts`, tokenizador leve por regex, sem
+    dependência nova) - os tokens de cor de
+    `docs/design-system-fundamentos.md` §8 (que já existiam no documento,
+    nunca implementados) viraram `--code-*` em `index.css`.
+  - Barra de destaque laranja no item ativo do índice (`docs-nav.tsx`),
+    badges coloridos em "Fora do escopo" e bordas coloridas por etapa em
+    "Para onde ir depois" (`o-que-nao-faz.tsx`) e um componente `Note`
+    (`components/note.tsx`) para o padrão "Nota/aviso" que já estava
+    documentado em `design-system-fundamentos.md` §4 mas nunca tinha
+    componente - tudo conferido contra os frames 7.1/7.3 do Figma, que não
+    usam sublinhado em lugar nenhum (a cor e a barra lateral carregam o
+    destaque, não o sublinhado).
+  - "TP Lab" (com espaço, como no Figma) substituindo "TPLab" no cabeçalho
+    de `DocsPage`, `WorkspaceHeader` e `ProjectsPage`.
 - **Falta**: o link profundo do console de diagnosticos para uma ancora
   especifica da documentacao (Figma 7.2/7.6, RF05 × RF11 - registrado em
   `docs/requisitos/funcional/RF05/feature.md`).

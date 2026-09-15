@@ -2,40 +2,40 @@ import { CodeBlock } from '../components/code-block';
 import type { DocSectionContentProps } from '../models/types';
 
 /**
- * RF11-I03 - referencia de sintaxe Verilog (Figma 7.1, grupo "REFERENCIA":
- * "Sintaxe basica de Verilog" / "Portas e tipos de sinal" / "Tarefas de
- * sistema"). Mesma decisao de RF11-I02 (ver "Nota de implementacao" em
+ * RF11-I03 - referência de sintaxe Verilog (Figma 7.1, grupo "REFERÊNCIA":
+ * "Sintaxe básica de Verilog" / "Portas e tipos de sinal" / "Tarefas de
+ * sistema"). Mesma decisão de RF11-I02 (ver "Nota de implementação" em
  * `docs/requisitos/funcional/RF11/issue-03-referencia-sintaxe-verilog.md`):
- * nenhum dos tres rotulos do indice tem mockup de conteudo proprio no Figma,
- * so o rotulo de navegacao - viraram secoes (`h2`) de um unico artigo em vez
- * de tres paginas vazias de contexto.
+ * nenhum dos três rótulos do índice tem mockup de conteúdo próprio no Figma,
+ * só o rótulo de navegação - viraram seções (`h2`) de um único artigo em vez
+ * de três páginas vazias de contexto.
  *
  * Todo exemplo abaixo foi compilado de verdade com `iverilog -g2012` na
  * imagem `tplab-sandbox:latest` antes de entrar aqui - inclusive o texto do
- * erro proposital em "wire e reg" e a saida real do gerador de clock em
- * "Testbench", nao aproximacoes.
+ * erro proposital em "wire e reg" e a saída real do gerador de clock em
+ * "Testbench", não aproximações.
  */
 export function ReferenciaVerilogSection(_props: DocSectionContentProps) {
   return (
     <article className="flex flex-col gap-8 text-sm leading-relaxed">
       <p>
-        Uma folha de consulta pequena de proposito: cobre so o que aparece no
-        primeiro contato com Verilog dentro do TP Lab, nao a linguagem
-        inteira. Cada topico traz para que serve, um exemplo minimo que
-        compila sozinho, e a armadilha comum quando ha uma.
+        Uma folha de consulta pequena de propósito: cobre só o que aparece no
+        primeiro contato com Verilog dentro do TP Lab, não a linguagem
+        inteira. Cada tópico traz para que serve, um exemplo mínimo que
+        compila sozinho, e a armadilha comum quando há uma.
       </p>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Estrutura de um modulo</h2>
+        <h2 className="text-base font-semibold">Estrutura de um módulo</h2>
         <p>
-          Todo circuito e um <code>module</code>: um nome, uma lista de portas
-          entre parenteses e o corpo ate <code>endmodule</code>. Portas podem
+          Todo circuito é um <code>module</code>: um nome, uma lista de portas
+          entre parênteses e o corpo até <code>endmodule</code>. Portas podem
           ser <code>input</code>, <code>output</code> ou <code>inout</code>{' '}
           (bidirecional, rara no primeiro semestre). <code>parameter</code>{' '}
-          declara uma constante configuravel por instancia - aqui, a largura
-          do sinal. Ao instanciar um modulo dentro de outro, ligar as portas
-          pelo nome (<code>.porta(sinal)</code>) evita o erro classico de
-          trocar a ordem dos parenteses numa lista posicional.
+          declara uma constante configurável por instância - aqui, a largura
+          do sinal. Ao instanciar um módulo dentro de outro, ligar as portas
+          pelo nome (<code>.porta(sinal)</code>) evita o erro clássico de
+          trocar a ordem dos parênteses numa lista posicional.
         </p>
         <CodeBlock
           fileName="estrutura.v"
@@ -62,12 +62,12 @@ endmodule`}
       <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold">wire e reg</h2>
         <p>
-          <code>wire</code> e uma ligacao - so recebe valor de um{' '}
-          <code>assign</code> ou da porta de um modulo instanciado, nunca de
+          <code>wire</code> é uma ligação - só recebe valor de um{' '}
+          <code>assign</code> ou da porta de um módulo instanciado, nunca de
           dentro de um bloco <code>always</code> ou <code>initial</code>.{' '}
-          <code>reg</code> guarda um valor entre atribuicoes e e o tipo usado
+          <code>reg</code> guarda um valor entre atribuições e é o tipo usado
           dentro de <code>always</code>/<code>initial</code> - apesar do nome,
-          nao significa necessariamente um registrador de hardware.
+          não significa necessariamente um registrador de hardware.
         </p>
         <CodeBlock
           fileName="tipos.v"
@@ -84,28 +84,29 @@ endmodule`}
           <h3 className="mb-1 text-sm font-medium">Armadilha: atribuir a um wire dentro de always</h3>
           <CodeBlock
             fileName="Console"
+            language="text"
             code={`erro_wire.v:5: error: saida is not a valid l-value in erro_wire.
 erro_wire.v:2:      : saida is declared here as wire.
 Elaboration failed`}
           />
           <p className="mt-2 text-muted-foreground">
-            O compilador aponta a linha da atribuicao e, logo abaixo, onde o
-            sinal foi declarado como <code>wire</code>. A correcao e trocar a
-            declaracao para <code>reg</code> ou mover a logica para um{' '}
+            O compilador aponta a linha da atribuição e, logo abaixo, onde o
+            sinal foi declarado como <code>wire</code>. A correção é trocar a
+            declaração para <code>reg</code> ou mover a lógica para um{' '}
             <code>assign</code>.
           </p>
         </div>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Numeros e valores</h2>
+        <h2 className="text-base font-semibold">Números e valores</h2>
         <p>
           Um literal com base tem o formato <code>&lt;bits&gt;'&lt;base&gt;&lt;valor&gt;</code>:{' '}
-          <code>b</code> (binario), <code>h</code> (hexadecimal) ou{' '}
+          <code>b</code> (binário), <code>h</code> (hexadecimal) ou{' '}
           <code>d</code> (decimal). Sem o prefixo de bits, o literal assume 32
-          bits - por isso <code>4'b1010</code> e diferente de <code>1010</code>.
-          Alem de 0 e 1, um bit pode valer <code>x</code> (desconhecido - nao
-          inicializado ou conflito) ou <code>z</code> (alta impedancia -
+          bits - por isso <code>4'b1010</code> é diferente de <code>1010</code>.
+          Além de 0 e 1, um bit pode valer <code>x</code> (desconhecido - não
+          inicializado ou conflito) ou <code>z</code> (alta impedância -
           desconectado).
         </p>
         <CodeBlock
@@ -121,20 +122,20 @@ endmodule`}
         <p className="text-muted-foreground">
           Atribuir um literal maior que a largura declarada trunca os bits
           mais significativos; atribuir um menor estende com zero - as duas
-          situacoes sao os avisos de largura mais comuns no console.
+          situações são os avisos de largura mais comuns no console.
         </p>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Logica combinacional</h2>
+        <h2 className="text-base font-semibold">Lógica combinacional</h2>
         <p>
-          <code>assign</code> descreve um fio cujo valor e recalculado o
-          tempo todo, a partir dos operandos a direita. Os operadores mais
-          usados: bit a bit (<code>&amp; | ^ ~</code>), logicos (
-          <code>&amp;&amp; || !</code>), aritmeticos (<code>+ - * /</code>),
-          relacionais (<code>&gt; &lt; &gt;= &lt;= == !=</code>), concatenacao
-          (<code>{'{a, b}'}</code>), replicacao (<code>{'{4{a[0]}}'}</code>) e
-          o ternario (<code>condicao ? se_verdadeiro : se_falso</code>).
+          <code>assign</code> descreve um fio cujo valor é recalculado o
+          tempo todo, a partir dos operandos à direita. Os operadores mais
+          usados: bit a bit (<code>&amp; | ^ ~</code>), lógicos (
+          <code>&amp;&amp; || !</code>), aritméticos (<code>+ - * /</code>),
+          relacionais (<code>&gt; &lt; &gt;= &lt;= == !=</code>), concatenação
+          (<code>{'{a, b}'}</code>), replicação (<code>{'{4{a[0]}}'}</code>) e
+          o ternário (<code>condicao ? se_verdadeiro : se_falso</code>).
         </p>
         <CodeBlock
           fileName="combinacional.v"
@@ -159,14 +160,14 @@ endmodule`}
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Logica sequencial</h2>
+        <h2 className="text-base font-semibold">Lógica sequencial</h2>
         <p>
           <code>always @(posedge clk)</code> descreve o que muda a cada borda
-          de subida do relogio - a base de um registrador.{' '}
+          de subida do relógio - a base de um registrador.{' '}
           <code>if</code>/<code>else</code> e <code>case</code> funcionam
           dentro de <code>always</code> como em qualquer linguagem, com um{' '}
-          <code>default</code> recomendado no <code>case</code> para nao
-          deixar sinal sem valor definido em nenhuma combinacao.
+          <code>default</code> recomendado no <code>case</code> para não
+          deixar sinal sem valor definido em nenhuma combinação.
         </p>
         <CodeBlock
           fileName="registrador.v"
@@ -201,17 +202,17 @@ endmodule`}
 endmodule`}
         />
         <div>
-          <h3 className="mb-1 text-sm font-medium">Bloqueante (=) versus nao bloqueante (&lt;=)</h3>
+          <h3 className="mb-1 text-sm font-medium">Bloqueante (=) versus não bloqueante (&lt;=)</h3>
           <p className="text-muted-foreground">
-            Regra pratica: dentro de <code>always @(posedge clk)</code>, use
-            sempre <code>&lt;=</code> - todas as atribuicoes do bloco leem os
+            Regra prática: dentro de <code>always @(posedge clk)</code>, use
+            sempre <code>&lt;=</code> - todas as atribuições do bloco leem os
             valores antigos e atualizam juntas, o comportamento esperado de um
             registrador. Dentro de <code>always @(*)</code> (combinacional,
             como o decodificador acima), use sempre <code>=</code>. Misturar
             os dois no mesmo bloco costuma compilar sem erro nem aviso e
             produzir um circuito que simula diferente do que a leitura do
-            codigo sugere - por isso a armadilha e mais perigosa que um erro
-            de compilacao.
+            código sugere - por isso a armadilha é mais perigosa que um erro
+            de compilação.
           </p>
         </div>
       </section>
@@ -219,28 +220,28 @@ endmodule`}
       <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold">Testbench</h2>
         <p>
-          Um bloco <code>initial</code> executa uma vez, do inicio da
-          simulacao em diante - e onde o testbench aplica estimulos.{' '}
-          <code>#&lt;n&gt;</code> antes de um comando avanca o tempo de
-          simulacao em <code>n</code> unidades antes de executa-lo.{' '}
+          Um bloco <code>initial</code> executa uma vez, do início da
+          simulação em diante - é onde o testbench aplica estímulos.{' '}
+          <code>#&lt;n&gt;</code> antes de um comando avança o tempo de
+          simulação em <code>n</code> unidades antes de executá-lo.{' '}
           <code>$display</code> imprime uma linha uma vez; <code>$monitor</code>{' '}
           imprime de novo sempre que algum dos sinais citados muda.{' '}
-          <code>$dumpfile</code>/<code>$dumpvars</code> ligam a gravacao da
-          forma de onda (sem eles a simulacao roda normalmente, so que sem
+          <code>$dumpfile</code>/<code>$dumpvars</code> ligam a gravação da
+          forma de onda (sem eles a simulação roda normalmente, só que sem
           nada para o visualizador mostrar) e <code>$finish</code> encerra a
-          simulacao - sem ele, a execucao para sozinha ao bater no limite de
-          tempo do sandbox, sem gerar erro de compilacao.
+          simulação - sem ele, a execução para sozinha ao bater no limite de
+          tempo do sandbox, sem gerar erro de compilação.
         </p>
         <div>
-          <h3 className="mb-1 text-sm font-medium">Gerando estimulos em lote</h3>
+          <h3 className="mb-1 text-sm font-medium">Gerando estímulos em lote</h3>
           <p>
-            <code>integer</code> declara uma variavel de 32 bits usada para
-            contar, tipica de laco - nao existe em hardware de verdade, e
+            <code>integer</code> declara uma variável de 32 bits usada para
+            contar, típica de laço - não existe em hardware de verdade, é
             exclusiva de testbench. Um <code>for</code> funciona como em
-            qualquer linguagem. A concatenacao (<code>{'{a, b, cin}'}</code>)
-            tambem funciona do lado esquerdo de uma atribuicao, distribuindo
-            os bits de um valor entre varios sinais - e{' '}
-            <code>i[2:0]</code> le so os tres bits menos significativos de{' '}
+            qualquer linguagem. A concatenação (<code>{'{a, b, cin}'}</code>)
+            também funciona do lado esquerdo de uma atribuição, distribuindo
+            os bits de um valor entre vários sinais - e{' '}
+            <code>i[2:0]</code> lê só os três bits menos significativos de{' '}
             <code>i</code> (um recorte de intervalo, chamado de part-select).
           </p>
           <CodeBlock
@@ -259,9 +260,9 @@ endmodule`}
           />
         </div>
         <p>
-          Um clock nao precisa de <code>always @(posedge clk)</code> para
+          Um clock não precisa de <code>always @(posedge clk)</code> para
           existir - um <code>always</code> sem lista de sensibilidade, com um
-          atraso fixo, já gera um sinal periodico:
+          atraso fixo, já gera um sinal periódico:
         </p>
         <CodeBlock
           fileName="clock_gen_tb.v"
@@ -280,6 +281,7 @@ endmodule`}
         />
         <CodeBlock
           fileName="Console"
+          language="text"
           code={`VCD info: dumpfile wave.vcd opened for output.
 tempo=0 clk=0
 tempo=5 clk=1
@@ -295,21 +297,21 @@ clock_gen_tb.v:10: $finish called at 50 (1s)
 tempo=50 clk=0`}
         />
         <p className="text-muted-foreground">
-          Sem um <code>`timescale`</code> declarado, a unidade de tempo padrao
-          e 1 segundo - por isso o console mostra "50 (1s)" em vez de
-          nanossegundos. Na pratica, declare sempre <code>`timescale`</code>{' '}
-          (proxima secao) para controlar a unidade.
+          Sem um <code>`timescale`</code> declarado, a unidade de tempo padrão
+          é 1 segundo - por isso o console mostra "50 (1s)" em vez de
+          nanossegundos. Na prática, declare sempre <code>`timescale`</code>{' '}
+          (próxima seção) para controlar a unidade.
         </p>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Comentarios e diretivas</h2>
+        <h2 className="text-base font-semibold">Comentários e diretivas</h2>
         <p>
-          Comentario de uma linha com <code>//</code>, de bloco com{' '}
+          Comentário de uma linha com <code>//</code>, de bloco com{' '}
           <code>/* */</code>. <code>`timescale</code> define a unidade e a
-          precisao de tempo do arquivo (usada pelos atrasos <code>#</code>).{' '}
-          <code>`define</code> cria uma constante de texto substituida antes
-          da compilacao - use <code>`NOME</code>, com crase, para referenciar.
+          precisão de tempo do arquivo (usada pelos atrasos <code>#</code>).{' '}
+          <code>`define</code> cria uma constante de texto substituída antes
+          da compilação - use <code>`NOME</code>, com crase, para referenciar.
         </p>
         <CodeBlock
           fileName="diretivas.v"
@@ -328,18 +330,18 @@ endmodule`}
       </section>
 
       <section className="flex flex-col gap-3 border-t pt-4">
-        <h2 className="text-base font-semibold">Fora desta versao</h2>
+        <h2 className="text-base font-semibold">Fora desta versão</h2>
         <p className="text-muted-foreground">
-          Construcoes de SystemVerilog aparecem com frequencia em tutorial de
-          internet e o Icarus (<code>-g2012</code>) nao aceita:{' '}
+          Construções de SystemVerilog aparecem com frequência em tutorial de
+          internet e o Icarus (<code>-g2012</code>) não aceita:{' '}
           <code>logic</code> (use <code>wire</code> ou <code>reg</code>,
           conforme o uso), <code>always_ff</code> (use{' '}
           <code>always @(posedge clk)</code>), <code>always_comb</code> (use{' '}
           <code>assign</code> ou <code>always @(*)</code>),{' '}
           <code>unique case</code> (use <code>case</code>) e{' '}
           <code>interface</code> (sem equivalente direto - agrupe as portas
-          manualmente). Buscar por qualquer um desses termos na documentacao
-          mostra o mesmo equivalente e um atalho para "O que o TP Lab nao
+          manualmente). Buscar por qualquer um desses termos na documentação
+          mostra o mesmo equivalente e um atalho para "O que o TP Lab não
           faz", em Ajuda.
         </p>
       </section>
