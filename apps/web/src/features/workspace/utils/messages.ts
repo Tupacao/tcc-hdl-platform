@@ -44,21 +44,21 @@ export function formatRestoreDraftBody(savedAtLabel: string): string {
   return `Encontramos alteracoes de ${savedAtLabel} que nao chegaram a ser salvas neste projeto. Usar o rascunho ou manter a ultima versao salva?`;
 }
 
-// --- Abrir exemplo da documentacao com um projeto aberto (RF11, Figma "Onde abrir") ------
+// --- Abrir exemplo da documentação com um projeto aberto (RF11, Figma "Onde abrir") ------
 
 export function formatOpenExampleTitle(projectName: string): string {
-  return `Voce tem "${projectName}" aberto`;
+  return `Você tem "${projectName}" aberto`;
 }
 
 export function formatReplaceCurrentSubtitle(projectName: string): string {
-  return `O codigo de "${projectName}" e descartado`;
+  return `O código de "${projectName}" é descartado`;
 }
 
 export const OPEN_EXAMPLE_DIALOG = {
-  DESCRIPTION: 'Este trecho pode substituir o que esta no editor ou virar um projeto novo.',
+  DESCRIPTION: 'Este trecho pode substituir o que está no editor ou virar um projeto novo.',
   OPEN_AS_NEW_TITLE: 'Abrir em um projeto novo',
-  OPEN_AS_NEW_SUBTITLE: 'O projeto atual fica como esta',
-  REPLACE_CURRENT_TITLE: 'Substituir o conteudo atual',
+  OPEN_AS_NEW_SUBTITLE: 'O projeto atual fica como está',
+  REPLACE_CURRENT_TITLE: 'Substituir o conteúdo atual',
   CANCEL: 'Cancelar',
   SUBMIT: 'Abrir',
 };

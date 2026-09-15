@@ -6,17 +6,17 @@ interface DocsSearchEmptyProps {
   query: string;
   onSearchTerm: (term: string) => void;
   onNavigateToSection: (id: string) => void;
-  /** Id da secao "O que o TP Lab nao faz" - omitido enquanto ela nao existir no indice. */
+  /** Id da seção "O que o TP Lab não faz" - omitido enquanto ela não existir no índice. */
   outOfScopeSectionId?: string;
 }
 
 /**
  * Estado vazio da busca (RF11-I01, Figma 7.6 "Busca sem resultado"). Boa
- * parte do que o estudante procura e nao acha nao e falha do indice: e
- * SystemVerilog/VHDL/sintese, fora de proposito do MVP. Um "nenhum
- * resultado" generico faria a documentacao parecer incompleta - quando o
+ * parte do que o estudante procura e não acha não é falha do índice: é
+ * SystemVerilog/VHDL/síntese, fora de propósito do MVP. Um "nenhum
+ * resultado" genérico faria a documentação parecer incompleta - quando o
  * termo bate com algo conhecidamente fora de escopo, aponta o equivalente
- * em Verilog em vez de so dizer "nao encontrado".
+ * em Verilog em vez de só dizer "não encontrado".
  */
 export function DocsSearchEmpty({
   query,

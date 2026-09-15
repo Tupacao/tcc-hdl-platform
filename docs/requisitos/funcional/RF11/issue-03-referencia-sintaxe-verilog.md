@@ -60,12 +60,40 @@ compativeis com a toolchain da plataforma.
 
 ## Criterios de aceite
 
-- [ ] A referencia cobre todos os assuntos do sumario acima.
-- [ ] Todo exemplo compila com `iverilog -g2012` sem aviso.
-- [ ] Cada entrada tem proposito, exemplo e, quando cabe, armadilha comum.
-- [ ] As construcoes fora do escopo estao explicitamente marcadas.
-- [ ] Os elementos usados pelos exemplos de RF20 estao todos documentados.
-- [ ] O vocabulario e consistente com o restante da interface.
+- [x] A referencia cobre todos os assuntos do sumario acima.
+- [x] Todo exemplo compila com `iverilog -g2012` sem aviso.
+- [x] Cada entrada tem proposito, exemplo e, quando cabe, armadilha comum.
+- [x] As construcoes fora do escopo estao explicitamente marcadas.
+- [x] Os elementos usados pelos exemplos de RF20 estao todos documentados.
+- [x] O vocabulario e consistente com o restante da interface.
+
+## Nota de implementacao
+
+- **Uma unica pagina, nao tres.** O indice do Figma 7.1 lista "Sintaxe basica
+  de Verilog", "Portas e tipos de sinal" e "Tarefas de sistema" como itens
+  separados em "REFERENCIA", mas nenhum dos tres tem mockup de conteudo
+  proprio - so o rotulo de navegacao. Mesma decisao de RF11-I02 (mesmo
+  motivo, ver a nota la): virou um unico artigo em
+  `content/referencia-verilog.tsx`, com os assuntos como secoes (`h2`/`h3`).
+- **Todo exemplo foi compilado de verdade** com `iverilog -g2012` na imagem
+  `tplab-sandbox:latest` antes de entrar no texto - inclusive o erro
+  proposital de "wire e reg" e a saida real do gerador de clock (sem
+  `timescale`, o console mostra tempo em segundos - `$finish called at 50
+  (1s)` - registrado como observacao no proprio texto).
+- **Elementos do exemplo de RF20 conferidos um a um** contra
+  `apps/web/src/lib/samples.ts` (`full_adder`/`full_adder_tb`): alem do
+  sumario original, o testbench usa `integer`, `for`, part-select
+  (`i[2:0]`) e concatenacao como lado esquerdo de atribuicao
+  (`{a, b, cin} = ...`) - nenhum desses quatro estava no sumario da issue,
+  entraram como a subsecao "Gerando estimulos em lote" dentro de
+  "Testbench".
+- **Link ao RF05-I03 nao entrou** pelo mesmo motivo registrado em RF11-I02:
+  e RF05 × RF11, maior que esta issue, ja pendente em
+  `docs/requisitos/funcional/RF05/feature.md`.
+- **Busca por termo fora de escopo** (Figma 7.6) continua levando a "O que o
+  TP Lab nao faz" (`OUT_OF_SCOPE_SECTION_ID`), nao a esta pagina - a secao
+  "Fora desta versao" no fim do artigo e informativa, nao o alvo do
+  redirecionamento.
 
 ## Verificacao
 

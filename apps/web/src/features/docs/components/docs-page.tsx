@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CircuitBoard } from 'lucide-react';
 import type { HdlSources } from '@tplab/shared';
 import { Button } from '@/components/ui/button';
@@ -21,20 +21,21 @@ import { DocsSearchEmpty } from './docs-search-empty';
 
 interface DocsPageProps {
   onNavigateBack: () => void;
-  /** RF07-I03: quem monta a pagina decide se avisa sobre alteracoes nao salvas. */
+  /** RF07-I03: quem monta a página decide se avisa sobre alterações não salvas. */
   onOpenInEditor: (sources: HdlSources) => void;
 }
 
 /**
- * Documentacao (RF11-I01) - pagina propria, nao sobreposta ao workspace
- * (decisao fechada no Figma: `docs/requisitos/funcional/RF11/figma/
- * WILL-BE-DONE.md`, "documentacao e pagina propria"). Troca de tela como
- * "Meus projetos" ja faz - App.tsx desmonta o Workspace, o rascunho local
+ * Documentação (RF11-I01) - página própria, não sobreposta ao workspace
+ * (decisão fechada no Figma: `docs/requisitos/funcional/RF11/figma/
+ * WILL-BE-DONE.md`, "documentação é página própria"). Troca de tela como
+ * "Meus projetos" já faz - App.tsx desmonta o Workspace, o rascunho local
  * de RF07-I03 cobre o intervalo.
  */
 export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
   const [query, setQuery] = useState('');
   const [activeId, setActiveId] = useState(DOC_SECTIONS[0]?.id ?? null);
+  const mainRef = useRef<HTMLElement>(null);
 
   const filtered = useMemo(() => filterSections(DOC_SECTIONS, query), [query]);
   const activeIndex = DOC_SECTIONS.findIndex((section) => section.id === activeId);
@@ -45,6 +46,13 @@ export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
       ? (DOC_SECTIONS[activeIndex + 1] ?? null)
       : null;
 
+  // Troca de seção sempre abre no topo da coluna de leitura - sem isso, quem
+  // clica em "Próximo" vindo do fim de uma seção longa cai no fim da próxima
+  // (o <main> com overflow-y-auto mantém o scrollTop entre as trocas).
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0);
+  }, [activeId]);
+
   function selectSection(id: string) {
     setActiveId(id);
     setQuery('');
@@ -54,7 +62,7 @@ export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
     <div className="flex h-full min-w-[1024px] flex-col overflow-hidden">
       <header className="flex items-center gap-3 border-b px-4 py-2">
         <CircuitBoard aria-hidden className="size-5" />
-        <h1 className="text-sm font-semibold">TPLab</h1>
+        <h1 className="text-sm font-semibold">TP Lab</h1>
         <span className="text-xs text-muted-foreground">{PAGE_BREADCRUMB}</span>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={onNavigateBack}>
@@ -84,7 +92,7 @@ export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
           )}
         </aside>
 
-        <main className="min-h-0 flex-1 overflow-y-auto px-10 py-8">
+        <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto px-10 py-8">
           {activeSection && (
             <div className="mx-auto flex max-w-[72ch] flex-col gap-4">
               <div>

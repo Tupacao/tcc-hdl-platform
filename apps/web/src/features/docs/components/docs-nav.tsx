@@ -10,7 +10,7 @@ interface DocsNavProps {
 
 const CATEGORY_ORDER: DocCategory[] = ['inicio-rapido', 'referencia', 'ajuda'];
 
-/** Indice navegavel, agrupado por categoria (Figma 7.1: INICIO RAPIDO / REFERENCIA / AJUDA). */
+/** Índice navegável, agrupado por categoria (Figma 7.1: INÍCIO RÁPIDO / REFERÊNCIA / AJUDA). */
 export function DocsNav({ sections, activeId, onSelect }: DocsNavProps) {
   return (
     <nav aria-label={NAV_LABEL} className="flex flex-col gap-5">
@@ -31,10 +31,10 @@ export function DocsNav({ sections, activeId, onSelect }: DocsNavProps) {
                     aria-current={section.id === activeId ? 'true' : undefined}
                     onClick={() => onSelect(section.id)}
                     className={cn(
-                      'w-full rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                      'w-full rounded-md border-l-[3px] py-1.5 pr-2 pl-[calc(0.5rem-3px)] text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                       section.id === activeId
-                        ? 'bg-accent font-medium text-accent-foreground'
-                        : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+                        ? 'border-primary bg-accent font-medium text-accent-foreground'
+                        : 'border-transparent text-muted-foreground hover:bg-accent/50 hover:text-foreground',
                     )}
                   >
                     {section.title}

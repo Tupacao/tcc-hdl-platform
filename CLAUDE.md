@@ -126,8 +126,12 @@ Em desenvolvimento o Vite faz proxy de `/api` para `localhost:3333`, entao nao h
   `@tailwindcss/vite`. Nao introduzir MUI, Chakra ou outra lib de componentes.
 - Cores sempre pelos tokens de tema (`bg-background`, `text-muted-foreground`, ...),
   para manter contraste AA nos modos claro e escuro (RF10/RNF09).
-- Comentarios e textos de interface em portugues, sem acentuacao em arquivos de
-  codigo para evitar problemas de encoding no Windows.
+- Comentarios e textos de interface em portugues, com acentuacao correta.
+  Testado neste ambiente (Write/Edit + PowerShell) e o arquivo grava e le UTF-8
+  sem corromper — a regra antiga de "sem acentuacao" foi revertida por pedido
+  explicito do usuario (o texto sem acento estava sendo lido como erro de
+  portugues). Comentarios e textos ja existentes nao precisam ser reescritos
+  so por causa disso; a regra vale para texto novo ou tocado a partir de agora.
 - Prettier: aspas simples, ponto e virgula, `printWidth` 100, LF. `.sh` e Dockerfile
   sao forcados a LF pelo `.gitattributes` (rodam em container Linux).
 

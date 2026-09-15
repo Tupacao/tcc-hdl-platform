@@ -135,14 +135,16 @@ Ja implementado:
   antes) — client-side porque os projetos ainda vivem so no `localStorage`
   (ver RF07-I02); o endpoint de servidor original fica documentado e adiado
   para quando RF14 existir
-- Documentacao dentro da aplicacao (RF11-I01/I02): pagina propria (nao
-  sobreposta ao workspace, decisao do Figma), acessivel do workspace e de
-  "Meus projetos", com indice agrupado por categoria, busca por titulo/resumo
-  (com redirecionamento para termos fora de escopo), navegacao
-  Anterior/Proximo e blocos de codigo copiaveis/abriveis no editor (com
-  dialogo "Onde abrir" quando ha projeto aberto) — inclui o guia "Primeiro
-  projeto" completo, com tres erros de compilacao reais capturados no
-  `iverilog`; falta so a referencia de sintaxe (RF11-I03)
+- Documentacao dentro da aplicacao (RF11): pagina propria (nao sobreposta ao
+  workspace, decisao do Figma), acessivel do workspace e de "Meus projetos",
+  com indice agrupado por categoria, busca por titulo/resumo (com
+  redirecionamento para termos fora de escopo), navegacao Anterior/Proximo e
+  blocos de codigo copiaveis/abriveis no editor (com dialogo "Onde abrir"
+  quando ha projeto aberto) — inclui o guia "Primeiro projeto" completo (tres
+  erros de compilacao reais capturados no `iverilog`) e a referencia "Sintaxe
+  basica de Verilog" (estrutura de modulo, `wire`/`reg`, valores, operadores,
+  `always`/`case`, testbench, o que fica fora desta versao), com todo exemplo
+  compilado de verdade contra o `iverilog -g2012`
 
 Evidencia de desempenho (RNF07), medida com o painel de performance do Chrome
 sobre um `.vcd` real de ~8 MiB (teto do sandbox, truncado) gerado por uma
@@ -160,6 +162,5 @@ simulacao de ~400 mil ciclos de clock:
 
 Pendente:
 
-- [ ] Documentacao estatica: guia de inicio rapido e referencia de sintaxe (RF11)
 - [ ] Autenticacao Google e compartilhamento por link (RF14/RF15)
 - [ ] Editor visual de circuitos com React Flow (RF12/RF13)
