@@ -129,10 +129,13 @@ Ja implementado:
   Figma), zoom/deslocamento por mouse e teclado, selecao de sinais com busca,
   cursor de tempo com leitura textual dos valores em tabela acessivel e recorte
   de transicoes por viewport para arquivos grandes (RF06-I04)
-- Documentacao dentro da aplicacao (RF11-I01): painel lateral acessivel do
-  workspace e de "Meus projetos", com indice, busca por titulo/resumo e
-  blocos de codigo copiaveis/abriveis no editor — estrutura pronta, o guia de
-  inicio rapido e a referencia de sintaxe (RF11-I02/I03) ainda faltam
+- Documentacao dentro da aplicacao (RF11-I01): pagina propria (nao sobreposta
+  ao workspace, decisao do Figma), acessivel do workspace e de "Meus
+  projetos", com indice agrupado por categoria, busca por titulo/resumo
+  (com redirecionamento para termos fora de escopo), navegacao
+  Anterior/Proximo e blocos de codigo copiaveis/abriveis no editor
+  (com dialogo "Onde abrir" quando ha projeto aberto) — estrutura pronta, o
+  guia de inicio rapido e a referencia de sintaxe (RF11-I02/I03) ainda faltam
 
 Evidencia de desempenho (RNF07), medida com o painel de performance do Chrome
 sobre um `.vcd` real de ~8 MiB (teto do sandbox, truncado) gerado por uma

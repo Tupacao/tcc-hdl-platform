@@ -7,9 +7,13 @@ export interface DocSectionContentProps {
   onOpenInEditor: (sources: HdlSources) => void;
 }
 
-/** Uma entrada do indice/busca da documentacao (RF11). `id` vira o hash de navegacao interna do painel. */
+/** Grupos do indice (Figma 7.1/7.3: "INICIO RAPIDO" / "REFERENCIA" / "AJUDA"). */
+export type DocCategory = 'inicio-rapido' | 'referencia' | 'ajuda';
+
+/** Uma entrada do indice/busca/navegacao da documentacao (RF11). */
 export interface DocSection {
   id: string;
+  category: DocCategory;
   title: string;
   summary: string;
   Component: ComponentType<DocSectionContentProps>;

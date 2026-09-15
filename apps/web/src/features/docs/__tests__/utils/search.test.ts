@@ -10,12 +10,14 @@ function StubComponent(_props: DocSectionContentProps) {
 const sections: DocSection[] = [
   {
     id: 'exemplo-somador',
+    category: 'inicio-rapido',
     title: 'Exemplo: somador completo',
     summary: 'Um circuito combinacional simples, com testbench comentado.',
     Component: StubComponent,
   },
   {
     id: 'atalhos',
+    category: 'ajuda',
     title: 'Atalhos de teclado',
     summary: 'Lista de teclas rapidas do editor e do workspace.',
     Component: StubComponent,

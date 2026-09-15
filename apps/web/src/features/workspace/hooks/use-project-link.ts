@@ -44,19 +44,31 @@ export interface UseProjectLinkResult {
 export function useProjectLink(
   project: LocalProject | null,
   onSave: (id: string, sources: HdlSources) => void,
-  /** Fonte do rascunho anonimo quando nao ha projeto aberto - RF20 por padrao, um exemplo de RF11 quando vem de "abrir no editor". */
-  initialSources: HdlSources = SAMPLE_SOURCES,
+  /**
+   * Substitui a fonte inicial do editor, tanto no rascunho anonimo (RF20 por
+   * padrao) quanto - a diferenca de antes - também com um projeto aberto
+   * (RF11: "Substituir o conteudo atual" ao abrir um exemplo da
+   * documentacao). Por isso `savedSources` abaixo NUNCA usa este valor: um
+   * override com projeto aberto precisa nascer "nao salvo" (comparado contra
+   * a versao real salva), nunca aparecer como se já estivesse persistido.
+   */
+  overrideSources?: HdlSources,
 ): UseProjectLinkResult {
-  const [sources, setSources] = useState<HdlSources>(project?.sources ?? initialSources);
-  const [savedSources, setSavedSources] = useState<HdlSources>(project?.sources ?? initialSources);
+  const [sources, setSources] = useState<HdlSources>(
+    overrideSources ?? project?.sources ?? SAMPLE_SOURCES,
+  );
+  const [savedSources, setSavedSources] = useState<HdlSources>(project?.sources ?? SAMPLE_SOURCES);
   const [pendingDraft, setPendingDraft] = useState<ProjectDraft | null>(null);
 
   // Ao abrir um projeto com rascunho mais novo que a ultima versao salva,
   // pergunta antes de aplicar - nunca sobrescreve em silencio. Um rascunho
   // mais antigo (sobrou de um `save()` que nao chegou a limpar o rascunho) e
-  // apenas descartado.
+  // apenas descartado. Pulado quando ha `overrideSources`: a pessoa acabou de
+  // escolher explicitamente o que quer no editor, perguntar sobre um
+  // rascunho antigo por cima seria um segundo dialogo competindo pela mesma
+  // decisao.
   useEffect(() => {
-    if (!project) return;
+    if (!project || overrideSources) return;
     const draft = readDraft(window.localStorage, project.id);
     if (!draft) return;
     if (draft.savedAt > project.updatedAt) setPendingDraft(draft);

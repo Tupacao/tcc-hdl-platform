@@ -1,11 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
 import { BookOpen, CircuitBoard, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import type { HdlSources } from '@tplab/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { DocsPanel, DOCS_BUTTON_LABEL } from '@/features/docs';
+import { DOCS_BUTTON_LABEL } from '@/features/docs';
 import type { UseLocalProjectsResult } from '../hooks/use-local-projects';
 import type { LocalProject } from '../models/types';
 import {
@@ -36,8 +35,8 @@ interface ProjectsPageProps {
   localProjects: UseLocalProjectsResult;
   onOpenProject: (project: LocalProject) => void;
   onNavigateBack: () => void;
-  /** RF11: carrega um exemplo da documentacao no editor (rascunho anonimo). */
-  onOpenExample: (sources: HdlSources) => void;
+  /** RF11: navega para a documentacao (pagina propria, nao sobreposta). */
+  onOpenDocs: () => void;
 }
 
 /** Pagina "Meus projetos" (RF07-I02, frame 6.1 do Figma). */
@@ -45,12 +44,11 @@ export function ProjectsPage({
   localProjects,
   onOpenProject,
   onNavigateBack,
-  onOpenExample,
+  onOpenDocs,
 }: ProjectsPageProps) {
   const { projects, loadError, retryLoad, create, rename, duplicate, remove, restore } =
     localProjects;
   const [query, setQuery] = useState('');
-  const [docsOpen, setDocsOpen] = useState(false);
   const [newDialogOpen, setNewDialogOpen] = useState(false);
   const [newDialogStartPoint, setNewDialogStartPoint] = useState<'blank' | 'sample'>('blank');
   const [renameTarget, setRenameTarget] = useState<LocalProject | null>(null);
@@ -123,7 +121,7 @@ export function ProjectsPage({
         <CircuitBoard aria-hidden className="size-5" />
         <h1 className="text-sm font-semibold">TPLab</h1>
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setDocsOpen(true)}>
+          <Button variant="ghost" size="sm" onClick={onOpenDocs}>
             <BookOpen aria-hidden />
             {DOCS_BUTTON_LABEL}
           </Button>
@@ -133,8 +131,6 @@ export function ProjectsPage({
           <ThemeToggle />
         </div>
       </header>
-
-      <DocsPanel open={docsOpen} onOpenChange={setDocsOpen} onOpenInEditor={onOpenExample} />
 
       <div className="flex-1 p-6">
         <div className="mb-6 flex items-start justify-between gap-4">

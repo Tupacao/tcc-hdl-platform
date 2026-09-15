@@ -3,7 +3,6 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { toast } from 'sonner';
 import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
 import type { LastRunStatus, LocalProject } from '@/features/projects';
-import { DocsPanel } from '@/features/docs';
 import { cn } from '@/lib/utils';
 import { CodeEditor } from './components/code-editor';
 import { ConsolePanel } from './components/console-panel';
@@ -17,14 +16,18 @@ import { useRunSimulation } from './hooks/use-run-simulation';
 interface WorkspaceProps {
   /** Projeto aberto (RF07-I03). `null` no rascunho anonimo (RF20), que segue sem exigir conta. */
   project: LocalProject | null;
-  /** Fonte do rascunho anonimo quando `project` e `null` - RF20 por padrao, exemplo de RF11 quando vem da documentacao. */
-  initialSources?: HdlSources;
+  /**
+   * Substitui a fonte inicial do editor - RF20 (`SAMPLE_SOURCES`) por padrao
+   * no rascunho anonimo, ou um exemplo de RF11 escolhido em "Abrir no
+   * editor" (com ou sem projeto aberto - ver `useProjectLink`).
+   */
+  overrideSources?: HdlSources;
   onSaveProject: (id: string, sources: HdlSources) => void;
   onRecordRun: (id: string, status: LastRunStatus) => void;
   /** RF07-I02: navega para "Meus projetos". Omitido quando nao ha lista de projetos por perto. */
   onOpenProjects?: () => void;
-  /** RF11: carrega um exemplo da documentacao no editor (rascunho anonimo). */
-  onOpenExample: (sources: HdlSources) => void;
+  /** RF11: navega para a documentacao (pagina propria, nao sobreposta). */
+  onOpenDocs: () => void;
 }
 
 /**
@@ -33,18 +36,16 @@ interface WorkspaceProps {
  */
 export function Workspace({
   project,
-  initialSources,
+  overrideSources,
   onSaveProject,
   onRecordRun,
   onOpenProjects,
-  onOpenExample,
+  onOpenDocs,
 }: WorkspaceProps) {
   const { sources, updateFile, isDirty, save, pendingDraft, useDraft, discardDraft } =
-    useProjectLink(project, onSaveProject, initialSources);
+    useProjectLink(project, onSaveProject, overrideSources);
   const [activeTab, setActiveTab] = useState<WorkspaceFile>('design');
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
-  const [docsOpen, setDocsOpen] = useState(false);
   const runMutation = useRunSimulation();
   // `useMutation` limpa `data` assim que uma nova chamada comeca (fica undefined
   // durante o pending), nao so no mount inicial - re-executar apagaria o
@@ -85,22 +86,9 @@ export function Workspace({
     [sources.testbench.name],
   );
 
-  /** Porta unica para navegacao que descarta o editor atual - "Meus projetos" e "abrir no editor" da documentacao. */
-  function requestLeave(action: () => void) {
-    if (isDirty) {
-      setPendingAction(() => action);
-      setLeaveDialogOpen(true);
-    } else {
-      action();
-    }
-  }
-
   function handleRequestOpenProjects() {
-    requestLeave(() => onOpenProjects?.());
-  }
-
-  function handleOpenExample(exampleSources: HdlSources) {
-    requestLeave(() => onOpenExample(exampleSources));
+    if (isDirty) setLeaveDialogOpen(true);
+    else onOpenProjects?.();
   }
 
   const activeFile = sources[activeTab];
@@ -112,7 +100,7 @@ export function Workspace({
         isDirty={isDirty}
         onSave={save}
         onOpenProjects={onOpenProjects && handleRequestOpenProjects}
-        onOpenDocs={() => setDocsOpen(true)}
+        onOpenDocs={onOpenDocs}
         onRun={handleRun}
         isRunning={isRunning}
       />
@@ -123,15 +111,14 @@ export function Workspace({
         onOpenChange={setLeaveDialogOpen}
         onDiscard={() => {
           setLeaveDialogOpen(false);
-          pendingAction?.();
+          onOpenProjects?.();
         }}
         onSaveAndLeave={() => {
           save();
           setLeaveDialogOpen(false);
-          pendingAction?.();
+          onOpenProjects?.();
         }}
       />
-      <DocsPanel open={docsOpen} onOpenChange={setDocsOpen} onOpenInEditor={handleOpenExample} />
 
       <PanelGroup direction="horizontal" className="flex-1">
         <Panel defaultSize={58} minSize={30}>

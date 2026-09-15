@@ -45,10 +45,11 @@ Sem isso o aluno interpreta comportamento esperado como defeito.
 **Para o usuario.** Reduz o abandono no primeiro contato e o numero de duvidas
 que dependem do professor.
 
-**Na navegacao.** E o que provavelmente obriga a introduzir roteamento no SPA -
-`App.tsx` hoje renderiza `<Workspace />` direto. Alternativa: painel lateral ou
-dialogo sobre o workspace, coerente com a promessa de interface unica de RF09.
-A decisao precisa ser tomada uma vez e valer tambem para RF07-I02.
+**Na navegacao.** Decisao ja fechada no Figma (`figma/WILL-BE-DONE.md`):
+documentacao e **pagina propria**, nao painel/dialogo sobre o workspace. Isso
+nao exigiu roteador - `App.tsx` ja tinha o precedente de 'projects' como uma
+terceira `view` trocada por estado, sem URL propria; 'docs' seguiu o mesmo
+padrao (I01).
 
 **No custo de manutencao.** Documentacao envelhece. O guia cita atalhos
 (RF09-I02), limites (RF03-I01) e o contrato do testbench (RF04-I01): sempre que
@@ -61,15 +62,16 @@ do roteiro do tour.
 
 ## 5. Estado atual no repositorio
 
-- `apps/web/src/features/docs/`: painel lateral (`Sheet`) com indice, busca
-  por titulo/resumo e area de leitura, montado em `Workspace` e em
-  `ProjectsPage` - acessivel de qualquer tela, sem roteador. Uma secao de
-  conteudo ("Exemplo: somador completo") prova o mecanismo de copiar/abrir no
-  editor.
-- `apps/web/src/components/ui/sheet.tsx`: componente shadcn/ui novo, sobre
-  `@radix-ui/react-dialog` (ja dependencia) - nenhum pacote novo instalado.
-- `apps/web/src/lib/samples.ts` tem o exemplo do somador completo, com testbench
-  usando `$dumpfile`/`$dumpvars` - ja reaproveitado na secao de exemplo.
+- `apps/web/src/features/docs/`: pagina propria (`DocsPage`, terceira `view`
+  de `App.tsx`), indice agrupado por categoria (Inicio rapido/Referencia/
+  Ajuda), busca por titulo/resumo com redirecionamento para termos fora de
+  escopo, navegacao Anterior/Proximo. Duas secoes de conteudo: "Exemplo:
+  somador completo" (reaproveita `SAMPLE_SOURCES` de RF20) e "O que o TP Lab
+  nao faz" (Figma 7.3, transcrita).
+- `apps/web/src/features/workspace/components/open-example-dialog.tsx`:
+  dialogo "Onde abrir" (Figma 7.6) quando "Abrir no editor" e clicado com um
+  projeto aberto - abrir como projeto novo (padrao) ou substituir o conteudo
+  atual (`overrideSources` em `use-project-link.ts`).
 - **Falta**: os dois textos de verdade - guia de inicio rapido (I02) e
   referencia de sintaxe (I03).
 

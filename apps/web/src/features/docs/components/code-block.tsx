@@ -16,6 +16,12 @@ interface CodeBlockProps {
  * componente shadcn/ui usado, e reaproveitar o Monaco (ja no bundle) para
  * blocos curtos e somente leitura pesaria mais instancias do que o necessario
  * sem medir antes (risco registrado no issue doc).
+ *
+ * Hierarquia de acoes fixada no Figma (7.6 "Bloco de codigo com duas acoes"):
+ * "Copiar" em contorno e a escapatoria; "Abrir no editor" em laranja
+ * (`variant="default"`, `--primary`) e a acao que a documentacao quer
+ * estimular - por isso vem depois na ordem de leitura (esquerda -> direita
+ * termina no botao que se quer que a pessoa aperte).
  */
 export function CodeBlock({ fileName, code, onOpenInEditor }: CodeBlockProps) {
   async function handleCopy() {
@@ -32,16 +38,16 @@ export function CodeBlock({ fileName, code, onOpenInEditor }: CodeBlockProps) {
       <div className="flex items-center justify-between gap-2 border-b bg-muted/50 px-3 py-1.5">
         <span className="font-mono text-xs text-muted-foreground">{fileName ?? 'Verilog'}</span>
         <div className="flex items-center gap-1">
+          <Button variant="outline" size="sm" onClick={handleCopy}>
+            <Copy aria-hidden />
+            {CODE_BLOCK.COPY}
+          </Button>
           {onOpenInEditor && (
-            <Button variant="ghost" size="sm" onClick={onOpenInEditor}>
+            <Button size="sm" onClick={onOpenInEditor}>
               <FileCode aria-hidden />
               {CODE_BLOCK.OPEN_IN_EDITOR}
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={handleCopy}>
-            <Copy aria-hidden />
-            {CODE_BLOCK.COPY}
-          </Button>
         </div>
       </div>
       <pre className="overflow-x-auto p-3 font-mono text-xs leading-relaxed">
