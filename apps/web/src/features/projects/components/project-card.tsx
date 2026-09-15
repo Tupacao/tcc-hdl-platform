@@ -9,6 +9,7 @@ interface ProjectCardProps {
   onOpen: () => void;
   onRename: () => void;
   onDuplicate: () => void;
+  onExport: () => void;
   onDelete: () => void;
   onMenuTriggerFocusable?: (trigger: HTMLButtonElement) => void;
 }
@@ -25,6 +26,7 @@ export function ProjectCard({
   onOpen,
   onRename,
   onDuplicate,
+  onExport,
   onDelete,
   onMenuTriggerFocusable,
 }: ProjectCardProps) {
@@ -49,6 +51,7 @@ export function ProjectCard({
           onOpen={onOpen}
           onRename={onRename}
           onDuplicate={onDuplicate}
+          onExport={onExport}
           onDelete={onDelete}
           onTriggerFocusable={onMenuTriggerFocusable}
         />

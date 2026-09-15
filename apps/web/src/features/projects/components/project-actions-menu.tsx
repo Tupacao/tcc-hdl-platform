@@ -1,4 +1,4 @@
-import { Copy, FolderOpen, MoreVertical, PenLine, Trash2 } from 'lucide-react';
+import { Copy, Download, FolderOpen, MoreVertical, PenLine, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ interface ProjectActionsMenuProps {
   onOpen: () => void;
   onRename: () => void;
   onDuplicate: () => void;
+  onExport: () => void;
   onDelete: () => void;
   /**
    * Chamado no `pointerdown` do gatilho "...", com o proprio botao (nao
@@ -32,6 +33,7 @@ export function ProjectActionsMenu({
   onOpen,
   onRename,
   onDuplicate,
+  onExport,
   onDelete,
   onTriggerFocusable,
 }: ProjectActionsMenuProps) {
@@ -63,6 +65,10 @@ export function ProjectActionsMenu({
         <DropdownMenuItem onSelect={onDuplicate}>
           <Copy aria-hidden className="size-4" />
           {PROJECT_ACTIONS.DUPLICATE}
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onExport}>
+          <Download aria-hidden className="size-4" />
+          {PROJECT_ACTIONS.EXPORT}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onSelect={onDelete}>
