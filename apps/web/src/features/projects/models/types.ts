@@ -35,3 +35,14 @@ export interface UpdateLocalProjectInput {
   description?: string | null;
   sources?: HdlSources;
 }
+
+/**
+ * Rascunho local do workspace (RF07-I03), gravado com debounce a parte do
+ * proprio `LocalProject.sources` - so a acao "Salvar" atualiza o projeto de
+ * verdade. `savedAt` e o que decide, na abertura, se o rascunho e mais novo
+ * que a ultima versao salva do projeto.
+ */
+export interface ProjectDraft {
+  sources: HdlSources;
+  savedAt: string;
+}

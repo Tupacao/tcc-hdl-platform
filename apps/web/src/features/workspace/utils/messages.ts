@@ -17,3 +17,27 @@ export const WAVEFORM_TRUNCATED_MESSAGE =
   'O arquivo .vcd foi truncado; a forma de onda pode estar incompleta.';
 
 export const OPEN_PROJECTS_BUTTON_LABEL = 'Meus projetos';
+
+// --- Vinculo com o projeto aberto (RF07-I03) --------------------------------
+
+export const SAVE_BUTTON_LABEL = 'Salvar';
+export const UNSAVED_INDICATOR_LABEL = 'Alteracoes nao salvas';
+export const SAVED_INDICATOR_LABEL = 'Tudo salvo';
+
+export const LEAVE_DIALOG = {
+  TITLE: 'Sair sem salvar?',
+  BODY: 'Este projeto tem alteracoes nao salvas. Elas continuam guardadas como rascunho neste navegador, mas o projeto so e atualizado de verdade quando voce salva.',
+  CANCEL: 'Cancelar',
+  DISCARD: 'Sair sem salvar',
+  SAVE_AND_LEAVE: 'Salvar e sair',
+};
+
+export const RESTORE_DRAFT_DIALOG = {
+  TITLE: 'Recuperar rascunho nao salvo?',
+  DISCARD: 'Manter versao salva',
+  USE_DRAFT: 'Usar rascunho',
+};
+
+export function formatRestoreDraftBody(savedAtLabel: string): string {
+  return `Encontramos alteracoes de ${savedAtLabel} que nao chegaram a ser salvas neste projeto. Usar o rascunho ou manter a ultima versao salva?`;
+}

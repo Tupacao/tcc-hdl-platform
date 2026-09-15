@@ -116,6 +116,11 @@ Ja implementado:
   busca e undo na exclusao — persistidos no `localStorage` do navegador por
   enquanto (RF14/login ainda nao existe; o backend de RF07-I01 fica pronto
   para quando existir)
+- Vinculo continuo entre o workspace e o projeto aberto (RF07-I03): alteracoes
+  nao salvas indicadas no cabecalho, salvar com `Ctrl+S` ou pelo botao,
+  rascunho local com debounce (recuperavel ao reabrir ou apos recarregar a
+  pagina), aviso do navegador ao fechar/recarregar com pendencias e
+  confirmacao ao trocar de projeto ou voltar para a lista
 - Worker BullMQ, runner do sandbox Docker e parser de diagnosticos (com testes)
 - Frontend com editor Monaco (Verilog), painies redimensionaveis, console de erros
   e tema claro/escuro
@@ -141,8 +146,6 @@ simulacao de ~400 mil ciclos de clock:
 
 Pendente:
 
-- [ ] Vinculo continuo entre o workspace e o projeto aberto - auto-salvar,
-      aviso de alteracoes nao salvas (RF07-I03)
 - [ ] Exportacao de projetos em `.zip` (RF08)
 - [ ] Documentacao estatica: guia de inicio rapido e referencia de sintaxe (RF11)
 - [ ] Autenticacao Google e compartilhamento por link (RF14/RF15)

@@ -57,15 +57,34 @@ nao salvas, salvar sob demanda e nao perder trabalho por acidente.
 
 ## Criterios de aceite
 
-- [ ] Abrir um projeto carrega design e testbench no editor, com os nomes de
+- [x] Abrir um projeto carrega design e testbench no editor, com os nomes de
       arquivo corretos nas abas.
-- [ ] Editar marca o projeto como nao salvo; salvar limpa a marca.
-- [ ] `Ctrl+S` salva sem submeter formulario nem abrir o dialogo do navegador.
-- [ ] Fechar a aba com alteracoes nao salvas dispara o aviso do navegador.
-- [ ] Recarregar depois de editar sem salvar oferece o rascunho local.
-- [ ] Trocar de projeto com pendencias pede confirmacao.
-- [ ] Simular com projeto aberto envia `projectId`.
-- [ ] Sem projeto aberto, o fluxo de escrever e simular continua funcionando.
+- [x] Editar marca o projeto como nao salvo; salvar limpa a marca.
+- [x] `Ctrl+S` salva sem submeter formulario nem abrir o dialogo do navegador.
+- [x] Fechar a aba com alteracoes nao salvas dispara o aviso do navegador.
+- [x] Recarregar depois de editar sem salvar oferece o rascunho local.
+- [x] Trocar de projeto com pendencias pede confirmacao.
+- [x] Simular com projeto aberto envia `projectId`.
+- [x] Sem projeto aberto, o fluxo de escrever e simular continua funcionando.
+
+## Nota de implementacao
+
+RF07-I02 ja tinha decidido manter os projetos so no `localStorage` (nada vai
+para `/api/projects` ate RF14/login existir). Por isso o passo 3 deste doc
+("acao Salvar (`PATCH` com `sources`)") virou "Salvar" gravando de volta no
+`LocalProject` local, nao um `PATCH` de servidor - a politica de "salvamento
+manual + rascunho local com debounce" do passo 4 continua identica, so troca
+"Postgres" por "localStorage" como destino do salvamento explicito. A ponte
+local -> nuvem de verdade fica para quando RF14 existir (ver nota em
+`feature.md`).
+
+Tambem foi preciso corrigir um problema de escopo: `ProjectsPage` chamava
+`useLocalProjects()` por conta propria, uma segunda instancia do hook
+desincronizada da usada pelo `Workspace` (via `App.tsx`) - abrir um projeto
+recem-criado caia no rascunho anonimo porque a instancia do `Workspace` nunca
+tinha visto a escrita feita pela instancia da lista. A correcao ficou uma
+unica instancia de `useLocalProjects` em `App.tsx`, passada como prop para as
+duas telas.
 
 ## Verificacao
 

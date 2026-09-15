@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
-import type { CreateLocalProjectInput, LocalProject } from '../models/types';
+import type { HdlSources } from '@tplab/shared';
+import type { CreateLocalProjectInput, LastRunStatus, LocalProject } from '../models/types';
 import { STORAGE_ERROR } from '../utils/messages';
 import { readProjects, writeProjects } from '../utils/storage';
 import { buildCopyName } from '../utils/validation';
@@ -23,6 +24,10 @@ export interface UseLocalProjectsResult {
   create(input: CreateLocalProjectInput): LocalProject;
   rename(id: string, name: string): void;
   duplicate(id: string): LocalProject;
+  /** RF07-I03 - grava o codigo editado no workspace, atualizando `updatedAt`. */
+  save(id: string, sources: HdlSources): LocalProject;
+  /** RF07-I03 - resultado da ultima execucao a partir do workspace; nao mexe em `updatedAt`. */
+  recordRun(id: string, status: LastRunStatus): void;
   /** Devolve o projeto removido (para o toast com "Desfazer"), ou null se o id nao existir. */
   remove(id: string): LocalProject | null;
   /** Reinsere um projeto removido (acao "Desfazer" do toast de exclusao). */
@@ -78,6 +83,32 @@ export function useLocalProjects(): UseLocalProjectsResult {
     (id: string, name: string) => {
       const next = projects.map((project) =>
         project.id === id ? { ...project, name, updatedAt: new Date().toISOString() } : project,
+      );
+      persist(next);
+    },
+    [persist, projects],
+  );
+
+  const save = useCallback(
+    (id: string, sources: HdlSources): LocalProject => {
+      const now = new Date().toISOString();
+      let saved: LocalProject | undefined;
+      const next = projects.map((project) => {
+        if (project.id !== id) return project;
+        saved = { ...project, sources, updatedAt: now };
+        return saved;
+      });
+      if (!saved) throw new Error(`Projeto ${id} nao encontrado para salvar`);
+      persist(next);
+      return saved;
+    },
+    [persist, projects],
+  );
+
+  const recordRun = useCallback(
+    (id: string, status: LastRunStatus) => {
+      const next = projects.map((project) =>
+        project.id === id ? { ...project, lastRun: status } : project,
       );
       persist(next);
     },
@@ -140,6 +171,8 @@ export function useLocalProjects(): UseLocalProjectsResult {
     create,
     rename,
     duplicate,
+    save,
+    recordRun,
     remove,
     restore,
   };

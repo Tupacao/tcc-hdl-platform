@@ -1,22 +1,60 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Workspace } from '@/features/workspace/workspace';
-import { ProjectsPage, type LocalProject } from '@/features/projects';
+import { ProjectsPage, useLocalProjects, type LocalProject } from '@/features/projects';
 import { queryClient } from '@/lib/query-client';
 
 type View = 'workspace' | 'projects';
 
+/**
+ * So o id, nao a `view` - recarregar sempre volta para o workspace (RF07-I03:
+ * "recarregar oferece o rascunho local" pressupoe estar de volta no editor,
+ * nao na lista). Falha de leitura/escrita (modo privativo) so degrada para
+ * "sem projeto lembrado", mesmo criterio do `ThemeProvider`.
+ */
+const LAST_OPEN_PROJECT_KEY = 'tplab:last-open-project';
+
+function readLastOpenProjectId(): string | null {
+  try {
+    return window.localStorage.getItem(LAST_OPEN_PROJECT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeLastOpenProjectId(id: string | null): void {
+  try {
+    if (id) window.localStorage.setItem(LAST_OPEN_PROJECT_KEY, id);
+    else window.localStorage.removeItem(LAST_OPEN_PROJECT_KEY);
+  } catch {
+    // Degrada sem lembrar o projeto entre recarregamentos - nunca quebra a navegacao.
+  }
+}
+
 export default function App() {
+  const localProjects = useLocalProjects();
   const [view, setView] = useState<View>('workspace');
-  // RF07-I02 abre com as fontes do projeto escolhido; a "sincronia" continua
-  // (auto-salvar, aviso de alteracoes nao salvas) e trabalho de RF07-I03.
-  const [openProject, setOpenProject] = useState<LocalProject | null>(null);
+  const [openProjectId, setOpenProjectId] = useState<string | null>(readLastOpenProjectId);
+  // Busca de novo a cada render (em vez de guardar o `LocalProject` inteiro) -
+  // assim o Workspace sempre ve a versao mais recente apos salvar/renomear em
+  // outra tela, sem precisar sincronizar duas copias do mesmo projeto (RF07-I03).
+  const openProject = openProjectId ? (localProjects.getById(openProjectId) ?? null) : null;
+
+  // Projeto lembrado de uma sessao anterior que nao existe mais (excluido em
+  // outra aba, por exemplo) - limpa a lembranca em vez de insistir nele.
+  useEffect(() => {
+    if (openProjectId && !localProjects.loadError && !openProject) {
+      setOpenProjectId(null);
+      writeLastOpenProjectId(null);
+    }
+  }, [openProjectId, openProject, localProjects.loadError]);
 
   function handleOpenProject(project: LocalProject) {
-    setOpenProject(project);
+    setOpenProjectId(project.id);
+    writeLastOpenProjectId(project.id);
     setView('workspace');
   }
 
@@ -25,13 +63,16 @@ export default function App() {
       <ThemeProvider>
         {view === 'projects' ? (
           <ProjectsPage
+            localProjects={localProjects}
             onOpenProject={handleOpenProject}
             onNavigateBack={() => setView('workspace')}
           />
         ) : (
           <Workspace
-            key={openProject?.id ?? 'default'}
-            initialSources={openProject?.sources}
+            key={openProject?.id ?? 'anonymous'}
+            project={openProject}
+            onSaveProject={localProjects.save}
+            onRecordRun={localProjects.recordRun}
             onOpenProjects={() => setView('projects')}
           />
         )}
