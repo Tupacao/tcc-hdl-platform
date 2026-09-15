@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { formatRelativeTime, type ProjectDraft } from '@/features/projects';
-import { formatRestoreDraftBody, RESTORE_DRAFT_DIALOG } from './utils/messages';
+import { formatRestoreDraftBody, RESTORE_DRAFT_DIALOG } from '../utils/messages';
 
 interface RestoreDraftDialogProps {
   draft: ProjectDraft | null;

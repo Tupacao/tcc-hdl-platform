@@ -7,7 +7,7 @@ import {
   SAVE_BUTTON_LABEL,
   SAVED_INDICATOR_LABEL,
   UNSAVED_INDICATOR_LABEL,
-} from './utils/messages';
+} from '../utils/messages';
 
 interface WorkspaceHeaderProps {
   /** `null` no rascunho anonimo (RF20) - sem nome, sem indicador, sem "Salvar". */

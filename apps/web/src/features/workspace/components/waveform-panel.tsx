@@ -6,7 +6,7 @@ import {
   WAVEFORM_LOADING_MESSAGE,
   WAVEFORM_TRUNCATED_MESSAGE,
   WAVEFORM_UNPARSEABLE_MESSAGE,
-} from './utils/messages';
+} from '../utils/messages';
 
 interface WaveformPanelProps {
   vcd: string | null;

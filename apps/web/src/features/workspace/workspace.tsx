@@ -4,14 +4,14 @@ import { toast } from 'sonner';
 import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
 import type { LastRunStatus, LocalProject } from '@/features/projects';
 import { cn } from '@/lib/utils';
-import { CodeEditor } from './code-editor';
-import { ConsolePanel } from './console-panel';
+import { CodeEditor } from './components/code-editor';
+import { ConsolePanel } from './components/console-panel';
+import { RestoreDraftDialog } from './components/restore-draft-dialog';
+import { UnsavedChangesDialog } from './components/unsaved-changes-dialog';
+import { WaveformPanel } from './components/waveform-panel';
+import { WorkspaceHeader } from './components/workspace-header';
 import { useProjectLink, type WorkspaceFile } from './hooks/use-project-link';
 import { useRunSimulation } from './hooks/use-run-simulation';
-import { RestoreDraftDialog } from './restore-draft-dialog';
-import { UnsavedChangesDialog } from './unsaved-changes-dialog';
-import { WaveformPanel } from './waveform-panel';
-import { WorkspaceHeader } from './workspace-header';
 
 interface WorkspaceProps {
   /** Projeto aberto (RF07-I03). `null` no rascunho anonimo (RF20), que segue sem exigir conta. */

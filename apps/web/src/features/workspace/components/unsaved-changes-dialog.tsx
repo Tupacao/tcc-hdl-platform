@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { LEAVE_DIALOG } from './utils/messages';
+import { LEAVE_DIALOG } from '../utils/messages';
 
 interface UnsavedChangesDialogProps {
   open: boolean;
