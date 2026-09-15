@@ -1,0 +1,72 @@
+import { CircuitBoard, FolderOpen, Loader2, Play, Save } from 'lucide-react';
+import type { LocalProject } from '@/features/projects';
+import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-toggle';
+import {
+  OPEN_PROJECTS_BUTTON_LABEL,
+  SAVE_BUTTON_LABEL,
+  SAVED_INDICATOR_LABEL,
+  UNSAVED_INDICATOR_LABEL,
+} from '../utils/messages';
+
+interface WorkspaceHeaderProps {
+  /** `null` no rascunho anonimo (RF20) - sem nome, sem indicador, sem "Salvar". */
+  project: LocalProject | null;
+  isDirty: boolean;
+  onSave: () => void;
+  onOpenProjects?: () => void;
+  onRun: () => void;
+  isRunning: boolean;
+}
+
+/** RF07-I03 - cabecalho do workspace com identidade, projeto aberto e acoes. */
+export function WorkspaceHeader({
+  project,
+  isDirty,
+  onSave,
+  onOpenProjects,
+  onRun,
+  isRunning,
+}: WorkspaceHeaderProps) {
+  return (
+    <header className="flex items-center gap-3 border-b px-4 py-2">
+      <CircuitBoard aria-hidden className="size-5" />
+      <h1 className="text-sm font-semibold">TPLab</h1>
+
+      {project ? (
+        <div className="flex items-center gap-1.5">
+          <span className="max-w-40 truncate text-xs font-medium">{project.name}</span>
+          <span
+            aria-hidden
+            className={isDirty ? 'size-1.5 shrink-0 rounded-full bg-warning' : 'size-1.5 shrink-0'}
+          />
+          <span className="sr-only">
+            {isDirty ? UNSAVED_INDICATOR_LABEL : SAVED_INDICATOR_LABEL}
+          </span>
+        </div>
+      ) : (
+        <span className="text-xs text-muted-foreground">Verilog</span>
+      )}
+
+      <div className="ml-auto flex items-center gap-2">
+        {project && (
+          <Button variant="outline" size="sm" onClick={onSave} disabled={!isDirty}>
+            <Save aria-hidden />
+            {SAVE_BUTTON_LABEL}
+          </Button>
+        )}
+        {onOpenProjects && (
+          <Button variant="ghost" size="sm" onClick={onOpenProjects}>
+            <FolderOpen aria-hidden />
+            {OPEN_PROJECTS_BUTTON_LABEL}
+          </Button>
+        )}
+        <Button onClick={onRun} disabled={isRunning} size="sm">
+          {isRunning ? <Loader2 aria-hidden className="animate-spin" /> : <Play aria-hidden />}
+          {isRunning ? 'Executando' : 'Executar'}
+        </Button>
+        <ThemeToggle />
+      </div>
+    </header>
+  );
+}

@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { useLocalProjects } from '../hooks/use-local-projects';
+import type { UseLocalProjectsResult } from '../hooks/use-local-projects';
 import type { LocalProject } from '../models/types';
 import {
   EMPTY_STATE,
@@ -26,14 +26,20 @@ import { ProjectCard } from './project-card';
 import { RenameProjectDialog } from './rename-project-dialog';
 
 interface ProjectsPageProps {
+  /**
+   * Mesma instancia de `useLocalProjects` usada pelo `Workspace` (App.tsx) -
+   * nao um hook proprio aqui: duas instancias leriam o `localStorage` cada
+   * uma na sua vez e nunca veriam a escrita uma da outra (RF07-I03).
+   */
+  localProjects: UseLocalProjectsResult;
   onOpenProject: (project: LocalProject) => void;
   onNavigateBack: () => void;
 }
 
 /** Pagina "Meus projetos" (RF07-I02, frame 6.1 do Figma). */
-export function ProjectsPage({ onOpenProject, onNavigateBack }: ProjectsPageProps) {
+export function ProjectsPage({ localProjects, onOpenProject, onNavigateBack }: ProjectsPageProps) {
   const { projects, loadError, retryLoad, create, rename, duplicate, remove, restore } =
-    useLocalProjects();
+    localProjects;
   const [query, setQuery] = useState('');
   const [newDialogOpen, setNewDialogOpen] = useState(false);
   const [newDialogStartPoint, setNewDialogStartPoint] = useState<'blank' | 'sample'>('blank');

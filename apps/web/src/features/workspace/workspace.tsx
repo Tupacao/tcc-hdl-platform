@@ -1,23 +1,23 @@
 import { useCallback, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { CircuitBoard, FolderOpen, Loader2, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
-import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { SAMPLE_SOURCES } from '@/lib/samples';
+import type { LastRunStatus, LocalProject } from '@/features/projects';
 import { cn } from '@/lib/utils';
-import { CodeEditor } from './code-editor';
-import { ConsolePanel } from './console-panel';
+import { CodeEditor } from './components/code-editor';
+import { ConsolePanel } from './components/console-panel';
+import { RestoreDraftDialog } from './components/restore-draft-dialog';
+import { UnsavedChangesDialog } from './components/unsaved-changes-dialog';
+import { WaveformPanel } from './components/waveform-panel';
+import { WorkspaceHeader } from './components/workspace-header';
+import { useProjectLink, type WorkspaceFile } from './hooks/use-project-link';
 import { useRunSimulation } from './hooks/use-run-simulation';
-import { OPEN_PROJECTS_BUTTON_LABEL } from './utils/messages';
-import { WaveformPanel } from './waveform-panel';
-
-type FileTab = 'design' | 'testbench';
 
 interface WorkspaceProps {
-  /** Fonte inicial do editor. Sem projeto aberto (RF07), o exemplo padrao de RF20. */
-  initialSources?: HdlSources;
+  /** Projeto aberto (RF07-I03). `null` no rascunho anonimo (RF20), que segue sem exigir conta. */
+  project: LocalProject | null;
+  onSaveProject: (id: string, sources: HdlSources) => void;
+  onRecordRun: (id: string, status: LastRunStatus) => void;
   /** RF07-I02: navega para "Meus projetos". Omitido quando nao ha lista de projetos por perto. */
   onOpenProjects?: () => void;
 }
@@ -26,9 +26,11 @@ interface WorkspaceProps {
  * RF09 — editor, compilador, simulador e visualizador em uma unica interface.
  * Os painies sao redimensionaveis para caber em telas a partir de 1024px (RNF03).
  */
-export function Workspace({ initialSources = SAMPLE_SOURCES, onOpenProjects }: WorkspaceProps) {
-  const [sources, setSources] = useState<HdlSources>(initialSources);
-  const [activeTab, setActiveTab] = useState<FileTab>('design');
+export function Workspace({ project, onSaveProject, onRecordRun, onOpenProjects }: WorkspaceProps) {
+  const { sources, updateFile, isDirty, save, pendingDraft, useDraft, discardDraft } =
+    useProjectLink(project, onSaveProject);
+  const [activeTab, setActiveTab] = useState<WorkspaceFile>('design');
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const runMutation = useRunSimulation();
   // `useMutation` limpa `data` assim que uma nova chamada comeca (fica undefined
   // durante o pending), nao so no mount inicial - re-executar apagaria o
@@ -41,20 +43,25 @@ export function Workspace({ initialSources = SAMPLE_SOURCES, onOpenProjects }: W
   const error = runMutation.error?.message ?? null;
   const isRunning = runMutation.isPending;
 
-  const updateFile = useCallback((tab: FileTab, content: string) => {
-    setSources((current) => ({ ...current, [tab]: { ...current[tab], content } }));
-  }, []);
-
   const handleRun = useCallback(() => {
-    runMutation.mutate(sources, {
-      onSuccess: (simulation) => {
-        setLastResult(simulation);
-        if (simulation.failure) toast.error('A simulacao terminou com erros.');
-        else toast.success(`Simulacao concluida em ${simulation.durationMs} ms.`);
+    runMutation.mutate(
+      { ...sources, projectId: project?.id },
+      {
+        onSuccess: (simulation) => {
+          setLastResult(simulation);
+          if (project) {
+            onRecordRun(project.id, {
+              kind: simulation.failure ? 'failure' : 'success',
+              at: new Date().toISOString(),
+            });
+          }
+          if (simulation.failure) toast.error('A simulacao terminou com erros.');
+          else toast.success(`Simulacao concluida em ${simulation.durationMs} ms.`);
+        },
+        onError: (cause) => toast.error(cause.message),
       },
-      onError: (cause) => toast.error(cause.message),
-    });
-  }, [runMutation, sources]);
+    );
+  }, [runMutation, sources, project, onRecordRun]);
 
   const focusDiagnostic = useCallback(
     (diagnostic: Diagnostic) => {
@@ -64,29 +71,38 @@ export function Workspace({ initialSources = SAMPLE_SOURCES, onOpenProjects }: W
     [sources.testbench.name],
   );
 
+  function handleRequestOpenProjects() {
+    if (isDirty) setLeaveDialogOpen(true);
+    else onOpenProjects?.();
+  }
+
   const activeFile = sources[activeTab];
 
   return (
     <div className="flex h-full min-w-[1024px] flex-col">
-      <header className="flex items-center gap-3 border-b px-4 py-2">
-        <CircuitBoard aria-hidden className="size-5" />
-        <h1 className="text-sm font-semibold">TPLab</h1>
-        <span className="text-xs text-muted-foreground">Verilog</span>
+      <WorkspaceHeader
+        project={project}
+        isDirty={isDirty}
+        onSave={save}
+        onOpenProjects={onOpenProjects && handleRequestOpenProjects}
+        onRun={handleRun}
+        isRunning={isRunning}
+      />
 
-        <div className="ml-auto flex items-center gap-2">
-          {onOpenProjects && (
-            <Button variant="ghost" size="sm" onClick={onOpenProjects}>
-              <FolderOpen aria-hidden />
-              {OPEN_PROJECTS_BUTTON_LABEL}
-            </Button>
-          )}
-          <Button onClick={handleRun} disabled={isRunning} size="sm">
-            {isRunning ? <Loader2 aria-hidden className="animate-spin" /> : <Play aria-hidden />}
-            {isRunning ? 'Executando' : 'Executar'}
-          </Button>
-          <ThemeToggle />
-        </div>
-      </header>
+      <RestoreDraftDialog draft={pendingDraft} onUseDraft={useDraft} onDiscard={discardDraft} />
+      <UnsavedChangesDialog
+        open={leaveDialogOpen}
+        onOpenChange={setLeaveDialogOpen}
+        onDiscard={() => {
+          setLeaveDialogOpen(false);
+          onOpenProjects?.();
+        }}
+        onSaveAndLeave={() => {
+          save();
+          setLeaveDialogOpen(false);
+          onOpenProjects?.();
+        }}
+      />
 
       <PanelGroup direction="horizontal" className="flex-1">
         <Panel defaultSize={58} minSize={30}>

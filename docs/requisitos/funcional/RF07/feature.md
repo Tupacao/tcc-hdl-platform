@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Gestao de projetos |
-| Status | Parcial — I01 (persistencia Prisma/PostgreSQL) e I02 (interface, local ate RF14 existir) concluidas; I03 (vinculo com o workspace) pendente |
+| Status | Concluida — I01 (persistencia Prisma/PostgreSQL), I02 (interface, local ate RF14 existir) e I03 (vinculo com o workspace) concluidas |
 | Requisitos relacionados | RF08, RF09, RF14, RF15, RNF06 |
 
 ## 1. Enunciado
@@ -88,9 +88,14 @@ sessao sao decisoes de produto que aparecem so aqui.
   explicita (ver nota no issue doc): enquanto RF14 (login) nao existir, nada e
   enviado a API real de RF07-I01. `apps/web/src/lib/api.ts` continua sem
   funcoes de projeto.
-- **Falta**: o vinculo entre o workspace e o projeto aberto - auto-salvar,
-  aviso de alteracoes nao salvas, e a ponte local ↔ nuvem que RF14-I03 vai
-  fazer (I03).
+- RF07-I03: `apps/web/src/features/workspace/hooks/use-project-link.ts` liga o
+  `Workspace` ao `LocalProject` aberto - alteracoes nao salvas por comparacao
+  de conteudo (nunca um booleano solto), rascunho local com debounce
+  (`tplab:draft:<id>`), `Ctrl+S`/botao "Salvar", aviso nativo do navegador
+  (`beforeunload`) e dialogos de confirmacao ao trocar de projeto ou ao
+  encontrar um rascunho mais novo que a ultima versao salva.
+- **Falta**: a ponte local ↔ nuvem que RF14-I03 vai fazer, quando login
+  existir (hoje "salvar" grava no `localStorage`, nao em `/api/projects`).
 
 ## 6. Escopo
 
@@ -116,12 +121,11 @@ sessao sao decisoes de produto que aparecem so aqui.
       Postgres - o RF07-I02 de hoje persiste local ate RF14 existir)_
 - [x] A lista mostra nome, descricao e data de atualizacao, ordenada pela mais
       recente. _(RF07-I02)_
-- [ ] Abrir um projeto carrega design e testbench no editor. _(RF07-I03 -
-      RF07-I02 ja abre com as fontes do projeto, falta o "vinculo" continuo)_
+- [x] Abrir um projeto carrega design e testbench no editor. _(RF07-I03)_
 - [x] Renomear reflete na lista sem recarregar a pagina. _(RF07-I02)_
 - [x] Excluir pede confirmacao e remove da lista. _(RF07-I02)_
-- [ ] Editar o codigo e salvar atualiza o projeto e o `updatedAt`. _(RF07-I03)_
-- [ ] Sair com alteracoes nao salvas gera aviso. _(RF07-I03)_
+- [x] Editar o codigo e salvar atualiza o projeto e o `updatedAt`. _(RF07-I03)_
+- [x] Sair com alteracoes nao salvas gera aviso. _(RF07-I03)_
 - [x] As rotas continuam identicas - a troca de repositorio nao mudou o
       contrato. _(RF07-I01)_
 
@@ -131,7 +135,7 @@ sessao sao decisoes de produto que aparecem so aqui.
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-persistencia-prisma-postgres.md) | Persistencia com Prisma e PostgreSQL | `feat-RF07-01-persistencia-prisma-postgres-back` | G | Concluido |
 | [issue-02](issue-02-interface-gerenciamento-projetos.md) | Interface de gerenciamento de projetos | `feat-RF07-02-interface-gerenciamento-projetos-front` | G | Concluido |
-| [issue-03](issue-03-vinculo-workspace-projeto.md) | Vinculo do workspace com o projeto aberto | `feat/rf07-vinculo-workspace-projeto` | M | Pendente |
+| [issue-03](issue-03-vinculo-workspace-projeto.md) | Vinculo do workspace com o projeto aberto | `feat-RF07-03-vinculo-workspace-projeto-front` | M | Concluido |
 
 ## 9. Dependencias
 
