@@ -105,6 +105,7 @@ export function parseIcarusDiagnostics(
         column: column ? Number.parseInt(column, 10) : null,
         message,
         raw,
+        hint: null,
       });
       continue;
     }
@@ -123,6 +124,7 @@ export function parseIcarusDiagnostics(
         column: null,
         message: message.trim(),
         raw,
+        hint: null,
       });
       continue;
     }
@@ -141,6 +143,7 @@ export function parseIcarusDiagnostics(
       column: null,
       message: trimmed,
       raw,
+      hint: null,
     });
   }
 
