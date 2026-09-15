@@ -1,11 +1,10 @@
 import type { DocSection } from '../models/types';
 import { InicioRapidoSection } from './inicio-rapido';
+import { ReferenciaVerilogSection } from './referencia-verilog';
 import { OQueNaoFazSection } from './o-que-nao-faz';
 
 /**
  * Fonte unica do indice, da busca e da navegacao Anterior/Proximo (RF11-I01).
- * A referencia de sintaxe (RF11-I03) entra aqui como nova entrada em
- * 'referencia', com seu componente em `content/`.
  */
 export const DOC_SECTIONS: DocSection[] = [
   {
@@ -15,6 +14,14 @@ export const DOC_SECTIONS: DocSection[] = [
     summary:
       'O caminho minimo ate a primeira forma de onda: mapa da tela, design, testbench, executar e ler o resultado.',
     Component: InicioRapidoSection,
+  },
+  {
+    id: 'sintaxe-verilog',
+    category: 'referencia',
+    title: 'Sintaxe basica de Verilog',
+    summary:
+      'Modulo, portas, parametros, wire e reg, numeros com base, operadores, always, case, testbench e o que fica fora desta versao.',
+    Component: ReferenciaVerilogSection,
   },
   {
     id: 'o-que-nao-faz',
