@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CircuitBoard } from 'lucide-react';
 import type { HdlSources } from '@tplab/shared';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,7 @@ interface DocsPageProps {
 export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
   const [query, setQuery] = useState('');
   const [activeId, setActiveId] = useState(DOC_SECTIONS[0]?.id ?? null);
+  const mainRef = useRef<HTMLElement>(null);
 
   const filtered = useMemo(() => filterSections(DOC_SECTIONS, query), [query]);
   const activeIndex = DOC_SECTIONS.findIndex((section) => section.id === activeId);
@@ -44,6 +45,13 @@ export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
     activeIndex >= 0 && activeIndex < DOC_SECTIONS.length - 1
       ? (DOC_SECTIONS[activeIndex + 1] ?? null)
       : null;
+
+  // Troca de seção sempre abre no topo da coluna de leitura - sem isso, quem
+  // clica em "Próximo" vindo do fim de uma seção longa cai no fim da próxima
+  // (o <main> com overflow-y-auto mantém o scrollTop entre as trocas).
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0);
+  }, [activeId]);
 
   function selectSection(id: string) {
     setActiveId(id);
@@ -84,7 +92,7 @@ export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
           )}
         </aside>
 
-        <main className="min-h-0 flex-1 overflow-y-auto px-10 py-8">
+        <main ref={mainRef} className="min-h-0 flex-1 overflow-y-auto px-10 py-8">
           {activeSection && (
             <div className="mx-auto flex max-w-[72ch] flex-col gap-4">
               <div>
