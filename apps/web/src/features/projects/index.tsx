@@ -4,3 +4,4 @@ export { useLocalProjects } from './hooks/use-local-projects';
 export type { UseLocalProjectsResult } from './hooks/use-local-projects';
 export { clearDraft, readDraft, writeDraft } from './utils/draft-storage';
 export { formatRelativeTime } from './utils/format';
+export { buildExportFileName, buildProjectZip, downloadProjectZip } from './utils/export-project';

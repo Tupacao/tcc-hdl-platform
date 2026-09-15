@@ -1,9 +1,10 @@
-import { BookOpen, CircuitBoard, FolderOpen, Loader2, Play, Save } from 'lucide-react';
+import { BookOpen, CircuitBoard, Download, FolderOpen, Loader2, Play, Save } from 'lucide-react';
 import type { LocalProject } from '@/features/projects';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { DOCS_BUTTON_LABEL } from '@/features/docs';
 import {
+  EXPORT_BUTTON_LABEL,
   OPEN_PROJECTS_BUTTON_LABEL,
   SAVE_BUTTON_LABEL,
   SAVED_INDICATOR_LABEL,
@@ -11,10 +12,12 @@ import {
 } from '../utils/messages';
 
 interface WorkspaceHeaderProps {
-  /** `null` no rascunho anonimo (RF20) - sem nome, sem indicador, sem "Salvar". */
+  /** `null` no rascunho anonimo (RF20) - sem nome, sem indicador, sem "Salvar"/"Exportar". */
   project: LocalProject | null;
   isDirty: boolean;
   onSave: () => void;
+  /** RF08 - exporta as fontes ao vivo do editor, nao a versao salva. */
+  onExport: () => void;
   onOpenProjects?: () => void;
   onOpenDocs: () => void;
   onRun: () => void;
@@ -26,6 +29,7 @@ export function WorkspaceHeader({
   project,
   isDirty,
   onSave,
+  onExport,
   onOpenProjects,
   onOpenDocs,
   onRun,
@@ -56,6 +60,11 @@ export function WorkspaceHeader({
           <Button variant="outline" size="sm" onClick={onSave} disabled={!isDirty}>
             <Save aria-hidden />
             {SAVE_BUTTON_LABEL}
+          </Button>
+        )}
+        {project && (
+          <Button variant="ghost" size="icon" aria-label={EXPORT_BUTTON_LABEL} onClick={onExport}>
+            <Download aria-hidden />
           </Button>
         )}
         {onOpenProjects && (

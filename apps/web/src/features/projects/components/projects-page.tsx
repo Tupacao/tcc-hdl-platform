@@ -7,8 +7,10 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { DOCS_BUTTON_LABEL } from '@/features/docs';
 import type { UseLocalProjectsResult } from '../hooks/use-local-projects';
 import type { LocalProject } from '../models/types';
+import { buildExportFileName, buildProjectZip, downloadProjectZip } from '../utils/export-project';
 import {
   EMPTY_STATE,
+  EXPORT_ERROR_MESSAGE,
   formatDeleteToast,
   formatNoSearchResultsMessage,
   formatProjectCountSubtitle,
@@ -102,6 +104,16 @@ export function ProjectsPage({
     }
   }
 
+  /** RF08 - monta e baixa o `.zip` a partir da versao salva do projeto. */
+  function handleExport(project: LocalProject) {
+    try {
+      const bytes = buildProjectZip(project, project.sources);
+      downloadProjectZip(bytes, buildExportFileName(project.name, project.id));
+    } catch {
+      toast.error(EXPORT_ERROR_MESSAGE);
+    }
+  }
+
   function handleDelete(id: string) {
     runOrToastError(() => {
       const removed = remove(id);
@@ -180,6 +192,7 @@ export function ProjectsPage({
                 onOpen={() => onOpenProject(project)}
                 onRename={() => openRenameDialog(project)}
                 onDuplicate={() => runOrToastError(() => duplicate(project.id))}
+                onExport={() => handleExport(project)}
                 onDelete={() => openDeleteDialog(project)}
                 onMenuTriggerFocusable={(trigger) => {
                   lastFocusedRef.current = trigger;

@@ -21,6 +21,8 @@ export const OPEN_PROJECTS_BUTTON_LABEL = 'Meus projetos';
 // --- Vinculo com o projeto aberto (RF07-I03) --------------------------------
 
 export const SAVE_BUTTON_LABEL = 'Salvar';
+export const EXPORT_BUTTON_LABEL = 'Exportar projeto em .zip';
+export const EXPORT_ERROR_MESSAGE = 'Nao foi possivel gerar o arquivo para exportar.';
 export const UNSAVED_INDICATOR_LABEL = 'Alteracoes nao salvas';
 export const SAVED_INDICATOR_LABEL = 'Tudo salvo';
 

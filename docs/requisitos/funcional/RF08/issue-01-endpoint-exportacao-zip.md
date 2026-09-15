@@ -6,6 +6,14 @@
 | Branch | `feat/rf08-endpoint-exportacao-zip` |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | RF07-I01 |
+| Status | **Adiado.** A exportacao do MVP saiu client-side (ver
+`issue-02-acao-exportar-interface.md` e a nota em `feature.md`) porque RF07-I02
+decidiu manter os projetos so no `localStorage` ate RF14 (login) existir - um
+endpoint `GET /api/projects/:id/export` exportaria do Postgres um projeto que a
+tela real de "Meus projetos" nunca populou. Este doc fica registrado, sem
+alteracao no conteudo abaixo, para quando RF14 sincronizar local -> nuvem e o
+Postgres passar a ser a fonte de verdade - nesse momento a rota descrita aqui
+volta a fazer sentido tal como planejada. |
 
 ## Contexto
 

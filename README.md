@@ -129,6 +129,12 @@ Ja implementado:
   Figma), zoom/deslocamento por mouse e teclado, selecao de sinais com busca,
   cursor de tempo com leitura textual dos valores em tabela acessivel e recorte
   de transicoes por viewport para arquivos grandes (RF06-I04)
+- Exportacao de projetos em `.zip` (RF08): montado no navegador (design,
+  testbench e `project.json`/`README.txt`), a partir da lista ("Exportar" no
+  menu de acoes) ou do workspace (fontes ao vivo do editor, sem exigir salvar
+  antes) — client-side porque os projetos ainda vivem so no `localStorage`
+  (ver RF07-I02); o endpoint de servidor original fica documentado e adiado
+  para quando RF14 existir
 - Documentacao dentro da aplicacao (RF11-I01): pagina propria (nao sobreposta
   ao workspace, decisao do Figma), acessivel do workspace e de "Meus
   projetos", com indice agrupado por categoria, busca por titulo/resumo
@@ -153,7 +159,6 @@ simulacao de ~400 mil ciclos de clock:
 
 Pendente:
 
-- [ ] Exportacao de projetos em `.zip` (RF08)
 - [ ] Documentacao estatica: guia de inicio rapido e referencia de sintaxe (RF11)
 - [ ] Autenticacao Google e compartilhamento por link (RF14/RF15)
 - [ ] Editor visual de circuitos com React Flow (RF12/RF13)

@@ -10,9 +10,27 @@ valida e escreve teste — nunca o contrario).
 ## 0. Repositorio
 
 `https://github.com/Tupacao/tcc-hdl-platform` — usar esta URL (via MCP do GitHub,
-quando disponivel, ou `gh`/`git`) para checar branches, PRs abertos, status de CI
-e issues antes de comecar uma tarefa, sempre que a tarefa depender do estado atual
-do remoto.
+quando disponivel, ou `gh`/`git`) para checar branches, PRs abertas e status de CI
+antes de comecar uma tarefa, sempre que a tarefa depender do estado atual do
+remoto.
+
+> **As issues NAO ficam no GitHub.** Este repositorio nao usa o rastreador de
+> Issues do GitHub (verificado: todas as entradas do repo sao Pull Requests, zero
+> Issues) — o backlog inteiro vive em `docs/requisitos/funcional/RF*/` (um
+> `feature.md` por requisito, quebrado em `issue-NN-*.md`). "Proxima issue",
+> "importar issue" etc. sempre significam consultar essa arvore de markdown, nunca
+> o GitHub Issues. GitHub serve so para branches/PRs/CI.
+
+> **Todo requisito com secao de design tem um `figma/WILL-BE-DONE.md` dentro da
+> pasta `RFxx/` — leia-o e abra os links do Figma nele referenciados (MCP
+> `claude_ai_Figma`: `get_design_context`/`get_screenshot`/`get_metadata`) ANTES
+> de implementar qualquer coisa de interface daquele requisito.** Esse doc nao e
+> so um placeholder: costuma conter decisoes de navegacao ja fechadas, texto de
+> tela, hierarquia de acoes (qual botao e primario) e comportamento de casos de
+> borda (ex.: estado vazio de busca) que nao estao em lugar nenhum do
+> `issue-NN-*.md`. Pular esse passo produz uma implementacao plausivel porem
+> errada em detalhes que so o design define — ja aconteceu (RF11-I01: painel
+> sobreposto ao workspace quando o Figma ja tinha fechado "pagina propria").
 
 ## 1. Identificar o escopo e o lado (front/back)
 
@@ -39,8 +57,9 @@ branch de outro escopo.
 
 ## 3. Consultar a arquitetura
 
-Antes de escrever codigo, reler `docs/ARCHITECTURE.md` e mapear onde cada arquivo
-novo vai entrar:
+Antes de escrever codigo: se a tarefa toca interface, primeiro `docs/requisitos/funcional/RFxx/figma/WILL-BE-DONE.md`
+e os links do Figma nele (ver alerta na secao 0) - so depois reler
+`docs/ARCHITECTURE.md` e mapear onde cada arquivo novo vai entrar:
 
 - Front: qual feature em `apps/web/src/features/`, e dentro dela o que e
   `components/`, `hooks/`, `utils/`, `models/`, `styles/`.
