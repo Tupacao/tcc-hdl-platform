@@ -1,6 +1,6 @@
 import Editor, { type Monaco, type OnMount } from '@monaco-editor/react';
 import type { Diagnostic } from '@tplab/shared';
-import { useCallback, useEffect, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 import type { editor } from 'monaco-editor';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -11,10 +11,24 @@ interface CodeEditorProps {
   onChange: (value: string) => void;
 }
 
+/** RF05-I02 - navegação imperativa até um diagnóstico, exposta ao `Workspace`. */
+export interface CodeEditorHandle {
+  /**
+   * Rola até a linha, posiciona o cursor e foca o editor. Não faz nada se
+   * `file` não for o arquivo atualmente exibido - quem chama é responsável
+   * por trocar de aba antes (`Workspace`), porque só o modelo visível pode
+   * ser revelado de forma útil.
+   */
+  revealPosition: (file: string, line: number, column: number | null) => void;
+}
+
 const MARKER_OWNER = 'iverilog';
 
 /** Editor Verilog com destaque de sintaxe (RF02) e marcação de erros (RF05). */
-export function CodeEditor({ fileName, value, diagnostics, onChange }: CodeEditorProps) {
+export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditor(
+  { fileName, value, diagnostics, onChange },
+  ref,
+) {
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
@@ -23,6 +37,24 @@ export function CodeEditor({ fileName, value, diagnostics, onChange }: CodeEdito
     editorRef.current = instance;
     monacoRef.current = monaco;
   }, []);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      revealPosition: (file, line, column) => {
+        const instance = editorRef.current;
+        const model = instance?.getModel();
+        if (!instance || !model || file !== fileName) return;
+
+        const clampedLine = Math.min(Math.max(line, 1), model.getLineCount());
+        const clampedColumn = column ?? 1;
+        instance.revealLineInCenterIfOutsideViewport(clampedLine);
+        instance.setPosition({ lineNumber: clampedLine, column: clampedColumn });
+        instance.focus();
+      },
+    }),
+    [fileName],
+  );
 
   // Reaplica os marcadores sempre que a API devolver novos diagnósticos.
   useEffect(() => {
@@ -70,4 +102,4 @@ export function CodeEditor({ fileName, value, diagnostics, onChange }: CodeEdito
       loading={<span className="p-4 text-sm text-muted-foreground">Carregando editor...</span>}
     />
   );
-}
+});
