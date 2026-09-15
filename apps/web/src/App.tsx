@@ -8,9 +8,10 @@ import { Workspace } from '@/features/workspace/workspace';
 import { OpenExampleDialog } from '@/features/workspace/components/open-example-dialog';
 import { ProjectsPage, useLocalProjects, type LocalProject } from '@/features/projects';
 import { DocsPage } from '@/features/docs';
+import { HomePage } from '@/features/home';
 import { queryClient } from '@/lib/query-client';
 
-type View = 'workspace' | 'projects' | 'docs';
+type View = 'home' | 'workspace' | 'projects' | 'docs';
 
 /**
  * So o id, nao a `view` - recarregar sempre volta para o workspace (RF07-I03:
@@ -39,7 +40,11 @@ function writeLastOpenProjectId(id: string | null): void {
 
 export default function App() {
   const localProjects = useLocalProjects();
-  const [view, setView] = useState<View>('workspace');
+  // RF01 (Figma "0 · Home") - a home e a primeira tela, material de
+  // marketing complementar; "Comecar a programar"/"Abrir o editor" levam ao
+  // workspace de verdade sem exigir nada antes.
+  const [view, setView] = useState<View>('home');
+  const [docsInitialSectionId, setDocsInitialSectionId] = useState<string | undefined>(undefined);
   const [openProjectId, setOpenProjectId] = useState<string | null>(readLastOpenProjectId);
   // Busca de novo a cada render (em vez de guardar o `LocalProject` inteiro) -
   // assim o Workspace sempre ve a versao mais recente apos salvar/renomear em
@@ -102,21 +107,36 @@ export default function App() {
     setPendingExample(null);
   }
 
+  function handleOpenDocs(sectionId?: string) {
+    setDocsInitialSectionId(sectionId);
+    setView('docs');
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+        {view === 'home' && (
+          <HomePage
+            projects={localProjects.projects}
+            onOpenWorkspace={() => setView('workspace')}
+            onOpenProject={handleOpenProject}
+            onOpenProjects={() => setView('projects')}
+            onOpenDocs={handleOpenDocs}
+          />
+        )}
         {view === 'projects' && (
           <ProjectsPage
             localProjects={localProjects}
             onOpenProject={handleOpenProject}
             onNavigateBack={() => setView('workspace')}
-            onOpenDocs={() => setView('docs')}
+            onOpenDocs={() => handleOpenDocs()}
           />
         )}
         {view === 'docs' && (
           <DocsPage
             onNavigateBack={() => setView('workspace')}
             onOpenInEditor={handleOpenExample}
+            initialSectionId={docsInitialSectionId}
           />
         )}
         {view === 'workspace' && (
@@ -127,7 +147,7 @@ export default function App() {
             onSaveProject={localProjects.save}
             onRecordRun={localProjects.recordRun}
             onOpenProjects={() => setView('projects')}
-            onOpenDocs={() => setView('docs')}
+            onOpenDocs={() => handleOpenDocs()}
           />
         )}
 

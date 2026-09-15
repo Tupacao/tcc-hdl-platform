@@ -25,3 +25,6 @@ apoio que o requisito pedia estao prontos:
 A pagina "0 · Home" (landing de divulgacao do TCC) tambem existe, mas e
 material de marketing complementar - a cobertura funcional de RF01 esta nos
 tres frames acima.
+
+**Implementada** em `apps/web/src/features/home/` (`HomePage`), fora da quebra
+em issues de RF01 - ver nota em [../feature.md](../feature.md#5-estado-atual-no-repositorio).
