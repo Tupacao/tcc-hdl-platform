@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Conteudo educacional |
-| Status | Parcial — I01 (navegacao e layout) concluida; I02 (guia de inicio rapido) e I03 (referencia de sintaxe) pendentes |
+| Status | Parcial — I01 (navegacao e layout) e I02 (guia de inicio rapido) concluidas; I03 (referencia de sintaxe) pendente |
 | Requisitos relacionados | RF02, RF04, RF16, RF20, RNF01, RNF09 |
 
 ## 1. Enunciado
@@ -65,15 +65,21 @@ do roteiro do tour.
 - `apps/web/src/features/docs/`: pagina propria (`DocsPage`, terceira `view`
   de `App.tsx`), indice agrupado por categoria (Inicio rapido/Referencia/
   Ajuda), busca por titulo/resumo com redirecionamento para termos fora de
-  escopo, navegacao Anterior/Proximo. Duas secoes de conteudo: "Exemplo:
-  somador completo" (reaproveita `SAMPLE_SOURCES` de RF20) e "O que o TP Lab
-  nao faz" (Figma 7.3, transcrita).
+  escopo, navegacao Anterior/Proximo.
 - `apps/web/src/features/workspace/components/open-example-dialog.tsx`:
   dialogo "Onde abrir" (Figma 7.6) quando "Abrir no editor" e clicado com um
   projeto aberto - abrir como projeto novo (padrao) ou substituir o conteudo
   atual (`overrideSources` em `use-project-link.ts`).
-- **Falta**: os dois textos de verdade - guia de inicio rapido (I02) e
-  referencia de sintaxe (I03).
+- `content/inicio-rapido.tsx` (I02): guia "Primeiro projeto" completo - mapa
+  da tela, arquivo de design, arquivo de testbench (contrato de
+  `$dumpfile`/`$dumpvars`/`$finish`), executar e ler o console, ler a forma
+  de onda, tres erros mais comuns com texto real de console (capturado
+  rodando `iverilog` contra o exemplo quebrado de proposito). Atalhos de
+  teclado ficaram de fora - RF09-I02 nao existe ainda.
+- `content/o-que-nao-faz.tsx` (I01): "O que o TP Lab nao faz" (Figma 7.3).
+- **Falta**: a referencia de sintaxe (I03); o link profundo do console de
+  diagnosticos para uma ancora especifica da documentacao (Figma 7.2/7.6,
+  RF05 × RF11 - registrado em `docs/requisitos/funcional/RF05/feature.md`).
 
 ## 6. Escopo
 
@@ -94,11 +100,12 @@ do roteiro do tour.
 ## 7. Criterios de aceite da feature
 
 - [x] A documentacao e alcancavel de qualquer ponto da aplicacao. _(I01)_
-- [ ] O guia leva um usuario sem conhecimento previo da tela inicial ate uma
-      forma de onda visivel. _(I02)_
+- [x] O guia leva um usuario sem conhecimento previo da tela inicial ate uma
+      forma de onda visivel. _(I02 - validacao com pessoa de fora ainda
+      pendente, ver issue-02)_
 - [ ] A referencia cobre os elementos usados pelos exemplos de RF20. _(I03)_
-- [x] Os exemplos de codigo sao copiaveis e podem ser abertos no editor. _(I01,
-      mecanismo pronto; mais exemplos entram com I02/I03)_
+- [x] Os exemplos de codigo sao copiaveis e podem ser abertos no editor.
+      _(I01/I02)_
 - [x] O conteudo e legivel nos dois temas, com contraste AA. _(I01)_
 - [x] A navegacao funciona so por teclado e a estrutura de titulos e correta.
       _(I01)_
@@ -109,7 +116,7 @@ do roteiro do tour.
 | Issue | Titulo | Branch | Tamanho | Status |
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-navegacao-e-layout-docs.md) | Navegacao e layout da documentacao | `feat-RF11-01-navegacao-e-layout-docs-front` | M | Concluido |
-| [issue-02](issue-02-guia-inicio-rapido.md) | Conteudo do guia de inicio rapido | `feat/rf11-guia-inicio-rapido` | M | Pendente |
+| [issue-02](issue-02-guia-inicio-rapido.md) | Conteudo do guia de inicio rapido | `feat-RF11-02-guia-inicio-rapido-front` | M | Concluido |
 | [issue-03](issue-03-referencia-sintaxe-verilog.md) | Conteudo da referencia de sintaxe Verilog | `feat/rf11-referencia-sintaxe-verilog` | M | Pendente |
 
 ## 9. Dependencias

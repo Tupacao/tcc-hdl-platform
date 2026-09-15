@@ -78,6 +78,14 @@ teclado.
 - **Falta**: navegacao real ate a linha, cobertura do parser para a saida do
   `vvp` e para casos reais de erro de elaboracao, traducao das mensagens mais
   comuns e acessibilidade da lista.
+- **Falta tambem, descoberto ao implementar RF11-I02**: o link profundo
+  "Ver na documentacao" no diagnostico do console, que abriria
+  `apps/web/src/features/docs/` ja na secao/ancora do erro (Figma 7.2 -
+  `figma/WILL-BE-DONE.md` ja citava esse link, mas nenhuma das tres issues
+  abaixo cobre monta-lo). RF05 × RF11: precisa de uma ancora estavel por
+  entrada de erro na documentacao (id, nao o texto do titulo) e do botao no
+  console apontando para ela. Ainda sem issue propria - decisao consciente de
+  adiar tomada durante RF11-I02, nao um esquecimento.
 
 ## 6. Escopo
 

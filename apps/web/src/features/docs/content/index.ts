@@ -1,26 +1,27 @@
 import type { DocSection } from '../models/types';
-import { ExemploSomadorSection } from './exemplo-somador';
+import { InicioRapidoSection } from './inicio-rapido';
 import { OQueNaoFazSection } from './o-que-nao-faz';
 
 /**
  * Fonte unica do indice, da busca e da navegacao Anterior/Proximo (RF11-I01).
- * O guia de inicio rapido (RF11-I02) e a referencia de sintaxe (RF11-I03)
- * entram aqui como novas entradas em 'inicio-rapido'/'referencia', cada uma
- * com seu componente em `content/`.
+ * A referencia de sintaxe (RF11-I03) entra aqui como nova entrada em
+ * 'referencia', com seu componente em `content/`.
  */
 export const DOC_SECTIONS: DocSection[] = [
   {
-    id: 'exemplo-somador',
+    id: 'primeiro-projeto',
     category: 'inicio-rapido',
-    title: 'Exemplo: somador completo',
-    summary: 'Design e testbench prontos para simular, com $dumpfile/$dumpvars explicados.',
-    Component: ExemploSomadorSection,
+    title: 'Primeiro projeto',
+    summary:
+      'O caminho minimo ate a primeira forma de onda: mapa da tela, design, testbench, executar e ler o resultado.',
+    Component: InicioRapidoSection,
   },
   {
     id: 'o-que-nao-faz',
     category: 'ajuda',
     title: 'O que o TP Lab nao faz',
-    summary: 'Sintese, FPGA, VHDL/SystemVerilog e depuracao passo a passo ficam fora do MVP - o que usar em vez disso.',
+    summary:
+      'Sintese, FPGA, VHDL/SystemVerilog e depuracao passo a passo ficam fora do MVP - o que usar em vez disso.',
     Component: OQueNaoFazSection,
   },
 ];
