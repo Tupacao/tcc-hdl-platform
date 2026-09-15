@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Feedback ao usuario |
-| Status | Parcial - I01 (cobertura do parser) concluida; I02 (navegacao) e I03 (traducao) pendentes |
+| Status | Parcial - I01 (cobertura do parser) e I02 (navegacao) concluidas; I03 (traducao) pendente |
 | Requisitos relacionados | RF02, RF03, RF04, RF09, RNF01, RNF09 |
 
 ## 1. Enunciado
@@ -76,17 +76,24 @@ teclado.
   reconhecida continuam aparecendo, nunca descartadas em silencio. Testes em
   `diagnostics.test.ts`, incluindo fixtures reais capturadas contra o
   `tplab-sandbox:latest`.
-- `apps/web/src/features/workspace/code-editor.tsx`: aplica
+- `apps/web/src/features/workspace/components/code-editor.tsx` (I01 + I02): aplica
   `monaco.editor.setModelMarkers` com owner `iverilog`, filtrando por
   `diagnostic.file === fileName` - com a normalizacao de I01, o marcador
   (sublinhado vermelho) passou a aparecer de verdade na linha certa, algo que
-  nao funcionava antes (validado ao vivo no navegador).
-- `apps/web/src/features/workspace/console-panel.tsx`: lista os diagnosticos como
-  botoes, desabilitados quando `line === null`.
-- `apps/web/src/features/workspace/workspace.tsx`: `focusDiagnostic` **apenas
-  troca de aba** - nao posiciona o cursor na linha.
-- **Falta**: navegacao real ate a linha (I02), traducao das mensagens mais
-  comuns (I03) e acessibilidade da lista (I02).
+  nao funcionava antes (validado ao vivo no navegador). Agora tambem
+  `forwardRef` + `useImperativeHandle` expondo `revealPosition(file, line,
+  column)`, que rola, posiciona o cursor e foca o editor via API do Monaco.
+- `apps/web/src/features/workspace/components/console-panel.tsx` (I02): lista os
+  diagnosticos como botoes, desabilitados (`disabled` nativo) quando `line`
+  nao existe ou o arquivo nao e nenhum dos dois do projeto; icone + cor +
+  texto por severidade (RNF09); `aria-label` no formato "erro, arquivo, linha
+  N"; navegacao por setas com foco visivel e retorno ao extremo oposto.
+- `apps/web/src/features/workspace/workspace.tsx` (I02): `focusDiagnostic` troca
+  de aba **e** agenda `revealPosition` via `pendingReveal` + `useEffect`,
+  aproveitando a ordem garantida de efeitos filho-antes-do-pai do React.
+- **Falta**: traducao das mensagens mais comuns (I03) e a aba "Problemas"
+  separada que o Figma mostra (ver nota em I02 - gap estrutural adiado
+  conscientemente, diagnosticos continuam dentro do painel "Console" unico).
 - **Falta tambem, descoberto ao implementar RF11-I02**: o link profundo
   "Ver na documentacao" no diagnostico do console, que abriria
   `apps/web/src/features/docs/` ja na secao/ancora do erro (Figma 7.2 -
@@ -115,22 +122,23 @@ teclado.
 
 - [x] Um erro de sintaxe aparece sublinhado na linha correta do arquivo correto.
       _(I01 - a normalizacao de caminho fez o marcador ja existente funcionar)_
-- [ ] Clicar no diagnostico do console troca de aba, rola ate a linha e posiciona
-      o cursor na coluna.
-- [ ] Avisos e erros sao visualmente distintos e distinguiveis sem depender de
-      cor.
-- [ ] Erros sem numero de linha aparecem no console, sem marcador no editor e sem
-      quebrar a lista.
+- [x] Clicar no diagnostico do console troca de aba, rola ate a linha e posiciona
+      o cursor na coluna. _(I02)_
+- [x] Avisos e erros sao visualmente distintos e distinguiveis sem depender de
+      cor. _(I02 - icone + texto + cor)_
+- [x] Erros sem numero de linha aparecem no console, sem marcador no editor e sem
+      quebrar a lista. _(I02 - item desabilitado, nao clicavel)_
 - [ ] Os erros mais comuns de iniciante trazem uma explicacao em portugues alem
       da mensagem original.
-- [ ] A lista de diagnosticos e operavel apenas pelo teclado.
+- [x] A lista de diagnosticos e operavel apenas pelo teclado. _(I02 - setas +
+      Enter/Space nativos do `<button>`, foco visivel, wrap-around)_
 
 ## 8. Quebra em issues
 
 | Issue | Titulo | Branch | Tamanho | Status |
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-cobertura-parser-diagnosticos.md) | Ampliar a cobertura do parser de diagnosticos | `feat-RF05-01-cobertura-parser-diagnosticos-back` | M | Concluido |
-| [issue-02](issue-02-navegacao-console-editor.md) | Navegacao do console ate a linha no editor | `feat/rf05-navegacao-console-editor` | M | Pendente |
+| [issue-02](issue-02-navegacao-console-editor.md) | Navegacao do console ate a linha no editor | `feat-RF05-02-navegacao-console-editor-front` | M | Concluido |
 | [issue-03](issue-03-mensagens-amigaveis.md) | Explicacoes em portugues para erros frequentes | `feat/rf05-mensagens-amigaveis` | M | Pendente |
 
 ## 9. Dependencias

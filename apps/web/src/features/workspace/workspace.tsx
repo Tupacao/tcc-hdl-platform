@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { toast } from 'sonner';
 import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
@@ -10,7 +10,7 @@ import {
   type LocalProject,
 } from '@/features/projects';
 import { cn } from '@/lib/utils';
-import { CodeEditor } from './components/code-editor';
+import { CodeEditor, type CodeEditorHandle } from './components/code-editor';
 import { ConsolePanel } from './components/console-panel';
 import { RestoreDraftDialog } from './components/restore-draft-dialog';
 import { UnsavedChangesDialog } from './components/unsaved-changes-dialog';
@@ -54,6 +54,14 @@ export function Workspace({
   const [activeTab, setActiveTab] = useState<WorkspaceFile>('design');
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const runMutation = useRunSimulation();
+  const codeEditorRef = useRef<CodeEditorHandle>(null);
+  // RF05-I02 - diagnóstico escolhido no console aguardando a troca de aba
+  // terminar de renderizar, para então revelar a posição no editor certo.
+  const [pendingReveal, setPendingReveal] = useState<{
+    file: string;
+    line: number;
+    column: number | null;
+  } | null>(null);
   // `useMutation` limpa `data` assim que uma nova chamada começa (fica undefined
   // durante o pending), não só no mount inicial - re-executar apagaria o
   // resultado (e desmontaria o WaveformCanvas, derrubando zoom/seleção/cursor de
@@ -85,13 +93,41 @@ export function Workspace({
     );
   }, [runMutation, sources, project, onRecordRun]);
 
+  /**
+   * RF05-I02 - troca de aba e navegação até a linha. Diagnóstico sem `line`
+   * ou cujo `file` não bate com nenhum dos dois arquivos do projeto (ex.:
+   * diagnóstico do projeto inteiro, sem posição) não navega - o item nem
+   * deveria ser clicável nesse caso (ver `ConsolePanel`).
+   */
   const focusDiagnostic = useCallback(
     (diagnostic: Diagnostic) => {
-      if (diagnostic.file === sources.testbench.name) setActiveTab('testbench');
-      else setActiveTab('design');
+      if (diagnostic.line === null) return;
+      const file =
+        diagnostic.file === sources.testbench.name
+          ? sources.testbench.name
+          : diagnostic.file === sources.design.name
+            ? sources.design.name
+            : null;
+      if (file === null) return;
+
+      setActiveTab(file === sources.testbench.name ? 'testbench' : 'design');
+      setPendingReveal({ file, line: diagnostic.line, column: diagnostic.column });
     },
-    [sources.testbench.name],
+    [sources.testbench.name, sources.design.name],
   );
+
+  // Espera a troca de aba (e o modelo do Monaco que vem junto) terminar de
+  // commitar antes de revelar - chamar revealPosition no mesmo evento do
+  // clique ainda pegaria o CodeEditor com o `fileName` antigo.
+  useEffect(() => {
+    if (!pendingReveal) return;
+    codeEditorRef.current?.revealPosition(
+      pendingReveal.file,
+      pendingReveal.line,
+      pendingReveal.column,
+    );
+    setPendingReveal(null);
+  }, [activeTab, pendingReveal]);
 
   function handleRequestOpenProjects() {
     if (isDirty) setLeaveDialogOpen(true);
@@ -164,6 +200,7 @@ export function Workspace({
               </div>
               <div className="min-h-0 flex-1">
                 <CodeEditor
+                  ref={codeEditorRef}
                   fileName={activeFile.name}
                   value={activeFile.content}
                   diagnostics={result?.diagnostics ?? []}
@@ -182,6 +219,7 @@ export function Workspace({
                   error={error}
                   isRunning={isRunning}
                   onSelectDiagnostic={focusDiagnostic}
+                  knownFileNames={[sources.design.name, sources.testbench.name]}
                 />
               </div>
             </Panel>
