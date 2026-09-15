@@ -18,7 +18,10 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
   SIMULATION_QUEUE,
   async (job): Promise<SimulationJobResult> => {
     const outcome = await runInSandbox(job.data);
-    const diagnostics = parseIcarusDiagnostics(outcome.stderr);
+    const diagnostics = parseIcarusDiagnostics(outcome.stderr, [
+      job.data.design.name,
+      job.data.testbench.name,
+    ]);
 
     return {
       failure: outcome.failure,

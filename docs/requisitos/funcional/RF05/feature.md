@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Feedback ao usuario |
-| Status | Parcial (parser e marcadores existem; falta navegacao e traducao) |
+| Status | Parcial - I01 (cobertura do parser) concluida; I02 (navegacao) e I03 (traducao) pendentes |
 | Requisitos relacionados | RF02, RF03, RF04, RF09, RNF01, RNF09 |
 
 ## 1. Enunciado
@@ -64,20 +64,29 @@ teclado.
 
 ## 5. Estado atual no repositorio
 
-- `apps/api/src/modules/simulation/diagnostics.ts`: `parseIcarusDiagnostics`
-  cobre `arquivo:linha:`, `arquivo:linha:coluna:` e os prefixos `error`,
-  `warning`, `sorry` e `internal error`; linhas sem localizacao viram diagnostico
-  com `line: null`. Ha teste em `diagnostics.test.ts`.
+- `apps/api/src/modules/simulation/diagnostics.ts` (I01): `parseIcarusDiagnostics`
+  cobre `arquivo:linha:`, `arquivo:linha:coluna:`, os prefixos `error`,
+  `warning`, `sorry` e `internal error`, o formato `FATAL: arquivo:linha:` do
+  `$fatal` do `vvp`, e mensagens multi-linha (aviso de largura de porta,
+  `$fatal`) - a continuacao vira parte do mesmo diagnostico, nao uma entrada
+  solta. `file` chega normalizado (`/work/design.v` -> `design.v`, recebendo
+  os nomes submetidos via `worker.ts`). `N error(s) during elaboration` e o
+  bloco `*** These modules were missing: ... ***` sao descartados (repetem
+  informacao que ja virou diagnostico proprio). Linhas sem localizacao
+  reconhecida continuam aparecendo, nunca descartadas em silencio. Testes em
+  `diagnostics.test.ts`, incluindo fixtures reais capturadas contra o
+  `tplab-sandbox:latest`.
 - `apps/web/src/features/workspace/code-editor.tsx`: aplica
   `monaco.editor.setModelMarkers` com owner `iverilog`, filtrando por
-  `diagnostic.file === fileName`.
+  `diagnostic.file === fileName` - com a normalizacao de I01, o marcador
+  (sublinhado vermelho) passou a aparecer de verdade na linha certa, algo que
+  nao funcionava antes (validado ao vivo no navegador).
 - `apps/web/src/features/workspace/console-panel.tsx`: lista os diagnosticos como
   botoes, desabilitados quando `line === null`.
 - `apps/web/src/features/workspace/workspace.tsx`: `focusDiagnostic` **apenas
   troca de aba** - nao posiciona o cursor na linha.
-- **Falta**: navegacao real ate a linha, cobertura do parser para a saida do
-  `vvp` e para casos reais de erro de elaboracao, traducao das mensagens mais
-  comuns e acessibilidade da lista.
+- **Falta**: navegacao real ate a linha (I02), traducao das mensagens mais
+  comuns (I03) e acessibilidade da lista (I02).
 - **Falta tambem, descoberto ao implementar RF11-I02**: o link profundo
   "Ver na documentacao" no diagnostico do console, que abriria
   `apps/web/src/features/docs/` ja na secao/ancora do erro (Figma 7.2 -
@@ -104,7 +113,8 @@ teclado.
 
 ## 7. Criterios de aceite da feature
 
-- [ ] Um erro de sintaxe aparece sublinhado na linha correta do arquivo correto.
+- [x] Um erro de sintaxe aparece sublinhado na linha correta do arquivo correto.
+      _(I01 - a normalizacao de caminho fez o marcador ja existente funcionar)_
 - [ ] Clicar no diagnostico do console troca de aba, rola ate a linha e posiciona
       o cursor na coluna.
 - [ ] Avisos e erros sao visualmente distintos e distinguiveis sem depender de
@@ -117,11 +127,11 @@ teclado.
 
 ## 8. Quebra em issues
 
-| Issue | Titulo | Branch | Tamanho |
-| --- | --- | --- | --- |
-| [issue-01](issue-01-cobertura-parser-diagnosticos.md) | Ampliar a cobertura do parser de diagnosticos | `feat/rf05-cobertura-parser-diagnosticos` | M |
-| [issue-02](issue-02-navegacao-console-editor.md) | Navegacao do console ate a linha no editor | `feat/rf05-navegacao-console-editor` | M |
-| [issue-03](issue-03-mensagens-amigaveis.md) | Explicacoes em portugues para erros frequentes | `feat/rf05-mensagens-amigaveis` | M |
+| Issue | Titulo | Branch | Tamanho | Status |
+| --- | --- | --- | --- | --- |
+| [issue-01](issue-01-cobertura-parser-diagnosticos.md) | Ampliar a cobertura do parser de diagnosticos | `feat-RF05-01-cobertura-parser-diagnosticos-back` | M | Concluido |
+| [issue-02](issue-02-navegacao-console-editor.md) | Navegacao do console ate a linha no editor | `feat/rf05-navegacao-console-editor` | M | Pendente |
+| [issue-03](issue-03-mensagens-amigaveis.md) | Explicacoes em portugues para erros frequentes | `feat/rf05-mensagens-amigaveis` | M | Pendente |
 
 ## 9. Dependencias
 
