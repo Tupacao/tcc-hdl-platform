@@ -12,11 +12,11 @@ import {
 } from '../utils/messages';
 
 interface WorkspaceHeaderProps {
-  /** `null` no rascunho anonimo (RF20) - sem nome, sem indicador, sem "Salvar"/"Exportar". */
+  /** `null` no rascunho anônimo (RF20) - sem nome, sem indicador, sem "Salvar"/"Exportar". */
   project: LocalProject | null;
   isDirty: boolean;
   onSave: () => void;
-  /** RF08 - exporta as fontes ao vivo do editor, nao a versao salva. */
+  /** RF08 - exporta as fontes ao vivo do editor, não a versão salva. */
   onExport: () => void;
   onOpenProjects?: () => void;
   onOpenDocs: () => void;
@@ -24,7 +24,7 @@ interface WorkspaceHeaderProps {
   isRunning: boolean;
 }
 
-/** RF07-I03 - cabecalho do workspace com identidade, projeto aberto e acoes. */
+/** RF07-I03 - cabeçalho do workspace com identidade, projeto aberto e ações. */
 export function WorkspaceHeader({
   project,
   isDirty,

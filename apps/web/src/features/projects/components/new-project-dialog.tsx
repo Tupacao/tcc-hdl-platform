@@ -28,7 +28,7 @@ interface NewProjectDialogProps {
   onRestoreFocus: () => void;
 }
 
-/** Dialogo "Novo projeto" (RF07-I02, frame 6.2 do Figma). */
+/** Diálogo "Novo projeto" (RF07-I02, frame 6.2 do Figma). */
 export function NewProjectDialog({
   open,
   onOpenChange,
@@ -45,9 +45,9 @@ export function NewProjectDialog({
   const error = validateProjectName(name, existingNames);
   const showError = submitted && error !== null;
 
-  // O dialogo fica montado entre aberturas (RF07-I02): sincroniza o ponto de
-  // partida com o que o botao de origem pediu (branco vs. exemplo) toda vez
-  // que ele abre, em vez de so na primeira montagem.
+  // O diálogo fica montado entre aberturas (RF07-I02): sincroniza o ponto de
+  // partida com o que o botão de origem pediu (branco vs. exemplo) toda vez
+  // que ele abre, em vez de só na primeira montagem.
   useEffect(() => {
     if (!open) return;
     setName('');

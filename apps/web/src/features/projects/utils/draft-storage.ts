@@ -6,11 +6,11 @@ function draftKey(projectId: string): string {
 }
 
 /**
- * Le o rascunho local de um projeto (RF07-I03). Ao contrario de
- * `readProjects`/`writeProjects` (acao explicita do usuario, erro visivel via
- * toast), o rascunho e um efeito colateral de fundo - qualquer falha (bloqueio
- * de `localStorage`, quota, JSON invalido) so degrada para "sem rascunho",
- * nunca interrompe o fluxo de edicao.
+ * Lê o rascunho local de um projeto (RF07-I03). Ao contrário de
+ * `readProjects`/`writeProjects` (ação explícita do usuário, erro visível via
+ * toast), o rascunho é um efeito colateral de fundo - qualquer falha (bloqueio
+ * de `localStorage`, quota, JSON inválido) só degrada para "sem rascunho",
+ * nunca interrompe o fluxo de edição.
  */
 export function readDraft(
   storage: Pick<Storage, 'getItem'>,
@@ -35,7 +35,7 @@ export function writeDraft(
   try {
     storage.setItem(draftKey(projectId), JSON.stringify(draft));
   } catch {
-    // Degrada sem rascunho (modo privativo, quota) - nunca quebra a edicao.
+    // Degrada sem rascunho (modo privativo, quota) - nunca quebra a edição.
   }
 }
 
@@ -43,6 +43,6 @@ export function clearDraft(storage: Pick<Storage, 'removeItem'>, projectId: stri
   try {
     storage.removeItem(draftKey(projectId));
   } catch {
-    // Mesmo criterio de writeDraft: falha aqui nao pode quebrar o fluxo.
+    // Mesmo critério de writeDraft: falha aqui não pode quebrar o fluxo.
   }
 }

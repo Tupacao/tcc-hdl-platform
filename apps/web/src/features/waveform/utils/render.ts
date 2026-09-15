@@ -3,7 +3,7 @@ import type { Viewport, WaveformColors, WaveTransition } from '../models/types';
 /**
  * Geometria fixada pelo design (Figma, frame "1.2 · Formas de onda — tokens,
  * geometria e anatomia"; ver docs/requisitos/funcional/RF06/figma/WILL-BE-DONE.md).
- * Nao redecidir estes valores no codigo.
+ * Não redecidir estes valores no código.
  */
 export const BAND_HEIGHT = 24;
 const ROW_GAP = 20;
@@ -27,8 +27,8 @@ export interface WaveSegment {
 }
 
 /**
- * Converte a serie esparsa de transicoes num conjunto de segmentos continuos que
- * cobrem [0, endTime]. Antes da primeira transicao o valor e desconhecido ("x"
+ * Converte a série esparsa de transições num conjunto de segmentos contínuos que
+ * cobrem [0, endTime]. Antes da primeira transição o valor é desconhecido ("x"
  * repetido pela largura), espelhando `valueAt`.
  */
 export function buildSegments(
@@ -60,7 +60,7 @@ export function buildSegments(
   return segments;
 }
 
-/** Indice da ultima transicao com `time <= t` (busca binaria; `transitions` ja vem ordenada por tempo). */
+/** Índice da última transição com `time <= t` (busca binária; `transitions` já vem ordenada por tempo). */
 function lastIndexAtOrBefore(transitions: WaveTransition[], t: number): number {
   let low = 0;
   let high = transitions.length - 1;
@@ -79,12 +79,12 @@ function lastIndexAtOrBefore(transitions: WaveTransition[], t: number): number {
 }
 
 /**
- * Fatia so a janela de transicoes relevante ao viewport (RF06-I04): um `.vcd`
- * proximo do teto de tamanho de RF04-I02 tem centenas de milhares de
- * transicoes por sinal, e reconstruir segmentos a partir de todas elas a cada
+ * Fatia só a janela de transições relevante ao viewport (RF06-I04): um `.vcd`
+ * próximo do teto de tamanho de RF04-I02 tem centenas de milhares de
+ * transições por sinal, e reconstruir segmentos a partir de todas elas a cada
  * redesenho (pan/zoom/tema) fica caro demais para continuar fluido. Inclui a
- * transicao imediatamente anterior ao inicio do viewport, para que o primeiro
- * segmento visivel comece com o valor correto em vez de "desconhecido".
+ * transição imediatamente anterior ao início do viewport, para que o primeiro
+ * segmento visível comece com o valor correto em vez de "desconhecido".
  */
 export function sliceTransitionsForViewport(
   transitions: WaveTransition[],
@@ -98,12 +98,12 @@ export function sliceTransitionsForViewport(
 }
 
 /**
- * Reduz segmentos que caem na mesma coluna de pixel a um so, antes de
- * desenhar (RF06-I04) — sem isso, mais transicoes do que pixels de largura
- * gera uma chamada de desenho por transicao, mesmo quando dezenas delas
+ * Reduz segmentos que caem na mesma coluna de pixel a um só, antes de
+ * desenhar (RF06-I04) — sem isso, mais transições do que pixels de largura
+ * gera uma chamada de desenho por transição, mesmo quando dezenas delas
  * ocupam o mesmo pixel. `x`/`z` tem prioridade dentro do grupo: um pulso mais
- * estreito que um pixel ainda precisa aparecer como marca visivel, nao pode
- * "sumir" atras de um valor definido vizinho no mesmo pixel.
+ * estreito que um pixel ainda precisa aparecer como marca visível, não pode
+ * "sumir" atrás de um valor definido vizinho no mesmo pixel.
  */
 export function reduceSegmentsForPixels(
   segments: WaveSegment[],
@@ -146,7 +146,7 @@ export function reduceSegmentsForPixels(
   return reduced;
 }
 
-/** Arredonda para 1/2/5 * 10^n — o passo "redondo" classico de regua de eixo. */
+/** Arredonda para 1/2/5 * 10^n — o passo "redondo" clássico de régua de eixo. */
 function niceStep(rawStep: number): number {
   if (rawStep <= 0) return 1;
   const exponent = Math.floor(Math.log10(rawStep));
@@ -155,7 +155,7 @@ function niceStep(rawStep: number): number {
   return niceFraction * 10 ** exponent;
 }
 
-/** Marcas de tempo em intervalos redondos, espacadas o suficiente para nao sobrepor rotulos. */
+/** Marcas de tempo em intervalos redondos, espaçadas o suficiente para não sobrepor rótulos. */
 export function computeTicks(viewport: Viewport, canvasWidth: number): number[] {
   const range = viewport.endTime - viewport.startTime;
   if (range <= 0 || canvasWidth <= 0) return [viewport.startTime];
@@ -172,15 +172,15 @@ export function computeTicks(viewport: Viewport, canvasWidth: number): number[] 
 
 export interface BusRepresentation {
   /** O valor tal como armazenado (0/1/x/z por bit) — o design mostra o texto literal,
-   * nao uma conversao para hexadecimal (frame 5.1: "0011", "1111", "10xx"). */
+   * não uma conversão para hexadecimal (frame 5.1: "0011", "1111", "10xx"). */
   text: string;
-  /** Algum bit indefinido: hachura em --wave-x, cor de texto de contraste (nao --wave-x). */
+  /** Algum bit indefinido: hachura em --wave-x, cor de texto de contraste (não --wave-x). */
   hasUnknown: boolean;
-  /** Nenhum bit indefinido, mas algum em alta impedancia: contorno tracejado em --wave-z. */
+  /** Nenhum bit indefinido, mas algum em alta impedância: contorno tracejado em --wave-z. */
   isHighZ: boolean;
 }
 
-/** Decide a aparencia de um segmento de barramento a partir do valor bruto (sem conversao). */
+/** Decide a aparência de um segmento de barramento a partir do valor bruto (sem conversão). */
 export function formatBusValue(value: string): BusRepresentation {
   const hasUnknown = value.includes('x');
   const isHighZ = !hasUnknown && value.includes('z');
@@ -334,10 +334,10 @@ function drawBusSegment(
   ctx.setLineDash([]);
 
   if (segmentWidth >= BUS_TEXT_MIN_WIDTH) {
-    // O piso de 44px (frame 1.2) foi calibrado com os exemplos de 4 bits do proprio
+    // O piso de 44px (frame 1.2) foi calibrado com os exemplos de 4 bits do próprio
     // Figma ("0011", "10xx"); um barramento largo (ex.: um contador de 32 bits) pode
-    // ultrapassar esse piso e ainda nao caber o texto por extenso — medir evita
-    // sobrepor o segmento vizinho nesse caso que o frame nao cobriu.
+    // ultrapassar esse piso e ainda não caber o texto por extenso — medir evita
+    // sobrepor o segmento vizinho nesse caso que o frame não cobriu.
     ctx.font = BUS_FONT;
     const availableWidth = segmentWidth - leftTip - rightTip - 4;
     if (ctx.measureText(representation.text).width <= availableWidth) {
@@ -368,7 +368,7 @@ export interface DrawParams {
   cursorTime?: number | null;
 }
 
-/** Desenho puro: nenhuma dependencia de React ou DOM alem do CanvasRenderingContext2D recebido. */
+/** Desenho puro: nenhuma dependência de React ou DOM além do CanvasRenderingContext2D recebido. */
 export function draw({
   ctx,
   rows,
@@ -408,8 +408,8 @@ export function draw({
     const allTransitions = transitionsBySignal.get(row.id) ?? [];
     const visibleTransitions = sliceTransitionsForViewport(allTransitions, viewport);
     let segments = buildSegments(visibleTransitions, viewport.endTime, row.width);
-    // RF06-I04: mais transicoes do que pixels de largura — reduzir antes de
-    // desenhar, ou o navegador emite uma chamada de canvas por transicao.
+    // RF06-I04: mais transições do que pixels de largura — reduzir antes de
+    // desenhar, ou o navegador emite uma chamada de canvas por transição.
     if (segments.length > width) {
       segments = reduceSegmentsForPixels(segments, viewport);
     }

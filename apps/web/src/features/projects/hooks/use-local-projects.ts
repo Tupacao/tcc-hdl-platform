@@ -5,7 +5,7 @@ import { STORAGE_ERROR } from '../utils/messages';
 import { readProjects, writeProjects } from '../utils/storage';
 import { buildCopyName } from '../utils/validation';
 
-/** `getItem` pode lancar em navegadores que bloqueiam o `localStorage` (modo privado antigo, cookies desabilitados). */
+/** `getItem` pode lançar em navegadores que bloqueiam o `localStorage` (modo privado antigo, cookies desabilitados). */
 function readProjectsSafely(): { projects: LocalProject[]; error: string | null } {
   try {
     return { projects: readProjects(window.localStorage), error: null };
@@ -24,24 +24,24 @@ export interface UseLocalProjectsResult {
   create(input: CreateLocalProjectInput): LocalProject;
   rename(id: string, name: string): void;
   duplicate(id: string): LocalProject;
-  /** RF07-I03 - grava o codigo editado no workspace, atualizando `updatedAt`. */
+  /** RF07-I03 - grava o código editado no workspace, atualizando `updatedAt`. */
   save(id: string, sources: HdlSources): LocalProject;
-  /** RF07-I03 - resultado da ultima execucao a partir do workspace; nao mexe em `updatedAt`. */
+  /** RF07-I03 - resultado da última execução a partir do workspace; não mexe em `updatedAt`. */
   recordRun(id: string, status: LastRunStatus): void;
-  /** Devolve o projeto removido (para o toast com "Desfazer"), ou null se o id nao existir. */
+  /** Devolve o projeto removido (para o toast com "Desfazer"), ou null se o id não existir. */
   remove(id: string): LocalProject | null;
-  /** Reinsere um projeto removido (acao "Desfazer" do toast de exclusao). */
+  /** Reinsere um projeto removido (ação "Desfazer" do toast de exclusão). */
   restore(project: LocalProject): void;
 }
 
 /**
- * Excecao deliberada e documentada a regra de `hooks/` (ARCHITECTURE.md:
- * "exclusivamente hooks de integracao com API") - mesmo criterio ja aplicado a
- * `use-viewport.ts`/`use-parsed-vcd.ts` da feature waveform: e um hook de
- * verdade (estado React + persistencia como efeito colateral), so que a
- * "API" aqui e o `localStorage` do navegador (RF07-I02), nao HTTP. Enquanto
- * RF14 nao existe, nenhum projeto e enviado a API real (RF07-I01) - ver nota
- * de implementacao no issue doc.
+ * Exceção deliberada e documentada à regra de `hooks/` (ARCHITECTURE.md:
+ * "exclusivamente hooks de integração com API") - mesmo critério já aplicado a
+ * `use-viewport.ts`/`use-parsed-vcd.ts` da feature waveform: é um hook de
+ * verdade (estado React + persistência como efeito colateral), só que a
+ * "API" aqui é o `localStorage` do navegador (RF07-I02), não HTTP. Enquanto
+ * RF14 não existe, nenhum projeto é enviado à API real (RF07-I01) - ver nota
+ * de implementação no issue doc.
  */
 export function useLocalProjects(): UseLocalProjectsResult {
   const [{ projects, loadError }, setState] = useState(() => {
@@ -98,7 +98,7 @@ export function useLocalProjects(): UseLocalProjectsResult {
         saved = { ...project, sources, updatedAt: now };
         return saved;
       });
-      if (!saved) throw new Error(`Projeto ${id} nao encontrado para salvar`);
+      if (!saved) throw new Error(`Projeto ${id} não encontrado para salvar`);
       persist(next);
       return saved;
     },
@@ -118,7 +118,7 @@ export function useLocalProjects(): UseLocalProjectsResult {
   const duplicate = useCallback(
     (id: string): LocalProject => {
       const source = projects.find((project) => project.id === id);
-      if (!source) throw new Error(`Projeto ${id} nao encontrado para duplicar`);
+      if (!source) throw new Error(`Projeto ${id} não encontrado para duplicar`);
 
       const name = buildCopyName(
         source.name,

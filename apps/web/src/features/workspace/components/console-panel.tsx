@@ -9,14 +9,14 @@ interface ConsolePanelProps {
 }
 
 const FAILURE_LABELS: Record<NonNullable<SimulationResult['failure']>, string> = {
-  compile_error: 'Erro de compilacao',
-  runtime_error: 'Erro durante a simulacao',
+  compile_error: 'Erro de compilação',
+  runtime_error: 'Erro durante a simulação',
   timeout: 'Tempo limite excedido',
-  memory_limit: 'Limite de memoria excedido',
+  memory_limit: 'Limite de memória excedido',
   internal_error: 'Erro interno da plataforma',
 };
 
-/** Console de saida: diagnosticos contextualizados (RF05) e stdout do testbench. */
+/** Console de saída: diagnósticos contextualizados (RF05) e stdout do testbench. */
 export function ConsolePanel({ result, error, isRunning, onSelectDiagnostic }: ConsolePanelProps) {
   if (isRunning) {
     return <Empty>Compilando e simulando...</Empty>;
@@ -27,7 +27,7 @@ export function ConsolePanel({ result, error, isRunning, onSelectDiagnostic }: C
   }
 
   if (!result) {
-    return <Empty>Execute a simulacao para ver a saida aqui.</Empty>;
+    return <Empty>Execute a simulação para ver a saída aqui.</Empty>;
   }
 
   return (
@@ -67,7 +67,7 @@ export function ConsolePanel({ result, error, isRunning, onSelectDiagnostic }: C
 
       {!result.failure && (
         <p className="mt-3 font-sans text-xs text-muted-foreground">
-          Concluido em {result.durationMs} ms
+          Concluído em {result.durationMs} ms
         </p>
       )}
     </div>

@@ -21,25 +21,25 @@ import { useRunSimulation } from './hooks/use-run-simulation';
 import { EXPORT_ERROR_MESSAGE } from './utils/messages';
 
 interface WorkspaceProps {
-  /** Projeto aberto (RF07-I03). `null` no rascunho anonimo (RF20), que segue sem exigir conta. */
+  /** Projeto aberto (RF07-I03). `null` no rascunho anônimo (RF20), que segue sem exigir conta. */
   project: LocalProject | null;
   /**
-   * Substitui a fonte inicial do editor - RF20 (`SAMPLE_SOURCES`) por padrao
-   * no rascunho anonimo, ou um exemplo de RF11 escolhido em "Abrir no
+   * Substitui a fonte inicial do editor - RF20 (`SAMPLE_SOURCES`) por padrão
+   * no rascunho anônimo, ou um exemplo de RF11 escolhido em "Abrir no
    * editor" (com ou sem projeto aberto - ver `useProjectLink`).
    */
   overrideSources?: HdlSources;
   onSaveProject: (id: string, sources: HdlSources) => void;
   onRecordRun: (id: string, status: LastRunStatus) => void;
-  /** RF07-I02: navega para "Meus projetos". Omitido quando nao ha lista de projetos por perto. */
+  /** RF07-I02: navega para "Meus projetos". Omitido quando não há lista de projetos por perto. */
   onOpenProjects?: () => void;
-  /** RF11: navega para a documentacao (pagina propria, nao sobreposta). */
+  /** RF11: navega para a documentação (página própria, não sobreposta). */
   onOpenDocs: () => void;
 }
 
 /**
- * RF09 — editor, compilador, simulador e visualizador em uma unica interface.
- * Os painies sao redimensionaveis para caber em telas a partir de 1024px (RNF03).
+ * RF09 — editor, compilador, simulador e visualizador em uma única interface.
+ * Os painéis são redimensionáveis para caber em telas a partir de 1024px (RNF03).
  */
 export function Workspace({
   project,
@@ -54,11 +54,11 @@ export function Workspace({
   const [activeTab, setActiveTab] = useState<WorkspaceFile>('design');
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const runMutation = useRunSimulation();
-  // `useMutation` limpa `data` assim que uma nova chamada comeca (fica undefined
-  // durante o pending), nao so no mount inicial - re-executar apagaria o
-  // resultado (e desmontaria o WaveformCanvas, derrubando zoom/selecao/cursor de
-  // RF06-I03) por um instante a cada execucao. Guardar o ultimo resultado a parte
-  // mantem a tela estavel enquanto a nova simulacao roda.
+  // `useMutation` limpa `data` assim que uma nova chamada começa (fica undefined
+  // durante o pending), não só no mount inicial - re-executar apagaria o
+  // resultado (e desmontaria o WaveformCanvas, derrubando zoom/seleção/cursor de
+  // RF06-I03) por um instante a cada execução. Guardar o último resultado à parte
+  // mantém a tela estável enquanto a nova simulação roda.
   const [lastResult, setLastResult] = useState<SimulationResult | null>(null);
 
   const result = lastResult;
@@ -77,8 +77,8 @@ export function Workspace({
               at: new Date().toISOString(),
             });
           }
-          if (simulation.failure) toast.error('A simulacao terminou com erros.');
-          else toast.success(`Simulacao concluida em ${simulation.durationMs} ms.`);
+          if (simulation.failure) toast.error('A simulação terminou com erros.');
+          else toast.success(`Simulação concluída em ${simulation.durationMs} ms.`);
         },
         onError: (cause) => toast.error(cause.message),
       },
@@ -98,7 +98,7 @@ export function Workspace({
     else onOpenProjects?.();
   }
 
-  /** RF08 - exporta as fontes ao vivo do editor (nao exige salvar antes). */
+  /** RF08 - exporta as fontes ao vivo do editor (não exige salvar antes). */
   function handleExport() {
     if (!project) return;
     try {

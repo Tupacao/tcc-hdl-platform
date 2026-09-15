@@ -14,7 +14,7 @@ interface SignalListProps {
 
 /**
  * Chip "Sinais X de Y" + seletor com busca (RF06-I03, frames 5.1 e 8.2 do Figma).
- * Popover proprio (sem Radix) — a lista e so busca + checkbox + dois botoes, nao
+ * Popover próprio (sem Radix) — a lista é só busca + checkbox + dois botões, não
  * precisa do aparato de posicionamento/portal de um Popover completo.
  */
 export function SignalList({ rows, selectedKeys, onChange }: SignalListProps) {
@@ -34,8 +34,8 @@ export function SignalList({ rows, selectedKeys, onChange }: SignalListProps) {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setOpen(false);
-        // Padrao WAI-ARIA de disclosure: fechar sem devolver o foco ao gatilho
-        // deixa o foco cair para o <body>, um beco sem saida para quem navega so por teclado.
+        // Padrão WAI-ARIA de disclosure: fechar sem devolver o foco ao gatilho
+        // deixa o foco cair para o <body>, um beco sem saída para quem navega só por teclado.
         triggerRef.current?.focus();
       }
     }

@@ -1,13 +1,13 @@
 import type { LocalProject } from '../models/types';
 import { LocalProjectSchema } from './local-project-schema';
 
-/** Unica chave usada no `localStorage` (RF07-I02) — um array serializado. */
+/** Única chave usada no `localStorage` (RF07-I02) — um array serializado. */
 export const PROJECTS_STORAGE_KEY = 'tplab:projects';
 
 /**
- * Le e valida os projetos gravados. Um item corrompido ou de um formato antigo
- * e descartado silenciosamente em vez de derrubar a lista inteira - o usuario
- * ve os projetos validos, nao uma tela de erro por causa de um registro ruim.
+ * Lê e valida os projetos gravados. Um item corrompido ou de um formato antigo
+ * é descartado silenciosamente em vez de derrubar a lista inteira - o usuário
+ * vê os projetos válidos, não uma tela de erro por causa de um registro ruim.
  */
 export function readProjects(storage: Pick<Storage, 'getItem'>): LocalProject[] {
   const raw = storage.getItem(PROJECTS_STORAGE_KEY);
@@ -31,13 +31,13 @@ export function readProjects(storage: Pick<Storage, 'getItem'>): LocalProject[] 
 
 export class ProjectStorageWriteError extends Error {
   constructor(cause: unknown) {
-    super('Nao foi possivel salvar no armazenamento deste navegador.');
+    super('Não foi possível salvar no armazenamento deste navegador.');
     this.name = 'ProjectStorageWriteError';
     this.cause = cause;
   }
 }
 
-/** Lanca `ProjectStorageWriteError` se o navegador recusar a escrita (quota, modo privado, etc). */
+/** Lança `ProjectStorageWriteError` se o navegador recusar a escrita (quota, modo privado, etc). */
 export function writeProjects(storage: Pick<Storage, 'setItem'>, projects: LocalProject[]): void {
   try {
     storage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));

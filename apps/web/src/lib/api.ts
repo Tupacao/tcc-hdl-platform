@@ -32,7 +32,7 @@ async function request<T>(path: string, schema: ZodType<T>, init?: RequestInit):
     const message =
       typeof payload === 'object' && payload !== null && 'message' in payload
         ? String((payload as { message: unknown }).message)
-        : `Falha na requisicao (HTTP ${response.status})`;
+        : `Falha na requisição (HTTP ${response.status})`;
     throw new ApiRequestError(message, response.status);
   }
 
@@ -55,8 +55,8 @@ const POLL_INTERVAL_MS = 400;
 const POLL_TIMEOUT_MS = 60_000;
 
 /**
- * Enfileira a simulacao e acompanha o job ate o desfecho. O polling e simples de
- * proposito; se a latencia incomodar, trocar por SSE/WebSocket sem mudar a API.
+ * Enfileira a simulação e acompanha o job até o desfecho. O polling é simples de
+ * propósito; se a latência incomodar, trocar por SSE/WebSocket sem mudar a API.
  */
 export async function runSimulation(
   body: CompileRequest,
@@ -72,5 +72,5 @@ export async function runSimulation(
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
 
-  throw new ApiRequestError('Tempo limite excedido aguardando a simulacao', 504);
+  throw new ApiRequestError('Tempo limite excedido aguardando a simulação', 504);
 }

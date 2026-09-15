@@ -15,11 +15,11 @@ interface ProjectCardProps {
 }
 
 /**
- * Um cartao da grade "Meus projetos" (RF07-I02, frame 6.1 do Figma). O nome e
- * um `<button>` de verdade (nao o cartao inteiro) - um `role="button"` com o
+ * Um cartão da grade "Meus projetos" (RF07-I02, frame 6.1 do Figma). O nome é
+ * um `<button>` de verdade (não o cartão inteiro) - um `role="button"` com o
  * menu "..." aninhado dentro seria um controle interativo dentro de outro,
- * confuso para leitor de tela. O clique em qualquer parte do cartao ainda
- * abre (conveniencia do mouse via `onClick` no `div`, sem semantica ARIA).
+ * confuso para leitor de tela. O clique em qualquer parte do cartão ainda
+ * abre (conveniência do mouse via `onClick` no `div`, sem semântica ARIA).
  */
 export function ProjectCard({
   project,

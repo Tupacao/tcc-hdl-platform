@@ -1,12 +1,12 @@
-/** Textos fixos de interface da feature waveform — nao deixar string solta em componente. */
+/** Textos fixos de interface da feature waveform — não deixar string solta em componente. */
 
 export const WAVEFORM_SHORTCUTS_HINT =
-  'Setas: deslocar · Shift+Setas: mover cursor entre transicoes · +/-: zoom · Home/End: inicio/fim · 0: ajustar tudo';
+  'Setas: deslocar · Shift+Setas: mover cursor entre transições · +/-: zoom · Home/End: início/fim · 0: ajustar tudo';
 
 /**
- * RF06-I04 — descricao acessivel do canvas: quantidade de sinais e intervalo
- * visivel, apontando para a tabela "Leitura no cursor" como alternativa
- * textual (o grafico em si nao expoe nada a leitor de tela).
+ * RF06-I04 — descrição acessível do canvas: quantidade de sinais e intervalo
+ * visível, apontando para a tabela "Leitura no cursor" como alternativa
+ * textual (o gráfico em si não expõe nada a leitor de tela).
  */
 export function formatWaveformCanvasAriaLabel(
   signalCount: number,
@@ -17,7 +17,7 @@ export function formatWaveformCanvasAriaLabel(
 ): string {
   return (
     `Formas de onda de ${signalCount} sinais, de ${startTime * timescale}${timeUnit} ` +
-    `a ${endTime * timescale}${timeUnit}. Os valores no instante do cursor estao na ` +
+    `a ${endTime * timescale}${timeUnit}. Os valores no instante do cursor estão na ` +
     `tabela "${CURSOR_READOUT_TITLE}" abaixo.`
   );
 }
@@ -56,7 +56,7 @@ export function formatCursorTimeLabel(time: number, timescale: number, timeUnit:
 }
 
 export const ZOOM = {
-  GO_TO_START_LABEL: 'Ir para o inicio',
+  GO_TO_START_LABEL: 'Ir para o início',
   OUT_LABEL: 'Diminuir zoom',
   IN_LABEL: 'Aumentar zoom',
   GO_TO_END_LABEL: 'Ir para o fim',

@@ -2,18 +2,18 @@ import { ModuleNameSchema } from '@tplab/shared';
 import { PROJECT_NAME_ERRORS } from './messages';
 
 /**
- * 35, nao os 120 de `CreateProjectSchema.name` de `packages/shared` (que e um
- * rotulo generico, sem virar nome de arquivo) - o nome aqui aparece inteiro no
- * dialogo de renomear e no titulo do de excluir, e um nome perto do limite
+ * 35, não os 120 de `CreateProjectSchema.name` de `packages/shared` (que é um
+ * rótulo genérico, sem virar nome de arquivo) - o nome aqui aparece inteiro no
+ * diálogo de renomear e no título do de excluir, e um nome perto do limite
  * antigo vazava do `<Input>` e quebrava o layout dos dois.
  */
 export const PROJECT_NAME_MAX_LENGTH = 35;
 
 /**
- * O nome do projeto vira o nome do arquivo `.v` e do modulo principal (dialogo
+ * O nome do projeto vira o nome do arquivo `.v` e do módulo principal (diálogo
  * "Novo projeto" do Figma) - por isso segue a mesma regra de identificador de
- * `ModuleNameSchema`, mais estrita que o `CreateProjectSchema.name` generico de
- * `packages/shared` (que so limita tamanho, sem exigir formato de identificador).
+ * `ModuleNameSchema`, mais estrita que o `CreateProjectSchema.name` genérico de
+ * `packages/shared` (que só limita tamanho, sem exigir formato de identificador).
  */
 export function validateProjectName(name: string, existingNames: string[]): string | null {
   const trimmed = name.trim();
@@ -32,10 +32,10 @@ export function validateProjectName(name: string, existingNames: string[]): stri
 const COPY_SUFFIX = '_copia';
 
 /**
- * Nome do "Duplicar" do menu de acoes: `${nome}_copia`, ou `_copia2`/`_copia3`/...
- * se ja existir. Trunca a base para que o resultado nunca passe de
+ * Nome do "Duplicar" do menu de ações: `${nome}_copia`, ou `_copia2`/`_copia3`/...
+ * se já existir. Trunca a base para que o resultado nunca passe de
  * `PROJECT_NAME_MAX_LENGTH` - sem isso, duplicar um projeto com nome perto do
- * limite gerava um nome mais longo que o proprio limite permite.
+ * limite gerava um nome mais longo que o próprio limite permite.
  */
 export function buildCopyName(baseName: string, existingNames: string[]): string {
   const existing = new Set(existingNames.map((name) => name.toLowerCase()));

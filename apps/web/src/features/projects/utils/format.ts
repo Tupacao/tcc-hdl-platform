@@ -2,8 +2,8 @@ const RELATIVE_TIME_FORMATTER = new Intl.RelativeTimeFormat('pt-BR', { numeric: 
 const ABSOLUTE_DATE_FORMATTER = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' });
 
 /**
- * "ha 2 horas" / "ontem" / "ha 3 dias" (frame 6.1 do Figma) - alem de ~30 dias
- * vira data absoluta em pt-BR, para nao acumular "ha 214 dias".
+ * "há 2 horas" / "ontem" / "há 3 dias" (frame 6.1 do Figma) - além de ~30 dias
+ * vira data absoluta em pt-BR, para não acumular "há 214 dias".
  */
 export function formatRelativeTime(iso: string, now: Date = new Date()): string {
   const then = new Date(iso).getTime();

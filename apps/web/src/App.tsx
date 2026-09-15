@@ -13,10 +13,10 @@ import { queryClient } from '@/lib/query-client';
 type View = 'workspace' | 'projects' | 'docs';
 
 /**
- * So o id, nao a `view` - recarregar sempre volta para o workspace (RF07-I03:
- * "recarregar oferece o rascunho local" pressupoe estar de volta no editor,
- * nao na lista). Falha de leitura/escrita (modo privativo) so degrada para
- * "sem projeto lembrado", mesmo criterio do `ThemeProvider`.
+ * Só o id, não a `view` - recarregar sempre volta para o workspace (RF07-I03:
+ * "recarregar oferece o rascunho local" pressupõe estar de volta no editor,
+ * não na lista). Falha de leitura/escrita (modo privativo) só degrada para
+ * "sem projeto lembrado", mesmo critério do `ThemeProvider`.
  */
 const LAST_OPEN_PROJECT_KEY = 'tplab:last-open-project';
 
@@ -33,7 +33,7 @@ function writeLastOpenProjectId(id: string | null): void {
     if (id) window.localStorage.setItem(LAST_OPEN_PROJECT_KEY, id);
     else window.localStorage.removeItem(LAST_OPEN_PROJECT_KEY);
   } catch {
-    // Degrada sem lembrar o projeto entre recarregamentos - nunca quebra a navegacao.
+    // Degrada sem lembrar o projeto entre recarregamentos - nunca quebra a navegação.
   }
 }
 
@@ -42,25 +42,25 @@ export default function App() {
   const [view, setView] = useState<View>('workspace');
   const [openProjectId, setOpenProjectId] = useState<string | null>(readLastOpenProjectId);
   // Busca de novo a cada render (em vez de guardar o `LocalProject` inteiro) -
-  // assim o Workspace sempre ve a versao mais recente apos salvar/renomear em
-  // outra tela, sem precisar sincronizar duas copias do mesmo projeto (RF07-I03).
+  // assim o Workspace sempre vê a versão mais recente após salvar/renomear em
+  // outra tela, sem precisar sincronizar duas cópias do mesmo projeto (RF07-I03).
   const openProject = openProjectId ? (localProjects.getById(openProjectId) ?? null) : null;
 
-  // Fontes de um exemplo da documentacao (RF11), aplicadas por cima do
-  // rascunho anonimo OU do projeto aberto (Figma "Onde abrir": "Substituir o
-  // conteudo atual" mantem o projeto aberto, so troca as fontes ao vivo).
-  // `workspaceVersion` forca o Workspace a remontar mesmo quando o `key`
-  // baseado no projeto nao muda (dois exemplos seguidos no anonimo, ou
-  // substituir o conteudo do mesmo projeto) - sem isso o segundo exemplo
+  // Fontes de um exemplo da documentação (RF11), aplicadas por cima do
+  // rascunho anônimo OU do projeto aberto (Figma "Onde abrir": "Substituir o
+  // conteúdo atual" mantém o projeto aberto, só troca as fontes ao vivo).
+  // `workspaceVersion` força o Workspace a remontar mesmo quando o `key`
+  // baseado no projeto não muda (dois exemplos seguidos no anônimo, ou
+  // substituir o conteúdo do mesmo projeto) - sem isso o segundo exemplo
   // nunca apareceria.
   const [overrideSources, setOverrideSources] = useState<HdlSources | undefined>(undefined);
   const [workspaceVersion, setWorkspaceVersion] = useState(0);
-  // Exemplo escolhido na documentacao aguardando a escolha "Onde abrir" -
-  // so existe quando ha projeto aberto (ver handleOpenExample).
+  // Exemplo escolhido na documentação aguardando a escolha "Onde abrir" -
+  // só existe quando há projeto aberto (ver handleOpenExample).
   const [pendingExample, setPendingExample] = useState<HdlSources | null>(null);
 
-  // Projeto lembrado de uma sessao anterior que nao existe mais (excluido em
-  // outra aba, por exemplo) - limpa a lembranca em vez de insistir nele.
+  // Projeto lembrado de uma sessão anterior que não existe mais (excluído em
+  // outra aba, por exemplo) - limpa a lembrança em vez de insistir nele.
   useEffect(() => {
     if (openProjectId && !localProjects.loadError && !openProject) {
       setOpenProjectId(null);
@@ -89,7 +89,7 @@ export default function App() {
     setView('workspace');
   }
 
-  /** RF11 - "Abrir no editor" na documentacao. Sem projeto aberto, nao ha o que perguntar. */
+  /** RF11 - "Abrir no editor" na documentação. Sem projeto aberto, não há o que perguntar. */
   function handleOpenExample(sources: HdlSources) {
     if (openProject) setPendingExample(sources);
     else openExampleAsNew(sources);

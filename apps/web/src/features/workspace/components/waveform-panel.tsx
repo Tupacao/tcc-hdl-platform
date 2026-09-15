@@ -12,7 +12,7 @@ interface WaveformPanelProps {
   vcd: string | null;
 }
 
-/** RF06 — visualizador grafico interativo de formas de onda. */
+/** RF06 — visualizador gráfico interativo de formas de onda. */
 export function WaveformPanel({ vcd }: WaveformPanelProps) {
   const { waveform, isLoading } = useParsedVcd(vcd);
 
@@ -32,7 +32,7 @@ export function WaveformPanel({ vcd }: WaveformPanelProps) {
   }
 
   // Worker de RF06-I04 ainda processando — a interface (editor, console) segue
-  // utilizavel, so este painel mostra o estado de carregamento.
+  // utilizável, só este painel mostra o estado de carregamento.
   if (isLoading || !waveform) {
     return (
       <div

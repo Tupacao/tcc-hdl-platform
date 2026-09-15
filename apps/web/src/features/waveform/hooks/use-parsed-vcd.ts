@@ -8,9 +8,9 @@ export interface UseParsedVcdResult {
 }
 
 /**
- * Parse de VCD em Web Worker (RF06-I04) — mantem a interface (editor, console)
- * utilizavel enquanto um arquivo grande e interpretado. Um worker novo por
- * `.vcd` recebido; o anterior e encerrado (`terminate`) se ainda estiver rodando
+ * Parse de VCD em Web Worker (RF06-I04) — mantém a interface (editor, console)
+ * utilizável enquanto um arquivo grande é interpretado. Um worker novo por
+ * `.vcd` recebido; o anterior é encerrado (`terminate`) se ainda estiver rodando
  * quando um novo chega ou o componente desmonta.
  */
 export function useParsedVcd(vcd: string | null): UseParsedVcdResult {

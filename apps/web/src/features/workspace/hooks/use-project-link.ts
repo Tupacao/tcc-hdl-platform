@@ -17,40 +17,40 @@ export type WorkspaceFile = 'design' | 'testbench';
 export interface UseProjectLinkResult {
   sources: HdlSources;
   updateFile: (file: WorkspaceFile, content: string) => void;
-  /** `false` sem projeto aberto - o rascunho anonimo (RF20) nunca "salva" nem avisa. */
+  /** `false` sem projeto aberto - o rascunho anônimo (RF20) nunca "salva" nem avisa. */
   isDirty: boolean;
   save: () => void;
-  /** Rascunho local mais novo que a ultima versao salva, encontrado ao abrir o projeto. */
+  /** Rascunho local mais novo que a última versão salva, encontrado ao abrir o projeto. */
   pendingDraft: ProjectDraft | null;
   useDraft: () => void;
   discardDraft: () => void;
 }
 
 /**
- * RF07-I03 - liga o `Workspace` ao projeto aberto: estado de alteracoes nao
- * salvas (por comparacao, nunca um booleano solto), rascunho local com
+ * RF07-I03 - liga o `Workspace` ao projeto aberto: estado de alterações não
+ * salvas (por comparação, nunca um booleano solto), rascunho local com
  * debounce, atalho de salvar e aviso do navegador antes de fechar/recarregar.
  *
- * Excecao deliberada a regra de `hooks/` (ARCHITECTURE.md), mesmo criterio ja
- * usado em `useLocalProjects`: e um hook de verdade (estado + efeito
- * colateral), so que a "API" e o `localStorage`, nao HTTP - RF07-I02 decidiu
- * manter os projetos locais ate RF14 (login) existir, entao nao ha PATCH de
+ * Exceção deliberada à regra de `hooks/` (ARCHITECTURE.md), mesmo critério já
+ * usado em `useLocalProjects`: é um hook de verdade (estado + efeito
+ * colateral), só que a "API" é o `localStorage`, não HTTP - RF07-I02 decidiu
+ * manter os projetos locais até RF14 (login) existir, então não há PATCH de
  * servidor para salvar aqui.
  *
- * Montado uma vez por projeto aberto: `Workspace` e remontado com `key`
- * diferente a cada troca de projeto (App.tsx), entao o estado inicial abaixo
- * nunca precisa reagir a mudanca de `project` depois do mount.
+ * Montado uma vez por projeto aberto: `Workspace` é remontado com `key`
+ * diferente a cada troca de projeto (App.tsx), então o estado inicial abaixo
+ * nunca precisa reagir a mudança de `project` depois do mount.
  */
 export function useProjectLink(
   project: LocalProject | null,
   onSave: (id: string, sources: HdlSources) => void,
   /**
-   * Substitui a fonte inicial do editor, tanto no rascunho anonimo (RF20 por
-   * padrao) quanto - a diferenca de antes - também com um projeto aberto
-   * (RF11: "Substituir o conteudo atual" ao abrir um exemplo da
-   * documentacao). Por isso `savedSources` abaixo NUNCA usa este valor: um
-   * override com projeto aberto precisa nascer "nao salvo" (comparado contra
-   * a versao real salva), nunca aparecer como se já estivesse persistido.
+   * Substitui a fonte inicial do editor, tanto no rascunho anônimo (RF20 por
+   * padrão) quanto - a diferença de antes - também com um projeto aberto
+   * (RF11: "Substituir o conteúdo atual" ao abrir um exemplo da
+   * documentação). Por isso `savedSources` abaixo NUNCA usa este valor: um
+   * override com projeto aberto precisa nascer "não salvo" (comparado contra
+   * a versão real salva), nunca aparecer como se já estivesse persistido.
    */
   overrideSources?: HdlSources,
 ): UseProjectLinkResult {
@@ -60,13 +60,13 @@ export function useProjectLink(
   const [savedSources, setSavedSources] = useState<HdlSources>(project?.sources ?? SAMPLE_SOURCES);
   const [pendingDraft, setPendingDraft] = useState<ProjectDraft | null>(null);
 
-  // Ao abrir um projeto com rascunho mais novo que a ultima versao salva,
-  // pergunta antes de aplicar - nunca sobrescreve em silencio. Um rascunho
-  // mais antigo (sobrou de um `save()` que nao chegou a limpar o rascunho) e
-  // apenas descartado. Pulado quando ha `overrideSources`: a pessoa acabou de
+  // Ao abrir um projeto com rascunho mais novo que a última versão salva,
+  // pergunta antes de aplicar - nunca sobrescreve em silêncio. Um rascunho
+  // mais antigo (sobrou de um `save()` que não chegou a limpar o rascunho) é
+  // apenas descartado. Pulado quando há `overrideSources`: a pessoa acabou de
   // escolher explicitamente o que quer no editor, perguntar sobre um
-  // rascunho antigo por cima seria um segundo dialogo competindo pela mesma
-  // decisao.
+  // rascunho antigo por cima seria um segundo diálogo competindo pela mesma
+  // decisão.
   useEffect(() => {
     if (!project || overrideSources) return;
     const draft = readDraft(window.localStorage, project.id);
@@ -92,7 +92,7 @@ export function useProjectLink(
     return () => window.clearTimeout(timer);
   }, [project, isDirty, sources]);
 
-  // Aviso nativo do navegador ao fechar a aba ou recarregar com pendencias.
+  // Aviso nativo do navegador ao fechar a aba ou recarregar com pendências.
   useEffect(() => {
     if (!isDirty) return;
     const handler = (event: BeforeUnloadEvent) => {
@@ -110,8 +110,8 @@ export function useProjectLink(
     clearDraft(window.localStorage, project.id);
   }, [project, sources, onSave]);
 
-  // Ctrl+S / Cmd+S salva sem submeter nada nem abrir o dialogo "Salvar pagina"
-  // do navegador - vale mesmo sem projeto aberto, so para o `preventDefault`.
+  // Ctrl+S / Cmd+S salva sem submeter nada nem abrir o diálogo "Salvar página"
+  // do navegador - vale mesmo sem projeto aberto, só para o `preventDefault`.
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {

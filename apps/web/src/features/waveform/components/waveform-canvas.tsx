@@ -57,10 +57,10 @@ interface ZoomButtonProps {
 }
 
 /**
- * Botao de icone da barra de zoom. `title` da a dica nativa do navegador ao
- * passar o mouse (o icone sozinho nao diz o que faz); `active:` da feedback de
- * clique visivel nos dois temas — `hover:bg-accent` sozinho e quase invisivel
- * no tema claro (`--accent` e bem proximo de `--background` la).
+ * Botão de ícone da barra de zoom. `title` dá a dica nativa do navegador ao
+ * passar o mouse (o ícone sozinho não diz o que faz); `active:` dá feedback de
+ * clique visível nos dois temas — `hover:bg-accent` sozinho é quase invisível
+ * no tema claro (`--accent` é bem próximo de `--background` lá).
  */
 function ZoomButton({ label, onClick, children }: ZoomButtonProps) {
   return (
@@ -77,9 +77,9 @@ function ZoomButton({ label, onClick, children }: ZoomButtonProps) {
 }
 
 /**
- * RF06-I02/I03 — desenha os sinais em `<canvas>` e torna o painel navegavel: zoom,
- * deslocamento, selecao de sinais e um cursor de tempo com leitura textual (frames
- * 1.2, 5.1 e 8.2 do Figma). Geometria e cores nao sao decisao livre daqui.
+ * RF06-I02/I03 — desenha os sinais em `<canvas>` e torna o painel navegável: zoom,
+ * deslocamento, seleção de sinais e um cursor de tempo com leitura textual (frames
+ * 1.2, 5.1 e 8.2 do Figma). Geometria e cores não são decisão livre daqui.
  */
 export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
   const { resolvedTheme } = useTheme();
@@ -97,11 +97,11 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
   const [cursorTime, setCursorTime] = useState(0);
   const viewport = useViewport(waveform.endTime);
 
-  // RF06-I03: reexecutar com os MESMOS sinais preserva selecao e zoom; sinais
-  // diferentes reiniciam com tudo selecionado e a simulacao inteira enquadrada.
-  // O valor inicial do ref ja e a assinatura da primeira renderizacao, entao o
-  // primeiro mount nao dispara um reset redundante sobre o estado que os
-  // useState acima ja inicializaram corretamente.
+  // RF06-I03: reexecutar com os MESMOS sinais preserva seleção e zoom; sinais
+  // diferentes reiniciam com tudo selecionado e a simulação inteira enquadrada.
+  // O valor inicial do ref já é a assinatura da primeira renderização, então o
+  // primeiro mount não dispara um reset redundante sobre o estado que os
+  // useState acima já inicializaram corretamente.
   const previousSignatureRef = useRef(rowKeysSignature);
   useEffect(() => {
     if (previousSignatureRef.current === rowKeysSignature) return;
@@ -109,7 +109,7 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
     setSelectedKeys(new Set(rowKeys));
     viewport.fitAll();
     setCursorTime(0);
-    // So a assinatura precisa disparar isto de novo; rowKeys/viewport.fitAll sao
+    // Só a assinatura precisa disparar isto de novo; rowKeys/viewport.fitAll são
     // lidos do fechamento mais recente no momento em que a assinatura muda.
   }, [rowKeysSignature]);
 
@@ -164,7 +164,7 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
       height: contentHeight,
       cursorTime,
     });
-    // resolvedTheme nao e usado diretamente: e o gatilho para reler as cores do tema apos a troca de classe .dark.
+    // resolvedTheme não é usado diretamente: é o gatilho para reler as cores do tema após a troca de classe .dark.
   }, [
     containerWidth,
     contentHeight,
@@ -192,8 +192,8 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
       try {
         event.currentTarget.setPointerCapture(event.pointerId);
       } catch {
-        // Sem captura de ponteiro o gesto ainda funciona (os eventos so param de
-        // chegar se o cursor sair do canvas durante o arraste) - nao interromper por isso.
+        // Sem captura de ponteiro o gesto ainda funciona (os eventos só param de
+        // chegar se o cursor sair do canvas durante o arraste) - não interromper por isso.
       }
       const rect = event.currentTarget.getBoundingClientRect();
       const localX = event.clientX - rect.left;
