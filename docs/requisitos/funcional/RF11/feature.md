@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Conteudo educacional |
-| Status | Nao implementado |
+| Status | Parcial — I01 (navegacao e layout) concluida; I02 (guia de inicio rapido) e I03 (referencia de sintaxe) pendentes |
 | Requisitos relacionados | RF02, RF04, RF16, RF20, RNF01, RNF09 |
 
 ## 1. Enunciado
@@ -61,12 +61,17 @@ do roteiro do tour.
 
 ## 5. Estado atual no repositorio
 
-- Nao ha rota, pagina ou componente de documentacao em `apps/web`.
-- Nao ha roteador instalado.
-- `README.md` documenta o setup para quem desenvolve, nao para quem usa.
+- `apps/web/src/features/docs/`: painel lateral (`Sheet`) com indice, busca
+  por titulo/resumo e area de leitura, montado em `Workspace` e em
+  `ProjectsPage` - acessivel de qualquer tela, sem roteador. Uma secao de
+  conteudo ("Exemplo: somador completo") prova o mecanismo de copiar/abrir no
+  editor.
+- `apps/web/src/components/ui/sheet.tsx`: componente shadcn/ui novo, sobre
+  `@radix-ui/react-dialog` (ja dependencia) - nenhum pacote novo instalado.
 - `apps/web/src/lib/samples.ts` tem o exemplo do somador completo, com testbench
-  usando `$dumpfile`/`$dumpvars` - material aproveitavel no guia.
-- **Falta**: tudo - navegacao, layout de conteudo e os dois textos.
+  usando `$dumpfile`/`$dumpvars` - ja reaproveitado na secao de exemplo.
+- **Falta**: os dois textos de verdade - guia de inicio rapido (I02) e
+  referencia de sintaxe (I03).
 
 ## 6. Escopo
 
@@ -86,22 +91,24 @@ do roteiro do tour.
 
 ## 7. Criterios de aceite da feature
 
-- [ ] A documentacao e alcancavel de qualquer ponto da aplicacao.
+- [x] A documentacao e alcancavel de qualquer ponto da aplicacao. _(I01)_
 - [ ] O guia leva um usuario sem conhecimento previo da tela inicial ate uma
-      forma de onda visivel.
-- [ ] A referencia cobre os elementos usados pelos exemplos de RF20.
-- [ ] Os exemplos de codigo sao copiaveis e podem ser abertos no editor.
-- [ ] O conteudo e legivel nos dois temas, com contraste AA.
-- [ ] A navegacao funciona so por teclado e a estrutura de titulos e correta.
-- [ ] Abrir a documentacao nao descarta o codigo em edicao.
+      forma de onda visivel. _(I02)_
+- [ ] A referencia cobre os elementos usados pelos exemplos de RF20. _(I03)_
+- [x] Os exemplos de codigo sao copiaveis e podem ser abertos no editor. _(I01,
+      mecanismo pronto; mais exemplos entram com I02/I03)_
+- [x] O conteudo e legivel nos dois temas, com contraste AA. _(I01)_
+- [x] A navegacao funciona so por teclado e a estrutura de titulos e correta.
+      _(I01)_
+- [x] Abrir a documentacao nao descarta o codigo em edicao. _(I01)_
 
 ## 8. Quebra em issues
 
-| Issue | Titulo | Branch | Tamanho |
-| --- | --- | --- | --- |
-| [issue-01](issue-01-navegacao-e-layout-docs.md) | Navegacao e layout da documentacao | `feat/rf11-navegacao-e-layout-docs` | M |
-| [issue-02](issue-02-guia-inicio-rapido.md) | Conteudo do guia de inicio rapido | `feat/rf11-guia-inicio-rapido` | M |
-| [issue-03](issue-03-referencia-sintaxe-verilog.md) | Conteudo da referencia de sintaxe Verilog | `feat/rf11-referencia-sintaxe-verilog` | M |
+| Issue | Titulo | Branch | Tamanho | Status |
+| --- | --- | --- | --- | --- |
+| [issue-01](issue-01-navegacao-e-layout-docs.md) | Navegacao e layout da documentacao | `feat-RF11-01-navegacao-e-layout-docs-front` | M | Concluido |
+| [issue-02](issue-02-guia-inicio-rapido.md) | Conteudo do guia de inicio rapido | `feat/rf11-guia-inicio-rapido` | M | Pendente |
+| [issue-03](issue-03-referencia-sintaxe-verilog.md) | Conteudo da referencia de sintaxe Verilog | `feat/rf11-referencia-sintaxe-verilog` | M | Pendente |
 
 ## 9. Dependencias
 

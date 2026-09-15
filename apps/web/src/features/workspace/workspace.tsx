@@ -3,6 +3,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { toast } from 'sonner';
 import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
 import type { LastRunStatus, LocalProject } from '@/features/projects';
+import { DocsPanel } from '@/features/docs';
 import { cn } from '@/lib/utils';
 import { CodeEditor } from './components/code-editor';
 import { ConsolePanel } from './components/console-panel';
@@ -16,21 +17,34 @@ import { useRunSimulation } from './hooks/use-run-simulation';
 interface WorkspaceProps {
   /** Projeto aberto (RF07-I03). `null` no rascunho anonimo (RF20), que segue sem exigir conta. */
   project: LocalProject | null;
+  /** Fonte do rascunho anonimo quando `project` e `null` - RF20 por padrao, exemplo de RF11 quando vem da documentacao. */
+  initialSources?: HdlSources;
   onSaveProject: (id: string, sources: HdlSources) => void;
   onRecordRun: (id: string, status: LastRunStatus) => void;
   /** RF07-I02: navega para "Meus projetos". Omitido quando nao ha lista de projetos por perto. */
   onOpenProjects?: () => void;
+  /** RF11: carrega um exemplo da documentacao no editor (rascunho anonimo). */
+  onOpenExample: (sources: HdlSources) => void;
 }
 
 /**
  * RF09 — editor, compilador, simulador e visualizador em uma unica interface.
  * Os painies sao redimensionaveis para caber em telas a partir de 1024px (RNF03).
  */
-export function Workspace({ project, onSaveProject, onRecordRun, onOpenProjects }: WorkspaceProps) {
+export function Workspace({
+  project,
+  initialSources,
+  onSaveProject,
+  onRecordRun,
+  onOpenProjects,
+  onOpenExample,
+}: WorkspaceProps) {
   const { sources, updateFile, isDirty, save, pendingDraft, useDraft, discardDraft } =
-    useProjectLink(project, onSaveProject);
+    useProjectLink(project, onSaveProject, initialSources);
   const [activeTab, setActiveTab] = useState<WorkspaceFile>('design');
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [docsOpen, setDocsOpen] = useState(false);
   const runMutation = useRunSimulation();
   // `useMutation` limpa `data` assim que uma nova chamada comeca (fica undefined
   // durante o pending), nao so no mount inicial - re-executar apagaria o
@@ -71,9 +85,22 @@ export function Workspace({ project, onSaveProject, onRecordRun, onOpenProjects 
     [sources.testbench.name],
   );
 
+  /** Porta unica para navegacao que descarta o editor atual - "Meus projetos" e "abrir no editor" da documentacao. */
+  function requestLeave(action: () => void) {
+    if (isDirty) {
+      setPendingAction(() => action);
+      setLeaveDialogOpen(true);
+    } else {
+      action();
+    }
+  }
+
   function handleRequestOpenProjects() {
-    if (isDirty) setLeaveDialogOpen(true);
-    else onOpenProjects?.();
+    requestLeave(() => onOpenProjects?.());
+  }
+
+  function handleOpenExample(exampleSources: HdlSources) {
+    requestLeave(() => onOpenExample(exampleSources));
   }
 
   const activeFile = sources[activeTab];
@@ -85,6 +112,7 @@ export function Workspace({ project, onSaveProject, onRecordRun, onOpenProjects 
         isDirty={isDirty}
         onSave={save}
         onOpenProjects={onOpenProjects && handleRequestOpenProjects}
+        onOpenDocs={() => setDocsOpen(true)}
         onRun={handleRun}
         isRunning={isRunning}
       />
@@ -95,14 +123,15 @@ export function Workspace({ project, onSaveProject, onRecordRun, onOpenProjects 
         onOpenChange={setLeaveDialogOpen}
         onDiscard={() => {
           setLeaveDialogOpen(false);
-          onOpenProjects?.();
+          pendingAction?.();
         }}
         onSaveAndLeave={() => {
           save();
           setLeaveDialogOpen(false);
-          onOpenProjects?.();
+          pendingAction?.();
         }}
       />
+      <DocsPanel open={docsOpen} onOpenChange={setDocsOpen} onOpenInEditor={handleOpenExample} />
 
       <PanelGroup direction="horizontal" className="flex-1">
         <Panel defaultSize={58} minSize={30}>

@@ -58,15 +58,43 @@ de RF09.
 
 ## Criterios de aceite
 
-- [ ] A documentacao abre de qualquer ponto da aplicacao e fecha sem perder o
+- [x] A documentacao abre de qualquer ponto da aplicacao e fecha sem perder o
       codigo em edicao.
-- [ ] O indice lista as secoes e destaca a ativa.
-- [ ] A busca filtra por titulo e resumo.
-- [ ] Blocos de codigo copiam para a area de transferencia com confirmacao.
-- [ ] "Abrir no editor" carrega o exemplo e avisa sobre alteracoes nao salvas.
-- [ ] A hierarquia de titulos e correta e navegavel por leitor de tela.
-- [ ] O conteudo e legivel nos dois temas.
-- [ ] Nenhuma dependencia nova alem do componente shadcn/ui usado.
+- [x] O indice lista as secoes e destaca a ativa.
+- [x] A busca filtra por titulo e resumo.
+- [x] Blocos de codigo copiam para a area de transferencia com confirmacao.
+- [x] "Abrir no editor" carrega o exemplo e avisa sobre alteracoes nao salvas.
+- [x] A hierarquia de titulos e correta e navegavel por leitor de tela.
+- [x] O conteudo e legivel nos dois temas.
+- [x] Nenhuma dependencia nova alem do componente shadcn/ui usado.
+
+## Nota de implementacao
+
+Decisoes tomadas nos pontos que o doc deixava em aberto:
+
+- **Acesso**: painel lateral (`Sheet`, novo em `components/ui/sheet.tsx` -
+  construido a mao sobre `@radix-ui/react-dialog`, ja dependencia via
+  `dialog.tsx`, sem pacote novo) montado em `Workspace` e em `ProjectsPage`,
+  cada um com seu proprio botao "Documentacao" no cabecalho e seu proprio
+  `docsOpen` local - nao ha roteador nem estado global de "documentacao
+  aberta".
+- **Hierarquia de titulos**: o titulo da secao ativa ocupa o `h1` do painel
+  (`SheetTitle asChild` envolvendo um `<h1>` de verdade, já que o `Title` do
+  Radix nao garante uma tag especifica); o conteudo de cada secao usa `h2`
+  para subtitulos, sem pular nivel.
+- **Blocos de codigo sem realce de sintaxe**: `<pre>` monoespacado simples,
+  conforme o risco registrado no passo a passo - nem biblioteca nova, nem
+  instancia extra do Monaco sem medir primeiro.
+- **"Abrir no editor" fora do workspace**: como o painel tambem abre a partir
+  de "Meus projetos" (sem `Workspace` montado), o aviso de alteracoes nao
+  salvas so se aplica quando ha um `Workspace` de verdade por baixo. Isso
+  generalizou o dialogo "Sair sem salvar?" de RF07-I03 - antes so usado para
+  voltar para a lista, agora tambem usado para trocar as fontes do editor por
+  um exemplo (`requestLeave`/`pendingAction` em `workspace.tsx`).
+- **Conteudo desta issue**: uma unica secao ("Exemplo: somador completo"),
+  reaproveitando `SAMPLE_SOURCES` (RF20) para exercitar o mecanismo de
+  copiar/abrir no editor com algo que ja existe e funciona hoje - o guia de
+  inicio rapido e a referencia de sintaxe de verdade sao RF11-I02/I03.
 
 ## Verificacao
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'sonner';
+import type { HdlSources } from '@tplab/shared';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Workspace } from '@/features/workspace/workspace';
 import { ProjectsPage, useLocalProjects, type LocalProject } from '@/features/projects';
@@ -43,6 +44,13 @@ export default function App() {
   // outra tela, sem precisar sincronizar duas copias do mesmo projeto (RF07-I03).
   const openProject = openProjectId ? (localProjects.getById(openProjectId) ?? null) : null;
 
+  // Fontes de um exemplo da documentacao (RF11), carregadas no rascunho
+  // anonimo. `exampleVersion` forca o Workspace a remontar mesmo quando dois
+  // exemplos diferentes sao abertos em sequencia sem sair do modo anonimo -
+  // sem isso o `key` ficaria igual e o segundo exemplo nunca apareceria.
+  const [exampleSources, setExampleSources] = useState<HdlSources | undefined>(undefined);
+  const [exampleVersion, setExampleVersion] = useState(0);
+
   // Projeto lembrado de uma sessao anterior que nao existe mais (excluido em
   // outra aba, por exemplo) - limpa a lembranca em vez de insistir nele.
   useEffect(() => {
@@ -58,6 +66,14 @@ export default function App() {
     setView('workspace');
   }
 
+  function handleOpenExample(sources: HdlSources) {
+    setOpenProjectId(null);
+    writeLastOpenProjectId(null);
+    setExampleSources(sources);
+    setExampleVersion((version) => version + 1);
+    setView('workspace');
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
@@ -66,14 +82,17 @@ export default function App() {
             localProjects={localProjects}
             onOpenProject={handleOpenProject}
             onNavigateBack={() => setView('workspace')}
+            onOpenExample={handleOpenExample}
           />
         ) : (
           <Workspace
-            key={openProject?.id ?? 'anonymous'}
+            key={openProject?.id ?? `anonymous-${exampleVersion}`}
             project={openProject}
+            initialSources={openProject ? undefined : exampleSources}
             onSaveProject={localProjects.save}
             onRecordRun={localProjects.recordRun}
             onOpenProjects={() => setView('projects')}
+            onOpenExample={handleOpenExample}
           />
         )}
         <Toaster position="bottom-right" closeButton />

@@ -1,7 +1,8 @@
-import { CircuitBoard, FolderOpen, Loader2, Play, Save } from 'lucide-react';
+import { BookOpen, CircuitBoard, FolderOpen, Loader2, Play, Save } from 'lucide-react';
 import type { LocalProject } from '@/features/projects';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { DOCS_BUTTON_LABEL } from '@/features/docs';
 import {
   OPEN_PROJECTS_BUTTON_LABEL,
   SAVE_BUTTON_LABEL,
@@ -15,6 +16,7 @@ interface WorkspaceHeaderProps {
   isDirty: boolean;
   onSave: () => void;
   onOpenProjects?: () => void;
+  onOpenDocs: () => void;
   onRun: () => void;
   isRunning: boolean;
 }
@@ -25,6 +27,7 @@ export function WorkspaceHeader({
   isDirty,
   onSave,
   onOpenProjects,
+  onOpenDocs,
   onRun,
   isRunning,
 }: WorkspaceHeaderProps) {
@@ -61,6 +64,10 @@ export function WorkspaceHeader({
             {OPEN_PROJECTS_BUTTON_LABEL}
           </Button>
         )}
+        <Button variant="ghost" size="sm" onClick={onOpenDocs}>
+          <BookOpen aria-hidden />
+          {DOCS_BUTTON_LABEL}
+        </Button>
         <Button onClick={onRun} disabled={isRunning} size="sm">
           {isRunning ? <Loader2 aria-hidden className="animate-spin" /> : <Play aria-hidden />}
           {isRunning ? 'Executando' : 'Executar'}

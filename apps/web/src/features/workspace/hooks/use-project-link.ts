@@ -44,9 +44,11 @@ export interface UseProjectLinkResult {
 export function useProjectLink(
   project: LocalProject | null,
   onSave: (id: string, sources: HdlSources) => void,
+  /** Fonte do rascunho anonimo quando nao ha projeto aberto - RF20 por padrao, um exemplo de RF11 quando vem de "abrir no editor". */
+  initialSources: HdlSources = SAMPLE_SOURCES,
 ): UseProjectLinkResult {
-  const [sources, setSources] = useState<HdlSources>(project?.sources ?? SAMPLE_SOURCES);
-  const [savedSources, setSavedSources] = useState<HdlSources>(project?.sources ?? SAMPLE_SOURCES);
+  const [sources, setSources] = useState<HdlSources>(project?.sources ?? initialSources);
+  const [savedSources, setSavedSources] = useState<HdlSources>(project?.sources ?? initialSources);
   const [pendingDraft, setPendingDraft] = useState<ProjectDraft | null>(null);
 
   // Ao abrir um projeto com rascunho mais novo que a ultima versao salva,
