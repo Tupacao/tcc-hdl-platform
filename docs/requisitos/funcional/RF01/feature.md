@@ -68,6 +68,12 @@ repositorio em produto.
 - **Falta**: build de producao publicado, dominio com TLS, CORS de producao,
   configuracao da URL da API por ambiente e verificacao de que a aplicacao abre
   em uma maquina limpa.
+- **Bonus (fora da quebra em issues abaixo)**: a pagina "0 · Home" do Figma -
+  material de marketing complementar, nao cobertura funcional de RF01 (ver
+  [figma/WILL-BE-DONE.md](figma/WILL-BE-DONE.md)) - foi implementada em
+  `apps/web/src/features/home/` (`HomePage`) como tela inicial da aplicacao.
+  "Comecar a programar"/"Abrir o editor" levam direto ao workspace, sem
+  barreira.
 
 ## 6. Escopo
 

@@ -23,6 +23,8 @@ interface DocsPageProps {
   onNavigateBack: () => void;
   /** RF07-I03: quem monta a pagina decide se avisa sobre alteracoes nao salvas. */
   onOpenInEditor: (sources: HdlSources) => void;
+  /** RF01 - link "Ver os limites em detalhe" da home abre ja na secao certa. */
+  initialSectionId?: string;
 }
 
 /**
@@ -32,9 +34,9 @@ interface DocsPageProps {
  * "Meus projetos" ja faz - App.tsx desmonta o Workspace, o rascunho local
  * de RF07-I03 cobre o intervalo.
  */
-export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
+export function DocsPage({ onNavigateBack, onOpenInEditor, initialSectionId }: DocsPageProps) {
   const [query, setQuery] = useState('');
-  const [activeId, setActiveId] = useState(DOC_SECTIONS[0]?.id ?? null);
+  const [activeId, setActiveId] = useState(initialSectionId ?? DOC_SECTIONS[0]?.id ?? null);
 
   const filtered = useMemo(() => filterSections(DOC_SECTIONS, query), [query]);
   const activeIndex = DOC_SECTIONS.findIndex((section) => section.id === activeId);

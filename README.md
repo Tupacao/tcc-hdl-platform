@@ -142,6 +142,9 @@ Ja implementado:
   Anterior/Proximo e blocos de codigo copiaveis/abriveis no editor
   (com dialogo "Onde abrir" quando ha projeto aberto) — estrutura pronta, o
   guia de inicio rapido e a referencia de sintaxe (RF11-I02/I03) ainda faltam
+- Pagina inicial de apresentacao (bonus, fora da quebra em issues de RF01):
+  material de marketing complementar do Figma ("0 · Home"), com CTA direto
+  para o workspace ou para retomar o ultimo projeto, sem exigir cadastro
 
 Evidencia de desempenho (RNF07), medida com o painel de performance do Chrome
 sobre um `.vcd` real de ~8 MiB (teto do sandbox, truncado) gerado por uma
