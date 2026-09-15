@@ -2,9 +2,9 @@ import { HdlSourcesSchema, IsoDateSchema } from '@tplab/shared';
 import { z } from 'zod';
 
 /**
- * Formato gravado no `localStorage` (RF07-I02). Nao e o mesmo contrato de
- * `packages/shared` (falta dono, historico de execucao nao existe na API) -
- * mas reaproveita `HdlSourcesSchema` para o par design/testbench, a unica
+ * Formato gravado no `localStorage` (RF07-I02). Não é o mesmo contrato de
+ * `packages/shared` (falta dono, histórico de execução não existe na API) -
+ * mas reaproveita `HdlSourcesSchema` para o par design/testbench, a única
  * parte que de fato coincide.
  */
 const LastRunStatusSchema = z.discriminatedUnion('kind', [

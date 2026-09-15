@@ -22,7 +22,7 @@ interface RenameProjectDialogProps {
   onRestoreFocus: () => void;
 }
 
-/** Dialogo "Renomear projeto" (RF07-I02, frame 6.2 do Figma). */
+/** Diálogo "Renomear projeto" (RF07-I02, frame 6.2 do Figma). */
 export function RenameProjectDialog({
   project,
   existingNames,
@@ -43,11 +43,11 @@ export function RenameProjectDialog({
 
   if (!project) return null;
 
-  // Capturado numa const local: `function handleSubmit` e hoisted, entao o TS
-  // nao propaga o `if (!project) return null` acima para dentro dela.
+  // Capturado numa const local: `function handleSubmit` é hoisted, então o TS
+  // não propaga o `if (!project) return null` acima para dentro dela.
   const currentProject = project;
 
-  // O nome atual nao conta como duplicata dele mesmo.
+  // O nome atual não conta como duplicata dele mesmo.
   const otherNames = existingNames.filter(
     (existing) => existing.toLowerCase() !== currentProject.name.toLowerCase(),
   );

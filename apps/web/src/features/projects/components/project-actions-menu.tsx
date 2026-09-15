@@ -15,20 +15,20 @@ interface ProjectActionsMenuProps {
   onExport: () => void;
   onDelete: () => void;
   /**
-   * Chamado no `pointerdown` do gatilho "...", com o proprio botao (nao
-   * `document.activeElement` - o navegador so move o foco para o botao
-   * DEPOIS do pointerdown, entao lê-lo aqui ainda pegaria o elemento
+   * Chamado no `pointerdown` do gatilho "...", com o próprio botão (não
+   * `document.activeElement` - o navegador só move o foco para o botão
+   * DEPOIS do pointerdown, então lê-lo aqui ainda pegaria o elemento
    * anterior). O Radix abre o menu no `pointerdown` e suprime o `click`
-   * seguinte, entao capturar em `onClick` nunca dispara. Escolher
-   * "Renomear"/"Excluir" abre outro dialogo em seguida, e o Radix nao
-   * restaura foco no gatilho nesse caminho (so quando o menu fecha sem
+   * seguinte, então capturar em `onClick` nunca dispara. Escolher
+   * "Renomear"/"Excluir" abre outro diálogo em seguida, e o Radix não
+   * restaura foco no gatilho nesse caminho (só quando o menu fecha sem
    * selecionar nada) - por isso a captura acontece aqui, guardando o
    * elemento diretamente.
    */
   onTriggerFocusable?: (trigger: HTMLButtonElement) => void;
 }
 
-/** Menu "..." do card (RF07-I02, frame 6.2 do Figma: "Menu de acoes do cartao"). */
+/** Menu "..." do card (RF07-I02, frame 6.2 do Figma: "Menu de ações do cartão"). */
 export function ProjectActionsMenu({
   onOpen,
   onRename,

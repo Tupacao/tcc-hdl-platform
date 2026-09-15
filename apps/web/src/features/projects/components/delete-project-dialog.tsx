@@ -16,16 +16,16 @@ interface DeleteProjectDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: (id: string) => void;
   /**
-   * Chamado dentro do proprio `onCloseAutoFocus` do Radix, depois do
-   * `preventDefault`. Sem `AlertDialogTrigger` fixo (aberto de varios cards),
-   * o Radix tenta devolver o foco por conta propria ao fechar e vence uma
+   * Chamado dentro do próprio `onCloseAutoFocus` do Radix, depois do
+   * `preventDefault`. Sem `AlertDialogTrigger` fixo (aberto de vários cards),
+   * o Radix tenta devolver o foco por conta própria ao fechar e vence uma
    * chamada equivalente feita em `onOpenChange` (roda depois, no commit de
-   * fechamento) - fazer a restauracao AQUI garante que nada roda depois.
+   * fechamento) - fazer a restauração AQUI garante que nada roda depois.
    */
   onRestoreFocus: () => void;
 }
 
-/** Confirmacao de exclusao com o nome do projeto visivel (RF07-I02, frame 6.2 do Figma). */
+/** Confirmação de exclusão com o nome do projeto visível (RF07-I02, frame 6.2 do Figma). */
 export function DeleteProjectDialog({
   project,
   onOpenChange,

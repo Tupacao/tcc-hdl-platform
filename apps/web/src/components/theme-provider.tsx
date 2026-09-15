@@ -29,12 +29,12 @@ function readStoredTheme(): Theme {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
   } catch {
-    // localStorage indisponivel (modo privativo): cai no padrao.
+    // localStorage indisponível (modo privativo): cai no padrão.
   }
   return 'system';
 }
 
-/** Alternancia claro/escuro persistida no navegador (RF10). */
+/** Alternância claro/escuro persistida no navegador (RF10). */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(readStoredTheme);
   const [systemDark, setSystemDark] = useState(prefersDark);
@@ -48,10 +48,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const resolvedTheme = theme === 'system' ? (systemDark ? 'dark' : 'light') : theme;
 
-  // useLayoutEffect (nao useEffect): precisa aplicar a classe .dark antes de QUALQUER
+  // useLayoutEffect (não useEffect): precisa aplicar a classe .dark antes de QUALQUER
   // efeito passivo de um descendente que leia cores computadas (ex.: WaveformCanvas via
-  // getComputedStyle, RF06) — efeitos de layout de toda a arvore rodam antes dos efeitos
-  // passivos de toda a arvore, entao isso evita ler o tema anterior por uma corrida.
+  // getComputedStyle, RF06) — efeitos de layout de toda a árvore rodam antes dos efeitos
+  // passivos de toda a árvore, então isso evita ler o tema anterior por uma corrida.
   useLayoutEffect(() => {
     const root = document.documentElement;
     root.classList.toggle('dark', resolvedTheme === 'dark');
@@ -63,7 +63,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {
-      // Sem persistencia: o tema vale apenas para a sessao atual.
+      // Sem persistência: o tema vale apenas para a sessão atual.
     }
   }, []);
 

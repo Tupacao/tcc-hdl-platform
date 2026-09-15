@@ -1,12 +1,12 @@
 import type { WaveTransition } from '../models/types';
 
 /**
- * Proxima (ou anterior) marca de tempo em que QUALQUER sinal do conjunto muda de
- * valor, a partir de `currentTime`. E o que RF06-I03 usa para mover o cursor "de
- * transicao em transicao" (Shift + setas) em vez de pixel a pixel — pular por
- * pixel faria o cursor parar em instantes onde nada muda, inutil para inspecao.
- * Devolve `null` quando nao ha nenhuma transicao alem de `currentTime` naquela
- * direcao (o cursor ja esta na borda).
+ * Próxima (ou anterior) marca de tempo em que QUALQUER sinal do conjunto muda de
+ * valor, a partir de `currentTime`. É o que RF06-I03 usa para mover o cursor "de
+ * transição em transição" (Shift + setas) em vez de pixel a pixel — pular por
+ * pixel faria o cursor parar em instantes onde nada muda, inútil para inspeção.
+ * Devolve `null` quando não há nenhuma transição além de `currentTime` naquela
+ * direção (o cursor já está na borda).
  */
 export function nearestTransitionTime(
   transitionsBySignal: Map<string, WaveTransition[]>,

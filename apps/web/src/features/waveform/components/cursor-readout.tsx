@@ -12,14 +12,14 @@ import { toVerilogLiteral } from '../utils/verilog-literal';
 
 interface CursorReadoutProps {
   waveform: Waveform;
-  /** Ja filtradas pela selecao de RF06-I03 — este painel e a versao acessivel do grafico. */
+  /** Já filtradas pela seleção de RF06-I03 — este painel é a versão acessível do gráfico. */
   rows: WaveSignal[];
   cursorTime: number;
 }
 
 /**
  * Leitura textual dos valores no instante do cursor (RF06-I03, frame 8.2 do
- * Figma) — RF06-I04 da a ela semantica de tabela de verdade, para navegacao
+ * Figma) — RF06-I04 dá a ela semântica de tabela de verdade, para navegação
  * por leitor de tela e por teclado.
  */
 export function CursorReadout({ waveform, rows, cursorTime }: CursorReadoutProps) {

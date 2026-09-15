@@ -8,31 +8,31 @@ export interface UseViewportResult {
   zoomAt: (time: number, factor: number) => void;
   /** Desloca a janela no tempo, sem sair de [0, endTime]. */
   pan: (deltaTime: number) => void;
-  /** Enquadra a simulacao inteira. */
+  /** Enquadra a simulação inteira. */
   fitAll: () => void;
-  /** Mesmo zoom, deslocado para o inicio. */
+  /** Mesmo zoom, deslocado para o início. */
   goToStart: () => void;
   /** Mesmo zoom, deslocado para o fim. */
   goToEnd: () => void;
-  /** Ajusta a um intervalo especifico (arrastar com Shift). */
+  /** Ajusta a um intervalo específico (arrastar com Shift). */
   setRange: (start: number, end: number) => void;
-  /** Zoom atual relativo ao enquadramento total, para o rotulo "100%". */
+  /** Zoom atual relativo ao enquadramento total, para o rótulo "100%". */
   zoomPercent: number;
 }
 
 /**
- * Estado e operacoes do viewport (RF06-I03). A aritmetica em si vive em
- * `utils/viewport-math.ts` (pura, testavel sem renderer); este hook so guarda o
- * estado React e mantem o total/minSpan mais recentes acessiveis sem recriar os
- * callbacks a cada render. O desenho (RF06-I02) so conhece
+ * Estado e operações do viewport (RF06-I03). A aritmética em si vive em
+ * `utils/viewport-math.ts` (pura, testável sem renderer); este hook só guarda o
+ * estado React e mantém o total/minSpan mais recentes acessíveis sem recriar os
+ * callbacks a cada render. O desenho (RF06-I02) só conhece
  * `{ startTime, endTime, pixelsPerTime }` — `pixelsPerTime` continua
- * responsabilidade de quem desenha (depende da largura do canvas, nao do
+ * responsabilidade de quem desenha (depende da largura do canvas, não do
  * viewport em si).
  */
 /**
- * Zoom maximo: 100x o enquadramento total (ex.: 10000% na barra). Sem um teto o
- * zoom "some" na pratica - o piso do vao (`minSpan`) so ficava pequeno o
- * suficiente pra virar um numero gigante e sem sentido no rotulo de porcentagem,
+ * Zoom máximo: 100x o enquadramento total (ex.: 10000% na barra). Sem um teto o
+ * zoom "some" na prática - o piso do vão (`minSpan`) só ficava pequeno o
+ * suficiente pra virar um número gigante e sem sentido no rótulo de porcentagem,
  * nunca travando de verdade.
  */
 const MAX_ZOOM_FACTOR = 100;

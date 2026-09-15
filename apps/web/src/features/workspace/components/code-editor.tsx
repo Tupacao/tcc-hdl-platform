@@ -13,7 +13,7 @@ interface CodeEditorProps {
 
 const MARKER_OWNER = 'iverilog';
 
-/** Editor Verilog com destaque de sintaxe (RF02) e marcacao de erros (RF05). */
+/** Editor Verilog com destaque de sintaxe (RF02) e marcação de erros (RF05). */
 export function CodeEditor({ fileName, value, diagnostics, onChange }: CodeEditorProps) {
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -24,7 +24,7 @@ export function CodeEditor({ fileName, value, diagnostics, onChange }: CodeEdito
     monacoRef.current = monaco;
   }, []);
 
-  // Reaplica os marcadores sempre que a API devolver novos diagnosticos.
+  // Reaplica os marcadores sempre que a API devolver novos diagnósticos.
   useEffect(() => {
     const instance = editorRef.current;
     const monaco = monacoRef.current;

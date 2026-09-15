@@ -1,12 +1,12 @@
 import type { WaveSignal } from '../models/types';
 
 /**
- * Uma linha por id unico de VCD. Um mesmo net pode aparecer em mais de um
+ * Uma linha por id único de VCD. Um mesmo net pode aparecer em mais de um
  * `WaveSignal` (ex.: uma porta do testbench e o wire correspondente dentro da
- * instancia) — como os dois compartilham a mesma serie de transicoes, exibir os
- * dois duplicaria a linha sem informacao nova. Mantem a primeira ocorrencia, que
- * normalmente e o escopo mais externo (o VCD do iverilog declara o escopo do
- * testbench antes de entrar nas instancias).
+ * instância) — como os dois compartilham a mesma série de transições, exibir os
+ * dois duplicaria a linha sem informação nova. Mantém a primeira ocorrência, que
+ * normalmente é o escopo mais externo (o VCD do iverilog declara o escopo do
+ * testbench antes de entrar nas instâncias).
  */
 export function selectDisplayRows(signals: WaveSignal[]): WaveSignal[] {
   const seen = new Set<string>();
@@ -20,9 +20,9 @@ export function selectDisplayRows(signals: WaveSignal[]): WaveSignal[] {
 }
 
 /**
- * Identidade estavel de um sinal entre execucoes (RF06-I03): o id do VCD nao e
- * garantido estavel de uma compilacao para outra, mas o par escopo+nome e. E o
- * que decide se a selecao de sinais e o zoom sobrevivem a uma nova simulacao.
+ * Identidade estável de um sinal entre execuções (RF06-I03): o id do VCD não é
+ * garantido estável de uma compilação para outra, mas o par escopo+nome é. É o
+ * que decide se a seleção de sinais e o zoom sobrevivem a uma nova simulação.
  */
 export function getSignalKey(signal: WaveSignal): string {
   return signal.scope ? `${signal.scope}.${signal.name}` : signal.name;

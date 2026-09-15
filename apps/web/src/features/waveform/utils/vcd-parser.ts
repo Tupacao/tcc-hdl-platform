@@ -3,11 +3,11 @@ import type { WaveSignal, WaveTransition, Waveform } from '../models/types';
 const IGNORED_DIRECTIVES = new Set(['$dumpvars', '$dumpall', '$dumpon', '$dumpoff']);
 
 /**
- * $date, $version, $comment e $timescale sao "declaration_command"s do VCD cujo
- * conteudo pode vir em uma unica linha (`$timescale 1ns $end`) ou espalhado por
- * varias, com o `$end` sozinho numa linha propria — e exatamente o que o
+ * $date, $version, $comment e $timescale são "declaration_command"s do VCD cujo
+ * conteúdo pode vir em uma única linha (`$timescale 1ns $end`) ou espalhado por
+ * várias, com o `$end` sozinho numa linha própria — é exatamente o que o
  * iverilog emite (`$date\n\tSat ...\n$end`). Precisam de um modo "bloco pendente"
- * em vez do despacho linha-a-linha usado para o resto do cabecalho.
+ * em vez do despacho linha-a-linha usado para o resto do cabeçalho.
  */
 const BLOCK_DIRECTIVES = new Set(['$date', '$version', '$comment', '$timescale']);
 
@@ -29,7 +29,7 @@ function currentScope(state: ParserState): string {
   return state.scopeStack.join('.');
 }
 
-/** Varre o texto por indice, devolvendo uma linha por chamada, sem alocar um array com todas as linhas. */
+/** Varre o texto por índice, devolvendo uma linha por chamada, sem alocar um array com todas as linhas. */
 function* iterateLines(text: string): Generator<string> {
   let start = 0;
   while (start <= text.length) {
@@ -47,7 +47,7 @@ function* iterateLines(text: string): Generator<string> {
   }
 }
 
-/** Aplica o texto acumulado de um bloco `$timescale`. Texto que nao casa e ignorado (mantem o padrao). */
+/** Aplica o texto acumulado de um bloco `$timescale`. Texto que não casa é ignorado (mantém o padrão). */
 function applyTimescale(tokens: string[], state: ParserState): void {
   const combined = tokens.join('');
   const match = /^(\d+)([a-zA-Z]+)$/.exec(combined);
@@ -56,7 +56,7 @@ function applyTimescale(tokens: string[], state: ParserState): void {
   state.timeUnit = match[2] ?? '';
 }
 
-/** Abre um bloco `$date`/`$version`/`$comment`/`$timescale`, resolvendo de imediato a forma de uma linha so. */
+/** Abre um bloco `$date`/`$version`/`$comment`/`$timescale`, resolvendo de imediato a forma de uma linha só. */
 function openBlock(directive: string, line: string, state: ParserState): void {
   const tokens = line.split(/\s+/).filter((token) => token.length > 0);
   const endIndex = tokens.indexOf('$end');
@@ -70,7 +70,7 @@ function openBlock(directive: string, line: string, state: ParserState): void {
   state.pendingTokens = tokens.slice(1);
 }
 
-/** Continua um bloco aberto por `openBlock` ate encontrar o `$end` que o fecha. */
+/** Continua um bloco aberto por `openBlock` até encontrar o `$end` que o fecha. */
 function consumePendingBlock(line: string, state: ParserState): void {
   const tokens = line.split(/\s+/).filter((token) => token.length > 0);
   const endIndex = tokens.indexOf('$end');
@@ -125,7 +125,7 @@ function parseVar(line: string, state: ParserState): void {
   }
 }
 
-/** Restaura os zeros a esquerda omitidos pelo VCD, estendendo com x/z quando o bit mais significativo exige. */
+/** Restaura os zeros à esquerda omitidos pelo VCD, estendendo com x/z quando o bit mais significativo exige. */
 function normalizeVectorValue(raw: string, width: number): string {
   const lower = raw.toLowerCase();
   if (lower.length >= width) {
@@ -144,7 +144,7 @@ function widthOf(state: ParserState, id: string): number {
 function recordTransition(state: ParserState, id: string, value: string): void {
   const series = state.transitions.get(id);
   if (!series) {
-    // Valor para um id nunca declarado em $var — VCD invalido, ignorar silenciosamente.
+    // Valor para um id nunca declarado em $var — VCD inválido, ignorar silenciosamente.
     return;
   }
   const last = series[series.length - 1];
@@ -246,8 +246,8 @@ function parseLine(line: string, state: ParserState): void {
 }
 
 /**
- * Converte o texto de um arquivo VCD em um modelo consultavel por tempo.
- * Nunca lanca excecao: qualquer linha que nao possa ser interpretada (tipicamente o
+ * Converte o texto de um arquivo VCD em um modelo consultável por tempo.
+ * Nunca lança exceção: qualquer linha que não possa ser interpretada (tipicamente o
  * arquivo truncado por RF04-I02) interrompe o parsing e marca `truncated: true`.
  */
 export function parseVcd(text: string): Waveform {
@@ -287,8 +287,8 @@ export function parseVcd(text: string): Waveform {
 }
 
 /**
- * Valor vigente de um sinal em um instante, por busca binaria sobre as transicoes.
- * Antes da primeira transicao (ou para um id sem nenhuma), devolve o estado
+ * Valor vigente de um sinal em um instante, por busca binária sobre as transições.
+ * Antes da primeira transição (ou para um id sem nenhuma), devolve o estado
  * desconhecido ("x" repetido pela largura do sinal).
  */
 export function valueAt(waveform: Waveform, signalId: string, time: number): string {

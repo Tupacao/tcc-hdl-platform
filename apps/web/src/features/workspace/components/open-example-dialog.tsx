@@ -19,18 +19,18 @@ import {
 type OpenMode = 'new' | 'replace';
 
 interface OpenExampleDialogProps {
-  /** `null` fecha o dialogo - so existe pra escolher quando ha projeto aberto (App.tsx). */
+  /** `null` fecha o diálogo - só existe pra escolher quando há projeto aberto (App.tsx). */
   projectName: string | null;
   onOpenChange: (open: boolean) => void;
   onConfirm: (mode: OpenMode) => void;
 }
 
 /**
- * "Onde abrir" (RF11-I01, Figma 7.6) - so aparece quando ha um projeto
- * aberto, independente de estar salvo ou nao (diferente do dialogo "Sair
- * sem salvar?" de RF07-I03, que e sobre alteracoes nao salvas). "Abrir em
- * um projeto novo" vem marcado por padrao porque e a opcao nao destrutiva;
- * "Substituir" nunca vem pre-selecionada - quem aperta Enter sem ler nao
+ * "Onde abrir" (RF11-I01, Figma 7.6) - só aparece quando há um projeto
+ * aberto, independente de estar salvo ou não (diferente do diálogo "Sair
+ * sem salvar?" de RF07-I03, que é sobre alterações não salvas). "Abrir em
+ * um projeto novo" vem marcado por padrão porque é a opção não destrutiva;
+ * "Substituir" nunca vem pré-selecionada - quem aperta Enter sem ler não
  * deveria perder o que escreveu.
  */
 export function OpenExampleDialog({

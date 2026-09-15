@@ -21,21 +21,21 @@ test('validateProjectName aceita um nome exatamente no limite maximo', () => {
 
 test('validateProjectName rejeita nome acima do limite maximo', () => {
   const long = 'a'.repeat(PROJECT_NAME_MAX_LENGTH + 1);
-  assert.match(validateProjectName(long, []) ?? '', /maximo 35/);
+  assert.match(validateProjectName(long, []) ?? '', /máximo 35/);
 });
 
 test('validateProjectName rejeita caracteres fora de letras/numeros/sublinhado', () => {
-  assert.match(validateProjectName('meu projeto!', []) ?? '', /letras, numeros e sublinhado/i);
+  assert.match(validateProjectName('meu projeto!', []) ?? '', /letras, números e sublinhado/i);
 });
 
 test('validateProjectName rejeita nome comecando com numero', () => {
-  assert.match(validateProjectName('1projeto', []) ?? '', /letras, numeros e sublinhado/i);
+  assert.match(validateProjectName('1projeto', []) ?? '', /letras, números e sublinhado/i);
 });
 
 test('validateProjectName rejeita duplicata ignorando maiusculas/minusculas', () => {
   assert.match(
     validateProjectName('Contador', ['contador']) ?? '',
-    /Ja existe um projeto com esse nome/,
+    /Já existe um projeto com esse nome/,
   );
 });
 

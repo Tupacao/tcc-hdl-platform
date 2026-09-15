@@ -1,9 +1,9 @@
 import type { ViewportRange } from '../models/types';
 
 /**
- * Aritmetica pura do viewport (RF06-I03), separada do hook para ser testavel sem
- * um renderer de React. `total` e `minSpan` sao recalculados a cada chamada pelo
- * hook (mudam quando uma nova simulacao termina).
+ * Aritmética pura do viewport (RF06-I03), separada do hook para ser testável sem
+ * um renderer de React. `total` e `minSpan` são recalculados a cada chamada pelo
+ * hook (mudam quando uma nova simulação termina).
  */
 
 export function clampRange(

@@ -14,12 +14,12 @@ import { LEAVE_DIALOG } from '../utils/messages';
 interface UnsavedChangesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** "Sair sem salvar" - o rascunho local continua guardado, so o projeto nao e atualizado. */
+  /** "Sair sem salvar" - o rascunho local continua guardado, só o projeto não é atualizado. */
   onDiscard: () => void;
   onSaveAndLeave: () => void;
 }
 
-/** RF07-I03 - "Sair sem salvar?" ao trocar de projeto ou voltar para a lista com pendencias (Figma 6.2). */
+/** RF07-I03 - "Sair sem salvar?" ao trocar de projeto ou voltar para a lista com pendências (Figma 6.2). */
 export function UnsavedChangesDialog({
   open,
   onOpenChange,

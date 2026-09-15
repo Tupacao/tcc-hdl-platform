@@ -2,9 +2,9 @@ import type { HdlSources } from '@tplab/shared';
 import { SAMPLE_SOURCES } from '../../../lib/samples';
 
 /**
- * Ponto de partida "Em branco" (dialogo "Novo projeto", Figma): um esqueleto
- * minimo, nao um arquivo vazio de verdade - um `.v` sem nenhum modulo nao
- * compila, o que tornaria "em branco" uma armadilha em vez de um inicio.
+ * Ponto de partida "Em branco" (diálogo "Novo projeto", Figma): um esqueleto
+ * mínimo, não um arquivo vazio de verdade - um `.v` sem nenhum módulo não
+ * compila, o que tornaria "em branco" uma armadilha em vez de um início.
  */
 export function buildBlankSources(name: string): HdlSources {
   return {
@@ -22,17 +22,17 @@ export function buildBlankSources(name: string): HdlSources {
 }
 
 /**
- * Ponto de partida "Comecar com um exemplo": reaproveita `SAMPLE_SOURCES`
- * (unico exemplo ate o catalogo de RF20 existir) renomeando arquivos e modulo
- * para o nome escolhido - sem isso, o titulo do card ("meu_projeto.v") e o
+ * Ponto de partida "Começar com um exemplo": reaproveita `SAMPLE_SOURCES`
+ * (único exemplo até o catálogo de RF20 existir) renomeando arquivos e módulo
+ * para o nome escolhido - sem isso, o título do card ("meu_projeto.v") e o
  * nome real do arquivo aberto no editor ("full_adder.v") divergiriam.
  */
 export function buildSampleSources(name: string): HdlSources {
   const baseIdentifier = SAMPLE_SOURCES.design.name.replace(/\.v$/, '');
   const testbenchIdentifier = SAMPLE_SOURCES.testbench.name.replace(/\.v$/, '');
-  // A variante "_tb" precisa ser trocada antes da base: `\bfull_adder\b` nao
-  // bate dentro de "full_adder_tb" (sublinhado e caractere de palavra, entao
-  // nao ha fronteira ali) - sem esta ordem, o modulo do testbench e o
+  // A variante "_tb" precisa ser trocada antes da base: `\bfull_adder\b` não
+  // bate dentro de "full_adder_tb" (sublinhado é caractere de palavra, então
+  // não há fronteira ali) - sem esta ordem, o módulo do testbench e o
   // `$dumpvars` ficariam com o nome antigo.
   const renameTestbench = new RegExp(`\\b${testbenchIdentifier}\\b`, 'g');
   const renameBase = new RegExp(`\\b${baseIdentifier}\\b`, 'g');

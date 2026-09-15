@@ -30,18 +30,18 @@ import { RenameProjectDialog } from './rename-project-dialog';
 
 interface ProjectsPageProps {
   /**
-   * Mesma instancia de `useLocalProjects` usada pelo `Workspace` (App.tsx) -
-   * nao um hook proprio aqui: duas instancias leriam o `localStorage` cada
+   * Mesma instância de `useLocalProjects` usada pelo `Workspace` (App.tsx) -
+   * não um hook próprio aqui: duas instâncias leriam o `localStorage` cada
    * uma na sua vez e nunca veriam a escrita uma da outra (RF07-I03).
    */
   localProjects: UseLocalProjectsResult;
   onOpenProject: (project: LocalProject) => void;
   onNavigateBack: () => void;
-  /** RF11: navega para a documentacao (pagina propria, nao sobreposta). */
+  /** RF11: navega para a documentação (página própria, não sobreposta). */
   onOpenDocs: () => void;
 }
 
-/** Pagina "Meus projetos" (RF07-I02, frame 6.1 do Figma). */
+/** Página "Meus projetos" (RF07-I02, frame 6.1 do Figma). */
 export function ProjectsPage({
   localProjects,
   onOpenProject,
@@ -56,9 +56,9 @@ export function ProjectsPage({
   const [renameTarget, setRenameTarget] = useState<LocalProject | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<LocalProject | null>(null);
 
-  // Os 3 dialogos abrem a partir de varios botoes diferentes (cabecalho, cards,
-  // estado vazio) - nao de um `DialogTrigger` fixo, entao o retorno de foco
-  // automatico do Radix nao se aplica. Guarda quem tinha foco antes de abrir
+  // Os 3 diálogos abrem a partir de vários botões diferentes (cabeçalho, cards,
+  // estado vazio) - não de um `DialogTrigger` fixo, então o retorno de foco
+  // automático do Radix não se aplica. Guarda quem tinha foco antes de abrir
   // para devolver ao fechar (sem isso o foco cai no `<body>`).
   const lastFocusedRef = useRef<HTMLElement | null>(null);
 
@@ -94,7 +94,7 @@ export function ProjectsPage({
 
   /**
    * Escrever no `localStorage` pode falhar (quota, modo privado) - captura
-   * aqui em vez de deixar a excecao subir e quebrar o clique que a disparou.
+   * aqui em vez de deixar a exceção subir e quebrar o clique que a disparou.
    */
   function runOrToastError(action: () => void): void {
     try {
@@ -104,7 +104,7 @@ export function ProjectsPage({
     }
   }
 
-  /** RF08 - monta e baixa o `.zip` a partir da versao salva do projeto. */
+  /** RF08 - monta e baixa o `.zip` a partir da versão salva do projeto. */
   function handleExport(project: LocalProject) {
     try {
       const bytes = buildProjectZip(project, project.sources);
@@ -131,7 +131,7 @@ export function ProjectsPage({
     <div className="flex h-full min-w-[1024px] flex-col overflow-auto">
       <header className="flex items-center gap-3 border-b px-4 py-2">
         <CircuitBoard aria-hidden className="size-5" />
-        <h1 className="text-sm font-semibold">TPLab</h1>
+        <h1 className="text-sm font-semibold">TP Lab</h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={onOpenDocs}>
             <BookOpen aria-hidden />

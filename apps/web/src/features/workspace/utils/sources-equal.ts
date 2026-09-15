@@ -1,6 +1,6 @@
 import type { HdlSources } from '@tplab/shared';
 
-/** Comparacao rasa de conteudo (RF07-I03) - decide se o projeto aberto tem alteracoes nao salvas. */
+/** Comparação rasa de conteúdo (RF07-I03) - decide se o projeto aberto tem alterações não salvas. */
 export function sourcesEqual(a: HdlSources, b: HdlSources): boolean {
   return (
     a.language === b.language &&
