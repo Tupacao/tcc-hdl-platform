@@ -38,8 +38,13 @@ export const PROJECT_ACTIONS = {
   OPEN: 'Abrir no editor',
   RENAME: 'Renomear',
   DUPLICATE: 'Duplicar',
+  EXPORT: 'Exportar',
   DELETE: 'Excluir projeto',
 };
+
+// --- Exportacao (.zip, RF08) --------------------------------------------------
+
+export const EXPORT_ERROR_MESSAGE = 'Nao foi possivel gerar o arquivo para exportar.';
 
 // --- Vazio -----------------------------------------------------------------
 

@@ -1,74 +1,99 @@
-# RF08-I02 - Acao de exportar na interface
+# RF08-I02 - Exportacao de projeto em `.zip` (client-side)
 
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF08](feature.md) |
-| Branch | `feat/rf08-acao-exportar-interface` |
+| Branch | `feat-RF08-02-acao-exportar-interface-front` |
 | Tamanho | P (aprox. 0,5 dia) |
-| Depende de | RF08-I01, RF07-I02 |
+| Depende de | RF07-I02 |
 
 ## Contexto
 
-Com a rota pronta, falta a acao na interface. O detalhe que decide a
-implementacao: `apps/web/src/lib/api.ts` tem um unico helper `request<T>` que
-sempre faz `response.json()` e valida com um schema Zod. Download binario nao
-passa por ele.
+Revisado em relacao ao doc original (que dependia de RF08-I01, a rota de
+servidor): como RF07-I02 decidiu manter os projetos so no `localStorage` ate
+RF14 (login) existir, nao ha nada no Postgres para uma rota de export buscar -
+a tela real de "Meus projetos" nunca populou `/api/projects`. A exportacao do
+MVP monta o `.zip` inteiramente no navegador, a partir do `LocalProject` (lista)
+ou das fontes ao vivo do editor (workspace). RF08-I01 fica registrado, adiado,
+para quando RF14 tornar o Postgres a fonte de verdade.
 
-Ha tambem o descompasso entre o que esta na tela e o que esta salvo: o export vem
-do servidor, entao exporta a versao **salva**, nao a que o usuario acabou de
-digitar (RF07-I03 introduz esse estado).
+Isso muda, para melhor, o ponto que o doc original de I02 levantava: sem
+passar pelo servidor, nao ha descompasso entre "o que esta salvo" e "o que
+esta na tela" para avisar - o workspace exporta exatamente o conteudo atual do
+editor, alteracoes nao salvas inclusas, sem exigir salvar antes.
 
 ## Objetivo
 
-Adicionar a acao de exportar na lista de projetos e no workspace, deixando claro
-qual versao esta sendo baixada.
+Adicionar a acao de exportar na lista de projetos e no workspace, cada uma
+baixando um `.zip` valido com design, testbench e metadados.
 
 ## Escopo tecnico
 
-- `apps/web/src/lib/api.ts` - funcao de download, fora do `request<T>`
-- `apps/web/src/features/projects/` - item no menu de acoes
-- `apps/web/src/features/workspace/workspace-header.tsx` - acao no cabecalho
+- `apps/web/src/features/projects/utils/export-project.ts` (novo) - monta o
+  `.zip` em memoria (`fflate`) e dispara o download
+- `apps/web/src/features/projects/components/project-actions-menu.tsx` - item
+  "Exportar" no menu de acoes do card
+- `apps/web/src/features/projects/components/projects-page.tsx` - handler que
+  usa `project.sources` (versao salva)
+- `apps/web/src/features/workspace/components/workspace-header.tsx` - botao de
+  exportar no cabecalho, so quando ha projeto aberto (mesmo criterio do
+  "Salvar")
+- `apps/web/src/features/workspace/workspace.tsx` - handler que usa `sources`
+  ao vivo do editor (RF07-I03), nao `project.sources`
 
 ## Passo a passo
 
-1. Escrever `downloadProjectExport(projectId, projectName)` que faz `fetch` na
-   rota, checa `response.ok`, le o `Blob` e dispara o download via
-   `URL.createObjectURL` com um `<a download>` temporario, revogando a URL depois.
-2. Ler o nome do arquivo do `Content-Disposition` quando disponivel; cair para um
-   nome derivado do nome do projeto quando nao estiver.
-3. Tratar erro do mesmo modo que o resto do app: a resposta de erro e JSON no
-   formato `ApiErrorSchema`, entao ler o corpo e mostrar a mensagem com `sonner`.
-4. Mostrar estado de processamento no item de menu durante o download e
-   desabilitar cliques repetidos.
-5. Quando houver alteracoes nao salvas, avisar antes de exportar e oferecer
-   salvar primeiro - sem isso o usuario baixa uma versao antiga sem perceber.
-6. Verificar que a acao tem rotulo textual (nao apenas icone) e e alcancavel por
-   teclado.
-7. Testar no Chrome, Firefox, Edge e Safari, ja que o comportamento de download
-   varia (RNF02).
+1. Montar o pacote com `fflate` (`zipSync`, sincrono - dois arquivos de texto
+   nao justificam streaming):
+   - `<design.name>` e `<testbench.name>`, conteudo exato das fontes recebidas;
+   - `project.json` com `id`, `name`, `description`, `topModule`, `language`,
+     `createdAt`, `updatedAt` (do projeto) e `exportedAt` (do momento do
+     download) - `exportedAt` deixa explicito quando as fontes exportadas nao
+     coincidem com `updatedAt` (export a partir de alteracao nao salva);
+   - `README.txt` curto, em portugues, com o comando de compilacao local
+     usando os nomes reais dos arquivos
+     (`iverilog -g2012 -o sim <design.name> <testbench.name> && vvp sim`).
+2. Sanitizar o nome do arquivo baixado: normalizar acentos, remover caracteres
+   invalidos no Windows (`< > : " / \ | ? *`) e controle ASCII, limitar a 60
+   caracteres, cair para `projeto-<id>.zip` quando o resultado ficar vazio.
+3. Disparar o download com `Blob` + `URL.createObjectURL` + `<a download>`
+   temporario, revogando a URL logo em seguida (`finally`).
+4. Envolver a montagem/download em `try/catch`, mostrando erro com `sonner` -
+   nao ha requisicao de rede para falhar, mas `Blob`/URL de objeto podem
+   lancar em navegadores restritivos.
+5. Verificar que a acao tem rotulo textual/`aria-label` (nao so icone) e e
+   alcancavel por teclado.
 
 ## Criterios de aceite
 
-- [ ] Exportar pela lista baixa o `.zip` com nome derivado do projeto.
-- [ ] Exportar pelo workspace baixa o projeto aberto.
-- [ ] Com alteracoes nao salvas, o usuario e avisado antes do download.
-- [ ] Erro do servidor vira toast com a mensagem da API, nao arquivo corrompido.
-- [ ] Nenhuma URL de objeto fica sem revogar.
-- [ ] A acao funciona nos quatro navegadores alvo.
+- [x] Exportar pela lista baixa o `.zip` com nome derivado do projeto.
+- [x] Exportar pelo workspace baixa as fontes ao vivo do editor (nao a versao
+      salva), sem exigir salvar antes.
+- [x] O pacote contem o design, o testbench e um arquivo de metadados legivel.
+- [x] Os nomes dentro do pacote sao os mesmos exibidos nas abas do editor.
+- [x] Erro ao montar/baixar vira toast, sem quebrar a tela.
+- [x] Nenhuma URL de objeto fica sem revogar.
+- [x] Descompactar e rodar `iverilog` reproduz a simulacao.
 
 ## Verificacao
 
 ```bash
+pnpm --filter @tplab/web test
 pnpm typecheck
 pnpm --filter @tplab/web build
 ```
 
-Manual: exportar, abrir o `.zip`, conferir os arquivos; repetir em cada navegador.
+Manual: exportar pela lista e pelo workspace, descompactar e rodar
+`iverilog -g2012 -o sim <design> <testbench> && vvp sim` - confirmado
+reproduzindo a mesma simulacao do sandbox, inclusive dentro da imagem
+`tplab-sandbox:latest`.
 
 ## Riscos
 
 - Esquecer `URL.revokeObjectURL` segura o blob na memoria da aba - relevante em
-  sessao longa, que e o caso de uso da plataforma.
-- Bloqueador de pop-up pode barrar o download programatico em alguns navegadores;
-  disparar sempre a partir do clique do usuario, nunca de um efeito assincrono
-  distante do gesto.
+  sessao longa, que e o caso de uso da plataforma. Mitigado com `finally`.
+- Bloqueador de pop-up pode barrar o download programatico; o disparo acontece
+  sempre dentro do handler de clique, nunca de um efeito assincrono distante do
+  gesto do usuario.
+- Rascunho local sem escopo de usuario (mesmo risco de RF07-I03): exportar so
+  cobre o que esta neste navegador, nao substitui conta (RF14).

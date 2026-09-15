@@ -2,7 +2,13 @@ import { useCallback, useState } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { toast } from 'sonner';
 import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
-import type { LastRunStatus, LocalProject } from '@/features/projects';
+import {
+  buildExportFileName,
+  buildProjectZip,
+  downloadProjectZip,
+  type LastRunStatus,
+  type LocalProject,
+} from '@/features/projects';
 import { cn } from '@/lib/utils';
 import { CodeEditor } from './components/code-editor';
 import { ConsolePanel } from './components/console-panel';
@@ -12,6 +18,7 @@ import { WaveformPanel } from './components/waveform-panel';
 import { WorkspaceHeader } from './components/workspace-header';
 import { useProjectLink, type WorkspaceFile } from './hooks/use-project-link';
 import { useRunSimulation } from './hooks/use-run-simulation';
+import { EXPORT_ERROR_MESSAGE } from './utils/messages';
 
 interface WorkspaceProps {
   /** Projeto aberto (RF07-I03). `null` no rascunho anonimo (RF20), que segue sem exigir conta. */
@@ -76,6 +83,17 @@ export function Workspace({ project, onSaveProject, onRecordRun, onOpenProjects 
     else onOpenProjects?.();
   }
 
+  /** RF08 - exporta as fontes ao vivo do editor (nao exige salvar antes). */
+  function handleExport() {
+    if (!project) return;
+    try {
+      const bytes = buildProjectZip(project, sources);
+      downloadProjectZip(bytes, buildExportFileName(project.name, project.id));
+    } catch {
+      toast.error(EXPORT_ERROR_MESSAGE);
+    }
+  }
+
   const activeFile = sources[activeTab];
 
   return (
@@ -84,6 +102,7 @@ export function Workspace({ project, onSaveProject, onRecordRun, onOpenProjects 
         project={project}
         isDirty={isDirty}
         onSave={save}
+        onExport={handleExport}
         onOpenProjects={onOpenProjects && handleRequestOpenProjects}
         onRun={handleRun}
         isRunning={isRunning}
