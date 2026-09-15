@@ -41,6 +41,14 @@ worker.on('failed', (job, error) => {
   console.error(`[worker] job ${job?.id ?? '?'} falhou:`, error.message);
 });
 
+// Sem listener aqui, um erro de conexao (Redis fora do ar) sobe como excecao
+// nao tratada e derruba o processo inteiro - o mesmo cuidado que `redis.ts` ja
+// tem do lado da API, so que o Worker precisa da conexao ativa para consumir a
+// fila, entao o erro aparece de verdade (aqui, nao so ao enfileirar um job).
+worker.on('error', (error) => {
+  console.error('[worker] erro de conexao com o Redis:', error.message);
+});
+
 console.log(`[worker] escutando a fila "${SIMULATION_QUEUE}" (imagem ${env.SANDBOX_IMAGE})`);
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {

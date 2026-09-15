@@ -70,6 +70,15 @@ export async function simulationRoutes(app: FastifyInstance): Promise<void> {
         params: JobIdParamsSchema,
         response: { 200: SimulationResultSchema, 404: ApiErrorSchema },
       },
+      // O limite global de app.ts (60/min) e pensado para POST /simulations
+      // (RNF05, anti-abuso de enfileiramento). runSimulation (apps/web/src/lib/api.ts)
+      // faz polling desta rota a cada 400ms - 150 req/min so dessa unica
+      // simulacao - entao herdar o limite global derrubava com 429 qualquer
+      // execucao que passasse de ~24s, mesmo sem nenhum abuso real. Leitura
+      // barata e idempotente: limite proprio, generoso o bastante para cobrir
+      // o timeout do cliente (60s) com folga para mais de uma simulacao em
+      // paralelo, sem abrir mao de um teto.
+      config: { rateLimit: { max: 300, timeWindow: '1 minute' } },
     },
     async (request, reply) => {
       const job = await simulationQueue.getJob(request.params.jobId);
