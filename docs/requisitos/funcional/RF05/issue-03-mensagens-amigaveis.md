@@ -60,12 +60,61 @@ causa provavel e a acao seguinte, mantendo visivel a mensagem original.
 
 ## Criterios de aceite
 
-- [ ] Cada uma das regras do catalogo tem teste e produz a explicacao esperada.
+- [x] Cada uma das regras do catalogo tem teste e produz a explicacao esperada.
+      _(back - `hints.test.ts`)_
 - [ ] A mensagem original do `iverilog` continua visivel ao lado da explicacao.
+      _(front - pendente)_
 - [ ] Diagnostico sem regra correspondente aparece normalmente, sem espaco vazio
-      nem texto generico.
-- [ ] Os textos estao em portugues, em uma frase, orientados a acao.
+      nem texto generico. _(front - pendente)_
+- [x] Os textos estao em portugues, em uma frase, orientados a acao.
 - [ ] A explicacao nao quebra o layout do console com listas longas.
+      _(front - pendente)_
+
+## Nota de implementacao
+
+- **Branch dividida em back e front** (`feat-RF05-03-mensagens-amigaveis-back`
+  primeiro, front depois) seguindo `docs/WORKFLOW.md#1` - a tarefa toca
+  `packages/shared`, `apps/api` e `apps/web`, e front/back nunca vao na mesma
+  branch. O front (exibicao no `ConsolePanel`) depende do campo `hint` ja
+  existir no contrato, entao so comeca depois deste PR mesclado.
+- **Duas regras do "passo a passo" nao entraram no catalogo por nao serem
+  reais** - verificado rodando o `tplab-sandbox:latest` de proposito, mesmo
+  principio ja aplicado em RF05-I01 (onde "divisao por zero e erro" tambem se
+  provou falso):
+  - `is not connected` (porta declarada e nao ligada): testado com porta
+    omitida por nome (`.b()`) e por posicao (`dut(a, , y)`) - o Icarus (sem
+    `-Wall`, que `run-simulation.sh` nao passa) nunca emite aviso nenhum,
+    so calcula `x` em silencio. Regra removida do catalogo; nenhum padrao
+    real para cobrir.
+  - `sorry:` como prefixo do padrao: o prefixo `sorry:` e removido de
+    `message` pelo proprio parser (vira parte de como `severity` e
+    calculado, ver `SEVERITY_PREFIX` em `diagnostics.ts`) - um padrao
+    `/^sorry:/` contra `message` nunca bateria. Corrigido para casar o texto
+    que de fato sobra (`/not currently supported/i`), confirmado rodando um
+    `let` (construcao SystemVerilog) de proposito contra o sandbox real:
+    `sorry: let declarations (my_and) are not currently supported.`
+  - As outras cinco regras batem contra fixtures reais ja capturadas em
+    RF05-I01 (`Unknown module type`, `syntax error`, `I give up.`,
+    `is not a port of`, `expects N bits, got M`).
+- **Gap descoberto no Figma, fora do escopo tecnico desta issue** (node
+  `48:2`, "TooltipErro (RF05)"): o design mostra a explicacao aparecendo
+  tambem num popup fixado na linha do erro dentro do proprio editor (titulo
+  por categoria, ex. "Erro de sintaxe", posicao, texto da explicacao, caixa
+  com a saida bruta) - **alem** de um botao de correcao automatica
+  ("Inserir o ponto e virgula") e o link "Ver na documentacao". O botao de
+  correcao automatica esta explicitamente fora do escopo de RF05
+  (`feature.md`, secao "Fora"); o link de documentacao ja e pendencia
+  separada (RF05 x RF11). O popup em si (tooltip no editor) e uma peca nova,
+  estrutural, nao mencionada no escopo tecnico desta issue (que fala so em
+  `console-panel.tsx`) - mesma logica do gap da aba "Problemas" registrado em
+  `issue-02`. Adiado, nao esquecido.
+  - No console (nao no popup), o Figma inverte a hierarquia visual que o
+    "passo a passo" desta issue descreve: la, a explicacao e o texto
+    principal (branco) e a mensagem original do iverilog vira a linha
+    secundaria (cinza, menor, prefixada com "iverilog:"), nao o contrario. O
+    front desta issue segue o Figma quando entrar em conflito com o texto do
+    passo 5 - `docs/WORKFLOW.md` e explicito que o design manda nesse tipo de
+    decisao.
 
 ## Verificacao
 
