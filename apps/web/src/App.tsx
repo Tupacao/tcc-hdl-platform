@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'sonner';
+import type { HdlSources } from '@tplab/shared';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Workspace } from '@/features/workspace/workspace';
+import { OpenExampleDialog } from '@/features/workspace/components/open-example-dialog';
 import { ProjectsPage, useLocalProjects, type LocalProject } from '@/features/projects';
+import { DocsPage } from '@/features/docs';
 import { queryClient } from '@/lib/query-client';
 
-type View = 'workspace' | 'projects';
+type View = 'workspace' | 'projects' | 'docs';
 
 /**
  * So o id, nao a `view` - recarregar sempre volta para o workspace (RF07-I03:
@@ -43,6 +46,19 @@ export default function App() {
   // outra tela, sem precisar sincronizar duas copias do mesmo projeto (RF07-I03).
   const openProject = openProjectId ? (localProjects.getById(openProjectId) ?? null) : null;
 
+  // Fontes de um exemplo da documentacao (RF11), aplicadas por cima do
+  // rascunho anonimo OU do projeto aberto (Figma "Onde abrir": "Substituir o
+  // conteudo atual" mantem o projeto aberto, so troca as fontes ao vivo).
+  // `workspaceVersion` forca o Workspace a remontar mesmo quando o `key`
+  // baseado no projeto nao muda (dois exemplos seguidos no anonimo, ou
+  // substituir o conteudo do mesmo projeto) - sem isso o segundo exemplo
+  // nunca apareceria.
+  const [overrideSources, setOverrideSources] = useState<HdlSources | undefined>(undefined);
+  const [workspaceVersion, setWorkspaceVersion] = useState(0);
+  // Exemplo escolhido na documentacao aguardando a escolha "Onde abrir" -
+  // so existe quando ha projeto aberto (ver handleOpenExample).
+  const [pendingExample, setPendingExample] = useState<HdlSources | null>(null);
+
   // Projeto lembrado de uma sessao anterior que nao existe mais (excluido em
   // outra aba, por exemplo) - limpa a lembranca em vez de insistir nele.
   useEffect(() => {
@@ -55,27 +71,72 @@ export default function App() {
   function handleOpenProject(project: LocalProject) {
     setOpenProjectId(project.id);
     writeLastOpenProjectId(project.id);
+    setOverrideSources(undefined);
     setView('workspace');
+  }
+
+  function openExampleAsNew(sources: HdlSources) {
+    setOpenProjectId(null);
+    writeLastOpenProjectId(null);
+    setOverrideSources(sources);
+    setWorkspaceVersion((version) => version + 1);
+    setView('workspace');
+  }
+
+  function openExampleReplacingCurrent(sources: HdlSources) {
+    setOverrideSources(sources);
+    setWorkspaceVersion((version) => version + 1);
+    setView('workspace');
+  }
+
+  /** RF11 - "Abrir no editor" na documentacao. Sem projeto aberto, nao ha o que perguntar. */
+  function handleOpenExample(sources: HdlSources) {
+    if (openProject) setPendingExample(sources);
+    else openExampleAsNew(sources);
+  }
+
+  function handleConfirmOpenExample(mode: 'new' | 'replace') {
+    if (!pendingExample) return;
+    if (mode === 'new') openExampleAsNew(pendingExample);
+    else openExampleReplacingCurrent(pendingExample);
+    setPendingExample(null);
   }
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        {view === 'projects' ? (
+        {view === 'projects' && (
           <ProjectsPage
             localProjects={localProjects}
             onOpenProject={handleOpenProject}
             onNavigateBack={() => setView('workspace')}
+            onOpenDocs={() => setView('docs')}
           />
-        ) : (
+        )}
+        {view === 'docs' && (
+          <DocsPage
+            onNavigateBack={() => setView('workspace')}
+            onOpenInEditor={handleOpenExample}
+          />
+        )}
+        {view === 'workspace' && (
           <Workspace
-            key={openProject?.id ?? 'anonymous'}
+            key={openProject?.id ?? `anonymous-${workspaceVersion}`}
             project={openProject}
+            overrideSources={overrideSources}
             onSaveProject={localProjects.save}
             onRecordRun={localProjects.recordRun}
             onOpenProjects={() => setView('projects')}
+            onOpenDocs={() => setView('docs')}
           />
         )}
+
+        <OpenExampleDialog
+          projectName={pendingExample ? (openProject?.name ?? null) : null}
+          onOpenChange={(open) => !open && setPendingExample(null)}
+          onConfirm={handleConfirmOpenExample}
+        />
+
         <Toaster position="bottom-right" closeButton />
       </ThemeProvider>
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}

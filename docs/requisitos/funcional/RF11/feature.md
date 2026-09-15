@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Conteudo educacional |
-| Status | Nao implementado |
+| Status | Parcial — I01 (navegacao e layout) concluida; I02 (guia de inicio rapido) e I03 (referencia de sintaxe) pendentes |
 | Requisitos relacionados | RF02, RF04, RF16, RF20, RNF01, RNF09 |
 
 ## 1. Enunciado
@@ -45,10 +45,11 @@ Sem isso o aluno interpreta comportamento esperado como defeito.
 **Para o usuario.** Reduz o abandono no primeiro contato e o numero de duvidas
 que dependem do professor.
 
-**Na navegacao.** E o que provavelmente obriga a introduzir roteamento no SPA -
-`App.tsx` hoje renderiza `<Workspace />` direto. Alternativa: painel lateral ou
-dialogo sobre o workspace, coerente com a promessa de interface unica de RF09.
-A decisao precisa ser tomada uma vez e valer tambem para RF07-I02.
+**Na navegacao.** Decisao ja fechada no Figma (`figma/WILL-BE-DONE.md`):
+documentacao e **pagina propria**, nao painel/dialogo sobre o workspace. Isso
+nao exigiu roteador - `App.tsx` ja tinha o precedente de 'projects' como uma
+terceira `view` trocada por estado, sem URL propria; 'docs' seguiu o mesmo
+padrao (I01).
 
 **No custo de manutencao.** Documentacao envelhece. O guia cita atalhos
 (RF09-I02), limites (RF03-I01) e o contrato do testbench (RF04-I01): sempre que
@@ -61,12 +62,18 @@ do roteiro do tour.
 
 ## 5. Estado atual no repositorio
 
-- Nao ha rota, pagina ou componente de documentacao em `apps/web`.
-- Nao ha roteador instalado.
-- `README.md` documenta o setup para quem desenvolve, nao para quem usa.
-- `apps/web/src/lib/samples.ts` tem o exemplo do somador completo, com testbench
-  usando `$dumpfile`/`$dumpvars` - material aproveitavel no guia.
-- **Falta**: tudo - navegacao, layout de conteudo e os dois textos.
+- `apps/web/src/features/docs/`: pagina propria (`DocsPage`, terceira `view`
+  de `App.tsx`), indice agrupado por categoria (Inicio rapido/Referencia/
+  Ajuda), busca por titulo/resumo com redirecionamento para termos fora de
+  escopo, navegacao Anterior/Proximo. Duas secoes de conteudo: "Exemplo:
+  somador completo" (reaproveita `SAMPLE_SOURCES` de RF20) e "O que o TP Lab
+  nao faz" (Figma 7.3, transcrita).
+- `apps/web/src/features/workspace/components/open-example-dialog.tsx`:
+  dialogo "Onde abrir" (Figma 7.6) quando "Abrir no editor" e clicado com um
+  projeto aberto - abrir como projeto novo (padrao) ou substituir o conteudo
+  atual (`overrideSources` em `use-project-link.ts`).
+- **Falta**: os dois textos de verdade - guia de inicio rapido (I02) e
+  referencia de sintaxe (I03).
 
 ## 6. Escopo
 
@@ -86,22 +93,24 @@ do roteiro do tour.
 
 ## 7. Criterios de aceite da feature
 
-- [ ] A documentacao e alcancavel de qualquer ponto da aplicacao.
+- [x] A documentacao e alcancavel de qualquer ponto da aplicacao. _(I01)_
 - [ ] O guia leva um usuario sem conhecimento previo da tela inicial ate uma
-      forma de onda visivel.
-- [ ] A referencia cobre os elementos usados pelos exemplos de RF20.
-- [ ] Os exemplos de codigo sao copiaveis e podem ser abertos no editor.
-- [ ] O conteudo e legivel nos dois temas, com contraste AA.
-- [ ] A navegacao funciona so por teclado e a estrutura de titulos e correta.
-- [ ] Abrir a documentacao nao descarta o codigo em edicao.
+      forma de onda visivel. _(I02)_
+- [ ] A referencia cobre os elementos usados pelos exemplos de RF20. _(I03)_
+- [x] Os exemplos de codigo sao copiaveis e podem ser abertos no editor. _(I01,
+      mecanismo pronto; mais exemplos entram com I02/I03)_
+- [x] O conteudo e legivel nos dois temas, com contraste AA. _(I01)_
+- [x] A navegacao funciona so por teclado e a estrutura de titulos e correta.
+      _(I01)_
+- [x] Abrir a documentacao nao descarta o codigo em edicao. _(I01)_
 
 ## 8. Quebra em issues
 
-| Issue | Titulo | Branch | Tamanho |
-| --- | --- | --- | --- |
-| [issue-01](issue-01-navegacao-e-layout-docs.md) | Navegacao e layout da documentacao | `feat/rf11-navegacao-e-layout-docs` | M |
-| [issue-02](issue-02-guia-inicio-rapido.md) | Conteudo do guia de inicio rapido | `feat/rf11-guia-inicio-rapido` | M |
-| [issue-03](issue-03-referencia-sintaxe-verilog.md) | Conteudo da referencia de sintaxe Verilog | `feat/rf11-referencia-sintaxe-verilog` | M |
+| Issue | Titulo | Branch | Tamanho | Status |
+| --- | --- | --- | --- | --- |
+| [issue-01](issue-01-navegacao-e-layout-docs.md) | Navegacao e layout da documentacao | `feat-RF11-01-navegacao-e-layout-docs-front` | M | Concluido |
+| [issue-02](issue-02-guia-inicio-rapido.md) | Conteudo do guia de inicio rapido | `feat/rf11-guia-inicio-rapido` | M | Pendente |
+| [issue-03](issue-03-referencia-sintaxe-verilog.md) | Conteudo da referencia de sintaxe Verilog | `feat/rf11-referencia-sintaxe-verilog` | M | Pendente |
 
 ## 9. Dependencias
 

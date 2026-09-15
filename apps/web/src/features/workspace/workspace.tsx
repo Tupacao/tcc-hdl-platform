@@ -23,19 +23,34 @@ import { EXPORT_ERROR_MESSAGE } from './utils/messages';
 interface WorkspaceProps {
   /** Projeto aberto (RF07-I03). `null` no rascunho anonimo (RF20), que segue sem exigir conta. */
   project: LocalProject | null;
+  /**
+   * Substitui a fonte inicial do editor - RF20 (`SAMPLE_SOURCES`) por padrao
+   * no rascunho anonimo, ou um exemplo de RF11 escolhido em "Abrir no
+   * editor" (com ou sem projeto aberto - ver `useProjectLink`).
+   */
+  overrideSources?: HdlSources;
   onSaveProject: (id: string, sources: HdlSources) => void;
   onRecordRun: (id: string, status: LastRunStatus) => void;
   /** RF07-I02: navega para "Meus projetos". Omitido quando nao ha lista de projetos por perto. */
   onOpenProjects?: () => void;
+  /** RF11: navega para a documentacao (pagina propria, nao sobreposta). */
+  onOpenDocs: () => void;
 }
 
 /**
  * RF09 — editor, compilador, simulador e visualizador em uma unica interface.
  * Os painies sao redimensionaveis para caber em telas a partir de 1024px (RNF03).
  */
-export function Workspace({ project, onSaveProject, onRecordRun, onOpenProjects }: WorkspaceProps) {
+export function Workspace({
+  project,
+  overrideSources,
+  onSaveProject,
+  onRecordRun,
+  onOpenProjects,
+  onOpenDocs,
+}: WorkspaceProps) {
   const { sources, updateFile, isDirty, save, pendingDraft, useDraft, discardDraft } =
-    useProjectLink(project, onSaveProject);
+    useProjectLink(project, onSaveProject, overrideSources);
   const [activeTab, setActiveTab] = useState<WorkspaceFile>('design');
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const runMutation = useRunSimulation();
@@ -104,6 +119,7 @@ export function Workspace({ project, onSaveProject, onRecordRun, onOpenProjects 
         onSave={save}
         onExport={handleExport}
         onOpenProjects={onOpenProjects && handleRequestOpenProjects}
+        onOpenDocs={onOpenDocs}
         onRun={handleRun}
         isRunning={isRunning}
       />
