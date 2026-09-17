@@ -14,6 +14,7 @@ test('extrai arquivo, linha e mensagem de um erro do iverilog', () => {
       column: null,
       message: 'Unknown module type: fulladder',
       raw: undefined,
+      hint: null,
     },
   );
 });
@@ -91,6 +92,7 @@ test('modulo desconhecido: descarta o resumo de elaboracao e o bloco "*** module
       column: null,
       message: 'Unknown module type: fulladder',
       raw: undefined,
+      hint: null,
     },
   );
 });
@@ -137,6 +139,7 @@ test('$fatal do vvp (sem prefixo arquivo:linha) e sua continuacao indentada vira
       column: null,
       message: 'falha proposital para capturar o formato real - Time: 1  Scope: tb',
       raw: undefined,
+      hint: null,
     },
   );
 });

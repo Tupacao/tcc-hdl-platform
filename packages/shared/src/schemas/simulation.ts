@@ -14,6 +14,12 @@ export const DiagnosticSchema = z.object({
   message: z.string(),
   /** Linha original emitida pela toolchain, preservada para depuracao. */
   raw: z.string(),
+  /**
+   * Explicacao curta em portugues para os erros mais frequentes de iniciante
+   * (RF05-I03) - `null` quando nenhuma regra do catalogo bate com a mensagem.
+   * Nunca substitui `message`, so complementa.
+   */
+  hint: z.string().nullable(),
 });
 
 /** Estados do job na fila de compilacao/simulacao (BullMQ). */
