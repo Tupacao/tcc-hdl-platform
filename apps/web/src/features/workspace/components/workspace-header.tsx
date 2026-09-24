@@ -1,4 +1,13 @@
-import { BookOpen, CircuitBoard, Download, FolderOpen, Loader2, Play, Save } from 'lucide-react';
+import {
+  BookOpen,
+  CircuitBoard,
+  Download,
+  FolderOpen,
+  LayoutTemplate,
+  Loader2,
+  Play,
+  Save,
+} from 'lucide-react';
 import type { LocalProject } from '@/features/projects';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -6,6 +15,7 @@ import { DOCS_BUTTON_LABEL } from '@/features/docs';
 import {
   EXPORT_BUTTON_LABEL,
   OPEN_PROJECTS_BUTTON_LABEL,
+  RESET_LAYOUT_BUTTON_LABEL,
   SAVE_BUTTON_LABEL,
   SAVED_INDICATOR_LABEL,
   UNSAVED_INDICATOR_LABEL,
@@ -22,6 +32,8 @@ interface WorkspaceHeaderProps {
   onOpenDocs: () => void;
   onRun: () => void;
   isRunning: boolean;
+  /** RF09-I01 - volta os painéis ao tamanho padrão e apaga o layout salvo. */
+  onResetLayout: () => void;
 }
 
 /** RF07-I03 - cabeçalho do workspace com identidade, projeto aberto e ações. */
@@ -34,6 +46,7 @@ export function WorkspaceHeader({
   onOpenDocs,
   onRun,
   isRunning,
+  onResetLayout,
 }: WorkspaceHeaderProps) {
   return (
     <header className="flex items-center gap-3 border-b px-4 py-2">
@@ -80,6 +93,15 @@ export function WorkspaceHeader({
         <Button onClick={onRun} disabled={isRunning} size="sm">
           {isRunning ? <Loader2 aria-hidden className="animate-spin" /> : <Play aria-hidden />}
           {isRunning ? 'Executando' : 'Executar'}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={RESET_LAYOUT_BUTTON_LABEL}
+          title={RESET_LAYOUT_BUTTON_LABEL}
+          onClick={onResetLayout}
+        >
+          <LayoutTemplate aria-hidden />
         </Button>
         <ThemeToggle />
       </div>
