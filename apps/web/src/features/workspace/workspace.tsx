@@ -1,10 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Panel,
-  PanelGroup,
-  PanelResizeHandle,
-  type ImperativePanelGroupHandle,
-} from 'react-resizable-panels';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { Panel, PanelGroup, type ImperativePanelGroupHandle } from 'react-resizable-panels';
 import { toast } from 'sonner';
 import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
 import {
@@ -16,7 +11,10 @@ import {
 } from '@/features/projects';
 import { cn } from '@/lib/utils';
 import { CodeEditor, type CodeEditorHandle } from './components/code-editor';
-import { ConsolePanel } from './components/console-panel';
+import { ConsolePanel, type ConsolePanelHandle } from './components/console-panel';
+import { FileTabs, fileTabId, fileTabPanelId } from './components/file-tabs';
+import { ResizeHandle } from './components/resize-handle';
+import { StatusBar } from './components/status-bar';
 import { ShortcutsDialog } from './components/shortcuts-dialog';
 import { RestoreDraftDialog } from './components/restore-draft-dialog';
 import { UnsavedChangesDialog } from './components/unsaved-changes-dialog';
@@ -34,7 +32,8 @@ import {
   loadLayout,
   saveLayout,
 } from './utils/layout';
-import { EXPORT_ERROR_MESSAGE } from './utils/messages';
+import { EXPORT_ERROR_MESSAGE, RESIZE_HANDLE } from './utils/messages';
+import { buildRunStatus } from './utils/run-status';
 import {
   SHORTCUTS,
   isEditableTarget,
@@ -72,7 +71,7 @@ export function Workspace({
   onOpenProjects,
   onOpenDocs,
 }: WorkspaceProps) {
-  const { sources, updateFile, isDirty, save, pendingDraft, useDraft, discardDraft } =
+  const { sources, updateFile, isDirty, dirtyFiles, save, pendingDraft, useDraft, discardDraft } =
     useProjectLink(project, onSaveProject, overrideSources);
   const [activeTab, setActiveTab] = useState<WorkspaceFile>('design');
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
@@ -81,6 +80,9 @@ export function Workspace({
   const diagnosticCursorRef = useRef<number | null>(null);
   const runMutation = useRunSimulation();
   const codeEditorRef = useRef<CodeEditorHandle>(null);
+  const consolePanelRef = useRef<ConsolePanelHandle>(null);
+  const idPrefix = useId();
+  const [cursor, setCursor] = useState<{ line: number; column: number } | null>(null);
   // RF09-I01 - layout salvo lido uma vez, na montagem; `Panel` só usa o defaultSize inicial.
   const [initialHorizontal] = useState(() => loadLayout(HORIZONTAL_LAYOUT_KEY));
   const [initialVertical] = useState(() => loadLayout(VERTICAL_LAYOUT_KEY));
@@ -116,10 +118,7 @@ export function Workspace({
               at: new Date().toISOString(),
             });
           }
-          if (simulation.failure) toast.error('A simulação terminou com erros.');
-          else toast.success(`Simulação concluída em ${simulation.durationMs} ms.`);
         },
-        onError: (cause) => toast.error(cause.message),
       },
     );
   }, [runMutation, sources, project, onRecordRun]);
@@ -191,7 +190,9 @@ export function Workspace({
           stepDiagnostic(-1);
           break;
         case 'leave-editor':
-          document.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus();
+          document
+            .querySelector<HTMLElement>('[data-workspace-file-tab][aria-selected="true"]')
+            ?.focus();
           break;
         case 'help':
           setShortcutsOpen(true);
@@ -249,6 +250,15 @@ export function Workspace({
   }
 
   const activeFile = sources[activeTab];
+  const runStatus = buildRunStatus({ result, error, isRunning });
+  const filesWithErrors = {
+    design: (result?.diagnostics ?? []).some(
+      (d) => d.severity === 'error' && d.file === sources.design.name,
+    ),
+    testbench: (result?.diagnostics ?? []).some(
+      (d) => d.severity === 'error' && d.file === sources.testbench.name,
+    ),
+  };
 
   return (
     <div className="flex h-full min-w-[1024px] flex-col">
@@ -281,86 +291,94 @@ export function Workspace({
         }}
       />
 
-      <PanelGroup
-        ref={horizontalGroupRef}
-        direction="horizontal"
-        className="flex-1"
-        onLayout={(sizes) => saveLayout(HORIZONTAL_LAYOUT_KEY, sizes, DEFAULT_HORIZONTAL_LAYOUT)}
-      >
-        <Panel
-          defaultSize={(initialHorizontal ?? DEFAULT_HORIZONTAL_LAYOUT)[0]}
-          minSize={PANEL_MIN_SIZE.EDITOR_COLUMN}
+      <main className="flex min-h-0 flex-1 flex-col">
+        <PanelGroup
+          ref={horizontalGroupRef}
+          direction="horizontal"
+          className="flex-1"
+          onLayout={(sizes) => saveLayout(HORIZONTAL_LAYOUT_KEY, sizes, DEFAULT_HORIZONTAL_LAYOUT)}
         >
-          <PanelGroup
-            ref={verticalGroupRef}
-            direction="vertical"
-            onLayout={(sizes) => saveLayout(VERTICAL_LAYOUT_KEY, sizes, DEFAULT_VERTICAL_LAYOUT)}
+          <Panel
+            defaultSize={(initialHorizontal ?? DEFAULT_HORIZONTAL_LAYOUT)[0]}
+            minSize={PANEL_MIN_SIZE.EDITOR_COLUMN}
           >
-            <Panel
-              defaultSize={(initialVertical ?? DEFAULT_VERTICAL_LAYOUT)[0]}
-              minSize={PANEL_MIN_SIZE.EDITOR}
-              className="flex flex-col"
+            <PanelGroup
+              ref={verticalGroupRef}
+              direction="vertical"
+              onLayout={(sizes) => saveLayout(VERTICAL_LAYOUT_KEY, sizes, DEFAULT_VERTICAL_LAYOUT)}
             >
-              <div role="tablist" aria-label="Arquivos do projeto" className="flex border-b">
-                {(['design', 'testbench'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    role="tab"
-                    type="button"
-                    aria-selected={activeTab === tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={cn(
-                      'border-r px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                      activeTab === tab
-                        ? 'bg-background font-medium'
-                        : 'bg-muted text-muted-foreground hover:text-foreground',
-                    )}
-                  >
-                    {sources[tab].name}
-                  </button>
-                ))}
-              </div>
-              <div className="min-h-0 flex-1">
-                <CodeEditor
-                  ref={codeEditorRef}
-                  fileName={activeFile.name}
-                  value={activeFile.content}
-                  diagnostics={result?.diagnostics ?? []}
-                  onChange={(content) => updateFile(activeTab, content)}
-                  onShortcut={handleShortcut}
+              <Panel
+                defaultSize={(initialVertical ?? DEFAULT_VERTICAL_LAYOUT)[0]}
+                minSize={PANEL_MIN_SIZE.EDITOR}
+                className="flex flex-col"
+              >
+                <FileTabs
+                  sources={sources}
+                  activeTab={activeTab}
+                  onSelectTab={setActiveTab}
+                  idPrefix={idPrefix}
+                  filesWithErrors={filesWithErrors}
+                  dirtyFiles={dirtyFiles}
                 />
+                <div
+                  role="tabpanel"
+                  id={fileTabPanelId(idPrefix)}
+                  aria-labelledby={fileTabId(idPrefix, activeTab)}
+                  className="min-h-0 flex-1"
+                >
+                  <CodeEditor
+                    ref={codeEditorRef}
+                    fileName={activeFile.name}
+                    value={activeFile.content}
+                    diagnostics={result?.diagnostics ?? []}
+                    onChange={(content) => updateFile(activeTab, content)}
+                    onShortcut={handleShortcut}
+                    onCursorChange={setCursor}
+                  />
+                </div>
+              </Panel>
+
+              <ResizeHandle direction="vertical" label={RESIZE_HANDLE.LABEL_EDITOR_CONSOLE} />
+
+              <Panel
+                defaultSize={(initialVertical ?? DEFAULT_VERTICAL_LAYOUT)[1]}
+                minSize={PANEL_MIN_SIZE.CONSOLE}
+              >
+                <ConsolePanel
+                  ref={consolePanelRef}
+                  result={result}
+                  error={error}
+                  isRunning={isRunning}
+                  onSelectDiagnostic={focusDiagnostic}
+                  knownFileNames={knownFileNames}
+                />
+              </Panel>
+            </PanelGroup>
+          </Panel>
+
+          <ResizeHandle direction="horizontal" label={RESIZE_HANDLE.LABEL_EDITOR_WAVEFORM} />
+
+          <Panel
+            defaultSize={(initialHorizontal ?? DEFAULT_HORIZONTAL_LAYOUT)[1]}
+            minSize={PANEL_MIN_SIZE.WAVEFORM}
+          >
+            <div className="flex h-full flex-col">
+              <PanelHeading>Formas de onda</PanelHeading>
+              <div className="min-h-0 flex-1">
+                <WaveformPanel vcd={result?.vcd ?? null} />
               </div>
-            </Panel>
+            </div>
+          </Panel>
+        </PanelGroup>
+      </main>
 
-            <ResizeHandle direction="vertical" />
-
-            <Panel
-              defaultSize={(initialVertical ?? DEFAULT_VERTICAL_LAYOUT)[1]}
-              minSize={PANEL_MIN_SIZE.CONSOLE}
-            >
-              <ConsolePanel
-                result={result}
-                error={error}
-                isRunning={isRunning}
-                onSelectDiagnostic={focusDiagnostic}
-                knownFileNames={knownFileNames}
-              />
-            </Panel>
-          </PanelGroup>
-        </Panel>
-
-        <ResizeHandle direction="horizontal" />
-
-        <Panel
-          defaultSize={(initialHorizontal ?? DEFAULT_HORIZONTAL_LAYOUT)[1]}
-          minSize={PANEL_MIN_SIZE.WAVEFORM}
-        >
-          <PanelHeading>Formas de onda</PanelHeading>
-          <div className="h-[calc(100%-1.75rem)]">
-            <WaveformPanel vcd={result?.vcd ?? null} />
-          </div>
-        </Panel>
-      </PanelGroup>
+      <StatusBar
+        status={runStatus}
+        hasProject={project !== null}
+        isDirty={isDirty}
+        cursor={cursor}
+        onFocusProblems={() => consolePanelRef.current?.focusProblems()}
+      />
     </div>
   );
 }
@@ -370,16 +388,5 @@ function PanelHeading({ children }: { children: React.ReactNode }) {
     <h2 className="flex h-7 items-center border-b bg-muted px-3 text-xs font-medium text-muted-foreground">
       {children}
     </h2>
-  );
-}
-
-function ResizeHandle({ direction }: { direction: 'horizontal' | 'vertical' }) {
-  return (
-    <PanelResizeHandle
-      className={cn(
-        'bg-border transition-colors data-[resize-handle-state=drag]:bg-ring hover:bg-ring',
-        direction === 'horizontal' ? 'w-px cursor-col-resize' : 'h-px cursor-row-resize',
-      )}
-    />
   );
 }

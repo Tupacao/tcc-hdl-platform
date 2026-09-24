@@ -12,6 +12,8 @@ interface CodeEditorProps {
   onChange: (value: string) => void;
   /** RF09-I02 - atalhos que precisam valer com o foco dentro do Monaco (ele captura as teclas). */
   onShortcut: (id: ShortcutId) => void;
+  /** RF09-I03 - posição do cursor para a barra de estado. */
+  onCursorChange?: (position: { line: number; column: number }) => void;
 }
 
 /** RF05-I02 - navegação imperativa até um diagnóstico, exposta ao `Workspace`. */
@@ -29,20 +31,31 @@ const MARKER_OWNER = 'iverilog';
 
 /** Editor Verilog com destaque de sintaxe (RF02) e marcação de erros (RF05). */
 export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditor(
-  { fileName, value, diagnostics, onChange, onShortcut },
+  { fileName, value, diagnostics, onChange, onShortcut, onCursorChange },
   ref,
 ) {
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
+  const onCursorChangeRef = useRef(onCursorChange);
   const onShortcutRef = useRef(onShortcut);
   useEffect(() => {
     onShortcutRef.current = onShortcut;
-  }, [onShortcut]);
+    onCursorChangeRef.current = onCursorChange;
+  }, [onShortcut, onCursorChange]);
 
   const handleMount = useCallback<OnMount>((instance, monaco) => {
     editorRef.current = instance;
     monacoRef.current = monaco;
+
+    const report = () => {
+      const position = instance.getPosition();
+      if (position) {
+        onCursorChangeRef.current?.({ line: position.lineNumber, column: position.column });
+      }
+    };
+    report();
+    instance.onDidChangeCursorPosition(report);
 
     // Sobrescrevem os atalhos nativos do Monaco (Ctrl+Enter insere linha; F8 só percorre
     // marcadores do arquivo aberto). Escape só sai do editor quando nenhum widget está aberto.

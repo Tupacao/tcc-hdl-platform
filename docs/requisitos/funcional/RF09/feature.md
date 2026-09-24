@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Experiencia integrada |
-| Status | Parcial - I01 (layout) e I02 (atalhos) concluidas; I03 (semantica e barra de estado) pendente |
+| Status | Concluido - I01 (layout), I02 (atalhos) e I03 (semantica e barra de estado) |
 | Requisitos relacionados | RF02, RF05, RF06, RF07, RF10, RNF01, RNF03, RNF09 |
 
 ## 1. Enunciado
@@ -91,13 +91,13 @@ juntos; o tema vale para tudo (RF10).
 
 ## 7. Criterios de aceite da feature
 
-- [ ] As quatro capacidades continuam acessiveis sem sair da tela.
+- [x] As quatro capacidades continuam acessiveis sem sair da tela.
 - [x] Os tamanhos de painel sobrevivem a um recarregamento. _(I01)_
 - [x] Existe acao para restaurar o layout padrao. _(I01)_
 - [x] O ciclo escrever, executar, ler erro, corrigir e possivel so pelo teclado. _(I02)_
-- [ ] Os divisores sao ajustaveis por teclado e tem rotulo acessivel.
-- [ ] As abas seguem o padrao ARIA de tabs, com navegacao por setas.
-- [ ] Uma barra de estado mostra o desfecho da ultima execucao.
+- [x] Os divisores sao ajustaveis por teclado e tem rotulo acessivel. _(I03)_
+- [x] As abas seguem o padrao ARIA de tabs, com navegacao por setas. _(I03)_
+- [x] Uma barra de estado mostra o desfecho da ultima execucao. _(I03)_
 - [x] Os atalhos estao documentados dentro da propria aplicacao. _(I02)_
 
 ## 8. Quebra em issues
@@ -106,7 +106,7 @@ juntos; o tema vale para tudo (RF10).
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-persistencia-layout-paineis.md) | Persistencia e restauracao do layout dos paineis | `feat/rf09-persistencia-layout-paineis` | P | Concluido |
 | [issue-02](issue-02-atalhos-teclado-fluxo.md) | Atalhos de teclado do fluxo principal | `feat/rf09-atalhos-teclado-fluxo` | M | Concluido |
-| [issue-03](issue-03-semantica-e-barra-de-estado.md) | Semantica das abas, divisores e barra de estado | `feat/rf09-semantica-e-barra-de-estado` | M | Pendente |
+| [issue-03](issue-03-semantica-e-barra-de-estado.md) | Semantica das abas, divisores e barra de estado | `feat/rf09-semantica-e-barra-de-estado` | M | Concluido |
 
 ## 9. Dependencias
 
