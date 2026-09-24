@@ -23,31 +23,8 @@ export interface ShortcutDefinition {
 }
 
 export const SHORTCUTS: ShortcutDefinition[] = [
-  {
-    id: 'run',
-    combo: { key: 'Enter', mod: true },
-    description: 'Executar a simulação',
-    scope: 'global',
-  },
-  {
-    id: 'save',
-    combo: { key: 's', mod: true },
-    description: 'Salvar o projeto aberto',
-    scope: 'global',
-  },
-  {
-    id: 'next-diagnostic',
-    combo: { key: 'F8' },
-    description: 'Ir ao próximo erro ou aviso',
-    scope: 'global',
-  },
-  {
-    id: 'previous-diagnostic',
-    combo: { key: 'F8', shift: true },
-    description: 'Ir ao erro ou aviso anterior',
-    scope: 'global',
-  },
-  { id: 'help', combo: { key: '?' }, description: 'Abrir os atalhos de teclado', scope: 'global' },
+  { id: 'run', combo: { key: 'Enter', mod: true }, description: 'Executar', scope: 'global' },
+  { id: 'save', combo: { key: 's', mod: true }, description: 'Salvar', scope: 'global' },
   {
     id: 'comment',
     combo: { key: '/', mod: true },
@@ -55,23 +32,30 @@ export const SHORTCUTS: ShortcutDefinition[] = [
     scope: 'editor',
   },
   {
+    id: 'next-diagnostic',
+    combo: { key: 'F8' },
+    description: 'Ir ao próximo erro',
+    scope: 'global',
+  },
+  {
+    id: 'previous-diagnostic',
+    combo: { key: 'F8', shift: true },
+    description: 'Ir ao erro anterior',
+    scope: 'global',
+  },
+  { id: 'help', combo: { key: '?' }, description: 'Abrir os atalhos', scope: 'global' },
+  {
     id: 'leave-editor',
     combo: { key: 'Escape' },
-    description: 'Sair do editor e voltar à navegação por Tab',
+    description: 'Sair do editor (volta à navegação por Tab)',
     scope: 'editor',
   },
 ];
-
-export const SCOPE_LABELS: Record<ShortcutScope, string> = {
-  global: 'Em qualquer lugar',
-  editor: 'No editor',
-};
 
 export const SHORTCUTS_DIALOG = {
   TITLE: 'Atalhos de teclado',
   DESCRIPTION: 'Todo atalho tem também um botão equivalente na interface.',
   BUTTON_LABEL: 'Atalhos de teclado',
-  RUN_BUTTON_HINT: 'Executar',
 };
 
 export function isMacPlatform(): boolean {

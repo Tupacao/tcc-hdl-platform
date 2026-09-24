@@ -53,7 +53,8 @@ export function WorkspaceHeader({
   onResetLayout,
   onOpenShortcuts,
 }: WorkspaceHeaderProps) {
-  const runButtonTitle = `${SHORTCUTS_DIALOG.RUN_BUTTON_HINT} (${formatCombo(getShortcut('run').combo, isMacPlatform()).join('+')})`;
+  const isMac = isMacPlatform();
+  const runKeys = formatCombo(getShortcut('run').combo, isMac).join(isMac ? '' : '+');
 
   return (
     <header className="flex items-center gap-3 border-b px-4 py-2">
@@ -97,9 +98,17 @@ export function WorkspaceHeader({
           <BookOpen aria-hidden />
           {DOCS_BUTTON_LABEL}
         </Button>
-        <Button onClick={onRun} disabled={isRunning} size="sm" title={runButtonTitle}>
+        <Button
+          onClick={onRun}
+          disabled={isRunning}
+          size="sm"
+          aria-keyshortcuts={isMac ? 'Meta+Enter' : 'Control+Enter'}
+        >
           {isRunning ? <Loader2 aria-hidden className="animate-spin" /> : <Play aria-hidden />}
           {isRunning ? 'Executando' : 'Executar'}
+          <span aria-hidden className="font-mono text-[10.5px] font-normal opacity-80">
+            {runKeys}
+          </span>
         </Button>
         <Button
           variant="ghost"

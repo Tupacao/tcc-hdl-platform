@@ -5,13 +5,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 import {
-  SCOPE_LABELS,
   SHORTCUTS,
   SHORTCUTS_DIALOG,
   formatCombo,
+  getShortcut,
   isMacPlatform,
-  type ShortcutScope,
 } from '../utils/shortcuts';
 
 interface ShortcutsDialogProps {
@@ -19,43 +19,33 @@ interface ShortcutsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const SCOPES: ShortcutScope[] = ['global', 'editor'];
+const KEY_CHIP_CLASS = 'rounded-[5px] border bg-muted px-2 py-0.5 font-mono text-[11px]';
 
-/** RF09-I02 - ajuda gerada a partir do registro central de atalhos. */
+/** RF09-I02 - ajuda gerada do registro central de atalhos; layout do Figma 2.9. */
 export function ShortcutsDialog({ open, onOpenChange }: ShortcutsDialogProps) {
   const isMac = isMacPlatform();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader>
+        <DialogHeader className="flex-row items-center justify-between pr-8">
           <DialogTitle>{SHORTCUTS_DIALOG.TITLE}</DialogTitle>
-          <DialogDescription>{SHORTCUTS_DIALOG.DESCRIPTION}</DialogDescription>
+          <kbd aria-hidden className={cn(KEY_CHIP_CLASS, 'font-bold')}>
+            {getShortcut('help').combo.key}
+          </kbd>
         </DialogHeader>
-        {SCOPES.map((scope) => (
-          <section key={scope} aria-label={SCOPE_LABELS[scope]}>
-            <h3 className="mb-2 text-xs font-medium text-muted-foreground">
-              {SCOPE_LABELS[scope]}
-            </h3>
-            <ul className="flex flex-col gap-1.5">
-              {SHORTCUTS.filter((shortcut) => shortcut.scope === scope).map((shortcut) => (
-                <li key={shortcut.id} className="flex items-center justify-between gap-4 text-sm">
-                  <span>{shortcut.description}</span>
-                  <span className="flex gap-1">
-                    {formatCombo(shortcut.combo, isMac).map((key) => (
-                      <kbd
-                        key={key}
-                        className="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs"
-                      >
-                        {key}
-                      </kbd>
-                    ))}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+        <DialogDescription className="sr-only">{SHORTCUTS_DIALOG.DESCRIPTION}</DialogDescription>
+        <ul className="flex flex-col">
+          {SHORTCUTS.map((shortcut) => (
+            <li
+              key={shortcut.id}
+              className="flex items-center justify-between gap-4 rounded-md px-2.5 py-1.5 text-[12.5px] even:bg-muted/60"
+            >
+              <span>{shortcut.description}</span>
+              <kbd className={KEY_CHIP_CLASS}>{formatCombo(shortcut.combo, isMac).join(' ')}</kbd>
+            </li>
+          ))}
+        </ul>
       </DialogContent>
     </Dialog>
   );
