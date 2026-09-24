@@ -1,4 +1,12 @@
-import { useEffect, useId, useState, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import type { Diagnostic, SimulationResult } from '@tplab/shared';
 import { cn } from '@/lib/utils';
 import {
@@ -20,6 +28,11 @@ interface ConsolePanelProps {
   knownFileNames: string[];
 }
 
+/** RF09-I03 - a barra de estado leva o usuário direto à lista de problemas. */
+export interface ConsolePanelHandle {
+  focusProblems: () => void;
+}
+
 const FAILURE_LABELS: Record<NonNullable<SimulationResult['failure']>, string> = {
   compile_error: 'Erro de compilação',
   runtime_error: 'Erro durante a simulação',
@@ -36,15 +49,24 @@ const TAB_ORDER: ConsoleTab[] = ['console', 'problems'];
  * 4.1. As duas coexistem de propósito: quem aprende precisa da versão traduzida,
  * mas também ver que existe uma saída real por trás dela.
  */
-export function ConsolePanel({
-  result,
-  error,
-  isRunning,
-  onSelectDiagnostic,
-  knownFileNames,
-}: ConsolePanelProps) {
+export const ConsolePanel = forwardRef<ConsolePanelHandle, ConsolePanelProps>(function ConsolePanel(
+  { result, error, isRunning, onSelectDiagnostic, knownFileNames },
+  ref,
+) {
   const baseId = useId();
   const [tab, setTab] = useState<ConsoleTab>('console');
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      focusProblems: () => {
+        setTab('problems');
+        // O botão da aba já existe no DOM; o painel troca na próxima renderização.
+        document.getElementById(`${baseId}-tab-problems`)?.focus();
+      },
+    }),
+    [baseId],
+  );
 
   // Depois de cada execução: com erros ou avisos abre Problemas; sem nenhum, Console.
   useEffect(() => {
@@ -131,7 +153,7 @@ export function ConsolePanel({
       </div>
     </div>
   );
-}
+});
 
 function TabButton({
   id,

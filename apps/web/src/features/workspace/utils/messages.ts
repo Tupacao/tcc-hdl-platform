@@ -91,3 +91,32 @@ export const PROBLEMS_PANEL = {
   GO_TO_LINE: 'Ir para a linha',
   NO_POSITION: 'sem posição no código',
 };
+
+// --- Abas de arquivo, divisores e barra de estado (RF09-I03) -----------------
+
+export const FILE_TABS = {
+  LABEL: 'Arquivos do projeto',
+  ROLES: { design: 'circuito', testbench: 'testbench' },
+  HAS_ERRORS: ' (com erros)',
+  UNSAVED: ' (alterações não salvas)',
+};
+
+export const RESIZE_HANDLE = {
+  LABEL_EDITOR_WAVEFORM: 'Ajustar largura entre editor e formas de onda',
+  LABEL_EDITOR_CONSOLE: 'Ajustar altura entre editor e console',
+  KEYBOARD_HINT_COLUMN: '← →  ajustar',
+  KEYBOARD_HINT_ROW: '↑ ↓  ajustar',
+};
+
+export const STATUS_BAR = {
+  LABEL: 'Estado da execução e do projeto',
+  FOCUS_PROBLEMS: 'Ver problemas no console',
+  LANGUAGE: 'Verilog',
+  ENCODING: 'UTF-8',
+  ALL_SAVED: 'Todas as alterações salvas',
+  UNSAVED: 'Alterações não salvas',
+};
+
+export function formatCursorPosition(line: number, column: number): string {
+  return `Ln ${line}, Col ${column}`;
+}
