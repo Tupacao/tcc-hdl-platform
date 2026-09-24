@@ -1,6 +1,7 @@
 import { CircleX, TriangleAlert } from 'lucide-react';
 import type { Diagnostic, SimulationResult } from '@tplab/shared';
 import { cn } from '@/lib/utils';
+import { sortDiagnosticsByLineDesc } from '../utils/sort-diagnostics';
 
 interface ConsolePanelProps {
   result: SimulationResult | null;
@@ -58,7 +59,7 @@ export function ConsolePanel({
           className="mb-3 flex flex-col gap-1"
           onKeyDown={handleListKeyDown}
         >
-          {result.diagnostics.map((diagnostic, index) => (
+          {sortDiagnosticsByLineDesc(result.diagnostics).map((diagnostic, index) => (
             <DiagnosticItem
               key={`${diagnostic.raw}-${index}`}
               diagnostic={diagnostic}
@@ -166,6 +167,12 @@ function DiagnosticItem({
           </span>
         )}
       </button>
+      {diagnostic.hint && (
+        <p className="mt-1 ml-[15px] border-l border-border pl-3 font-sans text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Dica: </span>
+          {diagnostic.hint}
+        </p>
+      )}
     </li>
   );
 }

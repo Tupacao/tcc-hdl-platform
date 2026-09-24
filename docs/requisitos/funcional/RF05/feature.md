@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Feedback ao usuario |
-| Status | Parcial - I01 (cobertura do parser) e I02 (navegacao) concluidas; I03 (traducao) pendente |
+| Status | Concluido - I01 (parser), I02 (navegacao) e I03 (explicacoes, back + front) |
 | Requisitos relacionados | RF02, RF03, RF04, RF09, RNF01, RNF09 |
 
 ## 1. Enunciado
@@ -128,8 +128,8 @@ teclado.
       cor. _(I02 - icone + texto + cor)_
 - [x] Erros sem numero de linha aparecem no console, sem marcador no editor e sem
       quebrar a lista. _(I02 - item desabilitado, nao clicavel)_
-- [ ] Os erros mais comuns de iniciante trazem uma explicacao em portugues alem
-      da mensagem original.
+- [x] Os erros mais comuns de iniciante trazem uma explicacao em portugues alem
+      da mensagem original. _(I03)_
 - [x] A lista de diagnosticos e operavel apenas pelo teclado. _(I02 - setas +
       Enter/Space nativos do `<button>`, foco visivel, wrap-around)_
 
@@ -139,7 +139,7 @@ teclado.
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-cobertura-parser-diagnosticos.md) | Ampliar a cobertura do parser de diagnosticos | `feat-RF05-01-cobertura-parser-diagnosticos-back` | M | Concluido |
 | [issue-02](issue-02-navegacao-console-editor.md) | Navegacao do console ate a linha no editor | `feat-RF05-02-navegacao-console-editor-front` | M | Concluido |
-| [issue-03](issue-03-mensagens-amigaveis.md) | Explicacoes em portugues para erros frequentes | `feat/rf05-mensagens-amigaveis` | M | Pendente |
+| [issue-03](issue-03-mensagens-amigaveis.md) | Explicacoes em portugues para erros frequentes | `feat/rf05-mensagens-amigaveis` | M | Concluido |
 
 ## 9. Dependencias
 
