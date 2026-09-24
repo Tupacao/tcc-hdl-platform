@@ -128,8 +128,8 @@ teclado.
       cor. _(I02 - icone + texto + cor)_
 - [x] Erros sem numero de linha aparecem no console, sem marcador no editor e sem
       quebrar a lista. _(I02 - item desabilitado, nao clicavel)_
-- [x] Os erros mais comuns de iniciante trazem uma explicacao em portugues alem
-      da mensagem original. _(I03)_
+- [x] Os erros mais comuns de iniciante trazem uma manchete e uma explicacao em
+      portugues, com a mensagem original ainda visivel. _(I03 - hierarquia do Figma 2.3)_
 - [x] A lista de diagnosticos e operavel apenas pelo teclado. _(I02 - setas +
       Enter/Space nativos do `<button>`, foco visivel, wrap-around)_
 

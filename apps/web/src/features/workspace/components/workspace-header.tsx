@@ -3,6 +3,7 @@ import {
   CircuitBoard,
   Download,
   FolderOpen,
+  Keyboard,
   LayoutTemplate,
   Loader2,
   Play,
@@ -20,6 +21,7 @@ import {
   SAVED_INDICATOR_LABEL,
   UNSAVED_INDICATOR_LABEL,
 } from '../utils/messages';
+import { SHORTCUTS_DIALOG, isMacPlatform } from '../utils/shortcuts';
 
 interface WorkspaceHeaderProps {
   /** `null` no rascunho anônimo (RF20) - sem nome, sem indicador, sem "Salvar"/"Exportar". */
@@ -34,6 +36,8 @@ interface WorkspaceHeaderProps {
   isRunning: boolean;
   /** RF09-I01 - volta os painéis ao tamanho padrão e apaga o layout salvo. */
   onResetLayout: () => void;
+  /** RF09-I02 - abre o diálogo de atalhos de teclado. */
+  onOpenShortcuts: () => void;
 }
 
 /** RF07-I03 - cabeçalho do workspace com identidade, projeto aberto e ações. */
@@ -47,7 +51,10 @@ export function WorkspaceHeader({
   onRun,
   isRunning,
   onResetLayout,
+  onOpenShortcuts,
 }: WorkspaceHeaderProps) {
+  const isMac = isMacPlatform();
+
   return (
     <header className="flex items-center gap-3 border-b px-4 py-2">
       <CircuitBoard aria-hidden className="size-5" />
@@ -90,9 +97,23 @@ export function WorkspaceHeader({
           <BookOpen aria-hidden />
           {DOCS_BUTTON_LABEL}
         </Button>
-        <Button onClick={onRun} disabled={isRunning} size="sm">
+        <Button
+          onClick={onRun}
+          disabled={isRunning}
+          size="sm"
+          aria-keyshortcuts={isMac ? 'Meta+Enter' : 'Control+Enter'}
+        >
           {isRunning ? <Loader2 aria-hidden className="animate-spin" /> : <Play aria-hidden />}
           {isRunning ? 'Executando' : 'Executar'}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={SHORTCUTS_DIALOG.BUTTON_LABEL}
+          title={SHORTCUTS_DIALOG.BUTTON_LABEL}
+          onClick={onOpenShortcuts}
+        >
+          <Keyboard aria-hidden />
         </Button>
         <Button
           variant="ghost"

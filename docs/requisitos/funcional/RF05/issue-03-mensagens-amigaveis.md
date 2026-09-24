@@ -133,3 +133,41 @@ Manual: escrever os seis erros do catalogo, um por vez, e conferir cada texto.
   costuma apontar a linha seguinte ao erro real.
 - O catalogo tende a crescer sem criterio; manter a regra de so entrar padrao que
   apareceu de fato em uso, nunca por suposicao.
+
+## Decisao de design (Figma 2.3) - manchete em portugues, mensagem original em segundo plano
+
+Esta issue foi entregue primeiro como pedia o texto acima (mensagem original em
+destaque, "Dica:" abaixo). Ao conferir o Figma (frame
+[2.3](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=48-2)),
+a hierarquia era a inversa, e a decisao foi **seguir o Figma**:
+
+- Cada diagnostico com regra no catalogo traz um **`title`** (manchete curta em
+  portugues, ex.: "Erro de sintaxe", "O modulo baz nao foi encontrado") alem do
+  `hint` (explicacao e proxima acao). `DiagnosticSchema` ganhou
+  `title: z.string().nullable()`.
+- O console mostra o `title` como manchete, o `hint` abaixo e, na mesma linha,
+  a **mensagem original da ferramenta** em fonte monoespacada - continua
+  visivel, como a issue exigia, mas deixa de ser a primeira coisa que o
+  iniciante le. "Ir para a linha" vira botao a direita da linha.
+- Sem regra no catalogo (`title: null`), o console mostra so a mensagem original,
+  como antes.
+- Titulos e dicas sao conservadores ("Provavelmente falta um ;"): uma manchete
+  errada seria pior que a mensagem crua. Texto com acentuacao correta.
+- Entregue junto (mesma branch, por decisao explicita): contrato compartilhado,
+  catalogo no back e console no front - excecao consciente a regra de front e
+  back em PRs separados.
+
+**Abas Console / Problemas (entregues na mesma branch, depois de questionado):**
+o painel inferior tem duas abas, como no Figma 2.3 e 4.1. **Console** mostra a
+saida bruta do compilador e o stdout; **Problemas** mostra a lista estruturada
+(tabela "ARQUIVO E POSICAO / MENSAGEM", com o selo de contagem - vermelho com
+erros, ambar so com avisos, neutro em zero). Depois de cada execucao, com
+diagnosticos abre Problemas; sem nenhum, Console. So avisos: confirmacao verde
+"0 erros · a simulacao rodou normalmente". As abas seguem o padrao ARIA
+(`tablist`/`tab`/`tabpanel`, setas, Home/End). O aviso
+`@* found no sensitivities` entrou no catalogo (saida real, texto do Figma).
+
+**Adiado (ainda no Figma):** "Copiar saida" / "Limpar" no cabecalho das abas, saida
+em fluxo com cursor piscando e botao "Cancelar" (RF04-I03), botao "ir para o fim"
+em saida longa, a correcao rapida "Inserir o ponto e virgula" e o tooltip do erro
+no editor. A barra de estado fica em RF09-I03.

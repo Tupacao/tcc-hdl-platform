@@ -4,7 +4,16 @@ import type { Diagnostic } from '@tplab/shared';
 import { sortDiagnosticsByLineDesc } from '../../utils/sort-diagnostics';
 
 function diag(line: number | null, message: string): Diagnostic {
-  return { severity: 'error', file: 'd.v', line, column: null, message, raw: message, hint: null };
+  return {
+    severity: 'error',
+    file: 'd.v',
+    line,
+    column: null,
+    message,
+    raw: message,
+    title: null,
+    hint: null,
+  };
 }
 
 test('ordena da maior linha para a menor', () => {

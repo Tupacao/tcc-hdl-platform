@@ -63,3 +63,31 @@ export const OPEN_EXAMPLE_DIALOG = {
   CANCEL: 'Cancelar',
   SUBMIT: 'Abrir',
 };
+
+// --- Painel inferior: Console e Problemas (RF05, Figma 2.3 e 4.1) -----------
+
+export const CONSOLE_TABS = {
+  LABEL: 'Saída da execução',
+  CONSOLE: 'Console',
+  PROBLEMS: 'Problemas',
+};
+
+export const CONSOLE_EMPTY_STATE = {
+  TITLE: 'A saída do compilador aparece aqui',
+  HINT_PREFIX: 'Clique em Executar ou pressione ',
+};
+
+export const CONSOLE_RUNNING_MESSAGE = 'Compilando e simulando...';
+
+export const PROBLEMS_PANEL = {
+  LIST_LABEL: 'Diagnósticos',
+  COLUMN_LOCATION: 'Arquivo e posição',
+  COLUMN_MESSAGE: 'Mensagem',
+  EMPTY_NOT_RUN: 'Execute a simulação para ver os problemas aqui.',
+  EMPTY_NO_PROBLEMS: 'Nenhum erro ou aviso.',
+  FOOTER_HINT:
+    'Clique em um item para ir direto à linha no editor · os avisos não impedem a execução',
+  ALL_CLEAR: '0 erros · a simulação rodou normalmente',
+  GO_TO_LINE: 'Ir para a linha',
+  NO_POSITION: 'sem posição no código',
+};

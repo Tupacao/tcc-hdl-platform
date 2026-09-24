@@ -146,6 +146,13 @@ Ja implementado:
   `always`/`case`, testbench, o que fica fora desta versao), com todo exemplo
   compilado de verdade contra o `iverilog -g2012`
 
+- Atalhos de teclado do workspace (RF09-I02), gerados de um registro unico e
+  listados no dialogo "Atalhos de teclado" (`?` ou botao no cabecalho):
+  `Ctrl/Cmd+Enter` executa (inclusive com o foco no editor), `Ctrl/Cmd+S` salva,
+  `F8`/`Shift+F8` percorrem erros e avisos (com retorno ao inicio), `Esc` sai do
+  editor para a navegacao por Tab. Tamanho dos paineis persistido, com botao
+  "Restaurar layout padrao" (RF09-I01)
+
 Evidencia de desempenho (RNF07), medida com o painel de performance do Chrome
 sobre um `.vcd` real de ~8 MiB (teto do sandbox, truncado) gerado por uma
 simulacao de ~400 mil ciclos de clock:

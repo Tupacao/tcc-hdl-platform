@@ -15,9 +15,14 @@ export const DiagnosticSchema = z.object({
   /** Linha original emitida pela toolchain, preservada para depuracao. */
   raw: z.string(),
   /**
-   * Explicacao curta em portugues para os erros mais frequentes de iniciante
-   * (RF05-I03) - `null` quando nenhuma regra do catalogo bate com a mensagem.
-   * Nunca substitui `message`, so complementa.
+   * Manchete curta em português para os erros frequentes de iniciante
+   * (RF05-I03) — `null` quando nenhuma regra do catálogo bate com a mensagem.
+   */
+  title: z.string().nullable(),
+  /**
+   * Explicação e próxima ação em português (RF05-I03) — `null` quando nenhuma
+   * regra bate. Nunca substitui `message`: o console mantém a mensagem original
+   * visível como informação secundária.
    */
   hint: z.string().nullable(),
 });
