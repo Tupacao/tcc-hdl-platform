@@ -85,3 +85,24 @@ no macOS.
   contra os padroes do editor antes de fixar.
 - Listener global sem escopo dispara dentro de campos de texto de dialogos;
   respeitar o escopo declarado no registro.
+
+## Decisoes de design (Figma 2.9) e desvios conscientes
+
+Conferido contra o frame
+[2.9](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=106-67):
+
+- **Dialogo:** lista unica (sem agrupar por escopo), linhas alternadas, teclas em
+  um chip so e chip `?` no cabecalho - como no Figma. O atalho tambem aparece
+  dentro do botao Executar (`Ctrl+Enter`, ou `⌘⏎` no macOS).
+- **"Focar o proximo painel" (`Ctrl+Tab`) fica de fora.** O navegador reserva
+  `Ctrl+Tab` para trocar de aba e nao permite intercepta-lo. Decisao: nao
+  implementar nem trocar por outra combinacao (`F6` foi considerada e
+  descartada). A navegacao entre paineis segue pela ordem natural de `Tab`;
+  `Esc` no editor devolve o foco a pagina.
+- **Alem do Figma:** `Shift+F8` (erro anterior) e `Esc` (sair do editor) constam
+  no dialogo; o Figma so previa `F8`.
+- **Botoes extras no cabecalho** (atalhos e "Restaurar layout padrao") nao existem
+  no Figma; foram mantidos porque a issue pede um item de cabecalho para a
+  ajuda e RF09-I01 exige a acao de restaurar.
+- `Ctrl/Cmd+1`/`2` (alternar arquivo) e `Ctrl+Shift+P` ficaram de fora: colidem
+  com o navegador e com a paleta de comandos do Monaco.

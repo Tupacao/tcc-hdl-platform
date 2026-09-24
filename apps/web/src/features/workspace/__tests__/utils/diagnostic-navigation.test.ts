@@ -4,7 +4,16 @@ import type { Diagnostic } from '@tplab/shared';
 import { cycleIndex, navigableDiagnostics } from '../../utils/diagnostic-navigation';
 
 function diag(file: string, line: number | null): Diagnostic {
-  return { severity: 'error', file, line, column: null, message: 'm', raw: 'm', hint: null };
+  return {
+    severity: 'error',
+    file,
+    line,
+    column: null,
+    message: 'm',
+    raw: 'm',
+    title: null,
+    hint: null,
+  };
 }
 
 test('navigableDiagnostics descarta sem linha e de arquivo desconhecido, na ordem do console', () => {

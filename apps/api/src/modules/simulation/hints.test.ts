@@ -1,48 +1,53 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Diagnostic } from '@tplab/shared';
-import { attachHints, hintFor } from './hints.js';
+import { attachHints, explanationFor } from './hints.js';
 
-test('modulo desconhecido recebe explicacao sobre nome divergente', () => {
-  const hint = hintFor('Unknown module type: fulladder');
-  assert.match(hint ?? '', /nome usado na instanciacao/);
+test('módulo desconhecido traz o nome no título e explica o nome divergente', () => {
+  const explanation = explanationFor('Unknown module type: fulladder');
+  assert.equal(explanation?.title, 'O módulo fulladder não foi encontrado');
+  assert.match(explanation?.hint ?? '', /nome usado na instanciação/);
 });
 
-test('"I give up." recebe explicacao sobre corrigir o primeiro erro', () => {
-  const hint = hintFor('I give up.');
-  assert.match(hint ?? '', /primeiro erro da lista/);
+test('"I give up." explica que se deve corrigir o primeiro erro', () => {
+  const explanation = explanationFor('I give up.');
+  assert.equal(explanation?.title, 'O compilador parou por causa de erros anteriores');
+  assert.match(explanation?.hint ?? '', /primeiro erro da lista/);
 });
 
-test('porta inexistente na instanciacao recebe explicacao sobre nome divergente', () => {
-  const hint = hintFor("port ``z'' is not a port of dut.");
-  assert.match(hint ?? '', /nao existe no modulo/);
+test('porta inexistente na instanciação explica o nome divergente', () => {
+  const explanation = explanationFor("port ``z'' is not a port of dut.");
+  assert.equal(explanation?.title, 'Porta inexistente no módulo');
+  assert.match(explanation?.hint ?? '', /não existe no módulo/);
 });
 
-test('largura de vetor incompativel recebe explicacao sobre "[N:0]"', () => {
-  const hint = hintFor('Port 2 (y) of circuit expects 8 bits, got 4.');
-  assert.match(hint ?? '', /\[N:0\]/);
+test('largura de vetor incompatível explica o "[N:0]"', () => {
+  const explanation = explanationFor('Port 2 (y) of circuit expects 8 bits, got 4.');
+  assert.equal(explanation?.title, 'Largura de sinal incompatível');
+  assert.match(explanation?.hint ?? '', /\[N:0\]/);
 });
 
-// `message` chega sem o prefixo "sorry:" (o parser ja extrai isso para
-// `severity`) - fixture real: `let` (construcao SystemVerilog) contra o
+// `message` chega sem o prefixo "sorry:" (o parser já extrai isso para
+// `severity`) — fixture real: `let` (construção SystemVerilog) contra o
 // tplab-sandbox:latest produziu "sorry: let declarations (my_and) are not
 // currently supported."
-test('construcao nao suportada pelo Icarus recebe explicacao sobre limitacao da ferramenta', () => {
-  const hint = hintFor('let declarations (my_and) are not currently supported.');
-  assert.match(hint ?? '', /limitacao da ferramenta/);
+test('construção não suportada pelo Icarus explica a limitação da ferramenta', () => {
+  const explanation = explanationFor('let declarations (my_and) are not currently supported.');
+  assert.equal(explanation?.title, 'Construção não suportada pelo Icarus Verilog');
+  assert.match(explanation?.hint ?? '', /limitação da ferramenta/);
 });
 
-test('syntax error recebe explicacao sobre ponto e virgula/end/endmodule', () => {
-  const hint = hintFor('syntax error');
-  assert.match(hint ?? '', /";", um "end" ou um "endmodule"/);
+test('syntax error explica ponto e vírgula/end/endmodule', () => {
+  const explanation = explanationFor('syntax error');
+  assert.equal(explanation?.title, 'Erro de sintaxe');
+  assert.match(explanation?.hint ?? '', /";", um "end" ou um "endmodule"/);
 });
 
-test('mensagem sem regra correspondente fica com hint nulo', () => {
-  const hint = hintFor('this is not a recognized icarus message at all');
-  assert.equal(hint, null);
+test('mensagem sem regra correspondente não tem explicação', () => {
+  assert.equal(explanationFor('this is not a recognized icarus message at all'), null);
 });
 
-test('attachHints preenche hint em cada diagnostico sem alterar os demais campos', () => {
+test('attachHints preenche título e dica sem alterar os demais campos', () => {
   const diagnostics: Diagnostic[] = [
     {
       severity: 'error',
@@ -51,6 +56,7 @@ test('attachHints preenche hint em cada diagnostico sem alterar os demais campos
       column: null,
       message: 'syntax error',
       raw: 'design.v:12: syntax error',
+      title: null,
       hint: null,
     },
     {
@@ -60,13 +66,16 @@ test('attachHints preenche hint em cada diagnostico sem alterar os demais campos
       column: null,
       message: 'nada reconhecido aqui',
       raw: 'design.v:3: warning: nada reconhecido aqui',
+      title: null,
       hint: null,
     },
   ];
 
   const enriched = attachHints(diagnostics);
 
+  assert.equal(enriched[0]?.title, 'Erro de sintaxe');
   assert.match(enriched[0]?.hint ?? '', /endmodule/);
+  assert.equal(enriched[1]?.title, null);
   assert.equal(enriched[1]?.hint, null);
   assert.equal(enriched[0]?.message, 'syntax error');
   assert.equal(enriched[0]?.raw, 'design.v:12: syntax error');

@@ -133,3 +133,31 @@ Manual: escrever os seis erros do catalogo, um por vez, e conferir cada texto.
   costuma apontar a linha seguinte ao erro real.
 - O catalogo tende a crescer sem criterio; manter a regra de so entrar padrao que
   apareceu de fato em uso, nunca por suposicao.
+
+## Decisao de design (Figma 2.3) - manchete em portugues, mensagem original em segundo plano
+
+Esta issue foi entregue primeiro como pedia o texto acima (mensagem original em
+destaque, "Dica:" abaixo). Ao conferir o Figma (frame
+[2.3](https://www.figma.com/design/DElDfWdhpc3CzHvGgmtFBf/HDL-Lab-%E2%80%94-Plataforma-Educacional-HDL--MVP-?node-id=48-2)),
+a hierarquia era a inversa, e a decisao foi **seguir o Figma**:
+
+- Cada diagnostico com regra no catalogo traz um **`title`** (manchete curta em
+  portugues, ex.: "Erro de sintaxe", "O modulo baz nao foi encontrado") alem do
+  `hint` (explicacao e proxima acao). `DiagnosticSchema` ganhou
+  `title: z.string().nullable()`.
+- O console mostra o `title` como manchete, o `hint` abaixo e, na mesma linha,
+  a **mensagem original da ferramenta** em fonte monoespacada - continua
+  visivel, como a issue exigia, mas deixa de ser a primeira coisa que o
+  iniciante le. "Ir para a linha" vira botao a direita da linha.
+- Sem regra no catalogo (`title: null`), o console mostra so a mensagem original,
+  como antes.
+- Titulos e dicas sao conservadores ("Provavelmente falta um ;"): uma manchete
+  errada seria pior que a mensagem crua. Texto com acentuacao correta.
+- Entregue junto (mesma branch, por decisao explicita): contrato compartilhado,
+  catalogo no back e console no front - excecao consciente a regra de front e
+  back em PRs separados.
+
+**Adiado (ainda no Figma 2.3):** separar o painel inferior em abas
+"Console" / "Problemas" (com cabecalho de tabela "ARQUIVO E POSICAO / MENSAGEM"),
+o botao "Inserir o ponto e virgula" (correcao rapida) e o tooltip do erro no
+editor. Entram junto com a barra de estado, em RF09-I03.
