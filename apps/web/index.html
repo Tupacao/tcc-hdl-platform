@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,6 +8,21 @@
       content="Plataforma web educacional para escrever, compilar e simular circuitos digitais em Verilog direto no navegador."
     />
     <title>TPLab</title>
+    <script>
+      // Aplica o tema antes da primeira pintura, evitando o flash de tema errado (RF10).
+      // Manter a chave e a lógica em sincronia com src/components/theme-provider.tsx.
+      (function () {
+        var theme = 'system';
+        try {
+          theme = localStorage.getItem('tplab-theme') || 'system';
+        } catch (e) {}
+        var dark =
+          theme === 'dark' ||
+          (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

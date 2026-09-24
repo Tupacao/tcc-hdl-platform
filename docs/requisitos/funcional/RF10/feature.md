@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Experiencia integrada |
-| Status | Parcial - I01 (seletor dos tres modos) concluida; I02 (anti-flash) pendente |
+| Status | Concluido - I01 (seletor dos tres modos) e I02 (anti-flash) |
 | Requisitos relacionados | RF02, RF06, RF09, RNF09 |
 
 ## 1. Enunciado
@@ -90,7 +90,7 @@ da ferramenta em uma demonstracao.
 - [x] O controle permite escolher claro, escuro e sistema. _(I01)_
 - [x] Com "sistema", mudar a preferencia do SO muda o tema sem recarregar. _(I01)_
 - [x] A escolha sobrevive a recarga e a fechar o navegador. _(I01)_
-- [ ] Nao ha flash de tema incorreto no carregamento, em nenhum dos tres modos.
+- [x] Nao ha flash de tema incorreto no carregamento, em nenhum dos tres modos. _(I02)_
 - [ ] Editor, console e visualizador de ondas acompanham o tema.
 - [ ] Nenhuma cor literal fora dos tokens de `index.css`.
 - [ ] O contraste atende AA nos dois modos (verificado em RNF09).
@@ -100,7 +100,7 @@ da ferramenta em uma demonstracao.
 | Issue | Titulo | Branch | Tamanho | Status |
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-seletor-tres-modos.md) | Seletor de tema com os tres modos | `feat/rf10-seletor-tres-modos` | P | Concluido |
-| [issue-02](issue-02-anti-flash-carregamento.md) | Aplicar o tema antes da primeira pintura | `feat/rf10-anti-flash-carregamento` | P | Pendente |
+| [issue-02](issue-02-anti-flash-carregamento.md) | Aplicar o tema antes da primeira pintura | `feat/rf10-anti-flash-carregamento` | P | Concluido |
 
 ## 9. Dependencias
 

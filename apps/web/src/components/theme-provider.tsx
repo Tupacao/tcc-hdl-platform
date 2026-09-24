@@ -10,6 +10,7 @@ import {
 
 export type Theme = 'light' | 'dark' | 'system';
 
+// Mesma chave do script inline de index.html (anti-flash, RF10-I02): mudar aqui exige mudar lá.
 const STORAGE_KEY = 'tplab-theme';
 
 interface ThemeContextValue {
