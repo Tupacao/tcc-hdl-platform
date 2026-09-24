@@ -145,6 +145,15 @@
 }
 
 @layer base {
+  /* RF10-I02: controles nativos (barra de rolagem, campos) nascem no tema certo. */
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }

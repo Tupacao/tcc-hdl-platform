@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Experiencia integrada |
-| Status | Parcial (funciona; falta o modo "sistema" na interface e o anti-flash) |
+| Status | Concluido - I01 (seletor dos tres modos) e I02 (anti-flash) |
 | Requisitos relacionados | RF02, RF06, RF09, RNF09 |
 
 ## 1. Enunciado
@@ -90,7 +90,7 @@ da ferramenta em uma demonstracao.
 - [ ] O controle permite escolher claro, escuro e sistema.
 - [ ] Com "sistema", mudar a preferencia do SO muda o tema sem recarregar.
 - [ ] A escolha sobrevive a recarga e a fechar o navegador.
-- [ ] Nao ha flash de tema incorreto no carregamento, em nenhum dos tres modos.
+- [x] Nao ha flash de tema incorreto no carregamento, em nenhum dos tres modos. _(I02)_
 - [ ] Editor, console e visualizador de ondas acompanham o tema.
 - [ ] Nenhuma cor literal fora dos tokens de `index.css`.
 - [ ] O contraste atende AA nos dois modos (verificado em RNF09).
