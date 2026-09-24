@@ -166,6 +166,12 @@ function DiagnosticItem({
           </span>
         )}
       </button>
+      {diagnostic.hint && (
+        <p className="mt-1 ml-[15px] border-l border-border pl-3 font-sans text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Dica: </span>
+          {diagnostic.hint}
+        </p>
+      )}
     </li>
   );
 }
