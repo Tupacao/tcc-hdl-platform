@@ -3,12 +3,15 @@ import type { Diagnostic } from '@tplab/shared';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 import type { editor } from 'monaco-editor';
 import { useTheme } from '@/hooks/use-theme';
+import type { ShortcutId } from '../utils/shortcuts';
 
 interface CodeEditorProps {
   fileName: string;
   value: string;
   diagnostics: Diagnostic[];
   onChange: (value: string) => void;
+  /** RF09-I02 - atalhos que precisam valer com o foco dentro do Monaco (ele captura as teclas). */
+  onShortcut: (id: ShortcutId) => void;
 }
 
 /** RF05-I02 - navegação imperativa até um diagnóstico, exposta ao `Workspace`. */
@@ -26,16 +29,34 @@ const MARKER_OWNER = 'iverilog';
 
 /** Editor Verilog com destaque de sintaxe (RF02) e marcação de erros (RF05). */
 export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditor(
-  { fileName, value, diagnostics, onChange },
+  { fileName, value, diagnostics, onChange, onShortcut },
   ref,
 ) {
   const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
+  const onShortcutRef = useRef(onShortcut);
+  useEffect(() => {
+    onShortcutRef.current = onShortcut;
+  }, [onShortcut]);
 
   const handleMount = useCallback<OnMount>((instance, monaco) => {
     editorRef.current = instance;
     monacoRef.current = monaco;
+
+    // Sobrescrevem os atalhos nativos do Monaco (Ctrl+Enter insere linha; F8 só percorre
+    // marcadores do arquivo aberto). Escape só sai do editor quando nenhum widget está aberto.
+    const { KeyCode, KeyMod } = monaco;
+    instance.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, () => onShortcutRef.current('run'));
+    instance.addCommand(KeyCode.F8, () => onShortcutRef.current('next-diagnostic'));
+    instance.addCommand(KeyMod.Shift | KeyCode.F8, () =>
+      onShortcutRef.current('previous-diagnostic'),
+    );
+    instance.addCommand(
+      KeyCode.Escape,
+      () => onShortcutRef.current('leave-editor'),
+      '!suggestWidgetVisible && !findWidgetVisible && !parameterHintsVisible && !renameInputVisible && !inSnippetMode && !editorHasMultipleSelections',
+    );
   }, []);
 
   useImperativeHandle(

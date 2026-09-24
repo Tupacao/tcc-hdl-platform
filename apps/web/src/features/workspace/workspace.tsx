@@ -17,12 +17,14 @@ import {
 import { cn } from '@/lib/utils';
 import { CodeEditor, type CodeEditorHandle } from './components/code-editor';
 import { ConsolePanel } from './components/console-panel';
+import { ShortcutsDialog } from './components/shortcuts-dialog';
 import { RestoreDraftDialog } from './components/restore-draft-dialog';
 import { UnsavedChangesDialog } from './components/unsaved-changes-dialog';
 import { WaveformPanel } from './components/waveform-panel';
 import { WorkspaceHeader } from './components/workspace-header';
 import { useProjectLink, type WorkspaceFile } from './hooks/use-project-link';
 import { useRunSimulation } from './hooks/use-run-simulation';
+import { cycleIndex, navigableDiagnostics } from './utils/diagnostic-navigation';
 import {
   DEFAULT_HORIZONTAL_LAYOUT,
   DEFAULT_VERTICAL_LAYOUT,
@@ -33,6 +35,13 @@ import {
   saveLayout,
 } from './utils/layout';
 import { EXPORT_ERROR_MESSAGE } from './utils/messages';
+import {
+  SHORTCUTS,
+  isEditableTarget,
+  isMacPlatform,
+  matchesShortcut,
+  type ShortcutId,
+} from './utils/shortcuts';
 
 interface WorkspaceProps {
   /** Projeto aberto (RF07-I03). `null` no rascunho anônimo (RF20), que segue sem exigir conta. */
@@ -67,6 +76,9 @@ export function Workspace({
     useProjectLink(project, onSaveProject, overrideSources);
   const [activeTab, setActiveTab] = useState<WorkspaceFile>('design');
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  // RF09-I02 - posição do F8 na lista de diagnósticos navegáveis; zera a cada nova execução.
+  const diagnosticCursorRef = useRef<number | null>(null);
   const runMutation = useRunSimulation();
   const codeEditorRef = useRef<CodeEditorHandle>(null);
   // RF09-I01 - layout salvo lido uma vez, na montagem; `Panel` só usa o defaultSize inicial.
@@ -148,6 +160,73 @@ export function Workspace({
     setPendingReveal(null);
   }, [activeTab, pendingReveal]);
 
+  const knownFileNames = [sources.design.name, sources.testbench.name];
+
+  const stepDiagnostic = useCallback(
+    (delta: 1 | -1) => {
+      const targets = navigableDiagnostics(result?.diagnostics ?? [], [
+        sources.design.name,
+        sources.testbench.name,
+      ]);
+      const next = cycleIndex(diagnosticCursorRef.current, delta, targets.length);
+      const target = next === null ? undefined : targets[next];
+      if (next === null || !target) return;
+      diagnosticCursorRef.current = next;
+      focusDiagnostic(target);
+    },
+    [result, sources.design.name, sources.testbench.name, focusDiagnostic],
+  );
+
+  /** RF09-I02 - ação de cada atalho; chamada pelo ouvinte global e pelo Monaco. */
+  const handleShortcut = useCallback(
+    (id: ShortcutId) => {
+      switch (id) {
+        case 'run':
+          if (!isRunning) handleRun();
+          break;
+        case 'next-diagnostic':
+          stepDiagnostic(1);
+          break;
+        case 'previous-diagnostic':
+          stepDiagnostic(-1);
+          break;
+        case 'leave-editor':
+          document.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus();
+          break;
+        case 'help':
+          setShortcutsOpen(true);
+          break;
+        // 'save' vive em useProjectLink; 'comment' é nativo do Monaco.
+        default:
+          break;
+      }
+    },
+    [isRunning, handleRun, stepDiagnostic],
+  );
+
+  useEffect(() => {
+    diagnosticCursorRef.current = null;
+  }, [result]);
+
+  useEffect(() => {
+    const isMac = isMacPlatform();
+    const handler = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      const editable = isEditableTarget(event.target);
+      for (const shortcut of SHORTCUTS) {
+        if (shortcut.id === 'save' || shortcut.scope === 'editor') continue;
+        // Teclas simples (sem modificador) não disparam dentro de campos de texto.
+        if (!shortcut.combo.mod && shortcut.combo.key.length === 1 && editable) continue;
+        if (!matchesShortcut(event, shortcut.combo, isMac)) continue;
+        event.preventDefault();
+        handleShortcut(shortcut.id);
+        return;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleShortcut]);
+
   function handleRequestOpenProjects() {
     if (isDirty) setLeaveDialogOpen(true);
     else onOpenProjects?.();
@@ -183,7 +262,9 @@ export function Workspace({
         onRun={handleRun}
         isRunning={isRunning}
         onResetLayout={handleResetLayout}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
       />
+      <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
 
       <RestoreDraftDialog draft={pendingDraft} onUseDraft={useDraft} onDiscard={discardDraft} />
       <UnsavedChangesDialog
@@ -246,6 +327,7 @@ export function Workspace({
                   value={activeFile.content}
                   diagnostics={result?.diagnostics ?? []}
                   onChange={(content) => updateFile(activeTab, content)}
+                  onShortcut={handleShortcut}
                 />
               </div>
             </Panel>
@@ -263,7 +345,7 @@ export function Workspace({
                   error={error}
                   isRunning={isRunning}
                   onSelectDiagnostic={focusDiagnostic}
-                  knownFileNames={[sources.design.name, sources.testbench.name]}
+                  knownFileNames={knownFileNames}
                 />
               </div>
             </Panel>
