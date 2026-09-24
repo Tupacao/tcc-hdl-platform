@@ -157,7 +157,17 @@ a hierarquia era a inversa, e a decisao foi **seguir o Figma**:
   catalogo no back e console no front - excecao consciente a regra de front e
   back em PRs separados.
 
-**Adiado (ainda no Figma 2.3):** separar o painel inferior em abas
-"Console" / "Problemas" (com cabecalho de tabela "ARQUIVO E POSICAO / MENSAGEM"),
-o botao "Inserir o ponto e virgula" (correcao rapida) e o tooltip do erro no
-editor. Entram junto com a barra de estado, em RF09-I03.
+**Abas Console / Problemas (entregues na mesma branch, depois de questionado):**
+o painel inferior tem duas abas, como no Figma 2.3 e 4.1. **Console** mostra a
+saida bruta do compilador e o stdout; **Problemas** mostra a lista estruturada
+(tabela "ARQUIVO E POSICAO / MENSAGEM", com o selo de contagem - vermelho com
+erros, ambar so com avisos, neutro em zero). Depois de cada execucao, com
+diagnosticos abre Problemas; sem nenhum, Console. So avisos: confirmacao verde
+"0 erros · a simulacao rodou normalmente". As abas seguem o padrao ARIA
+(`tablist`/`tab`/`tabpanel`, setas, Home/End). O aviso
+`@* found no sensitivities` entrou no catalogo (saida real, texto do Figma).
+
+**Adiado (ainda no Figma):** "Copiar saida" / "Limpar" no cabecalho das abas, saida
+em fluxo com cursor piscando e botao "Cancelar" (RF04-I03), botao "ir para o fim"
+em saida longa, a correcao rapida "Inserir o ponto e virgula" e o tooltip do erro
+no editor. A barra de estado fica em RF09-I03.

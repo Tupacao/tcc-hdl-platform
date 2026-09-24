@@ -43,6 +43,12 @@ test('syntax error explica ponto e vírgula/end/endmodule', () => {
   assert.match(explanation?.hint ?? '', /";", um "end" ou um "endmodule"/);
 });
 
+test('always @* sem sinais explica que o bloco nunca dispara', () => {
+  const explanation = explanationFor('@* found no sensitivities so it will never trigger.');
+  assert.equal(explanation?.title, 'O bloco always @* nunca será disparado');
+  assert.match(explanation?.hint ?? '', /faltou algo dentro dele/);
+});
+
 test('mensagem sem regra correspondente não tem explicação', () => {
   assert.equal(explanationFor('this is not a recognized icarus message at all'), null);
 });

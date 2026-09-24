@@ -51,6 +51,13 @@ const HINT_RULES: ReadonlyArray<HintRule> = [
     title: () => 'Construção não suportada pelo Icarus Verilog',
     hint: 'Não é um erro no seu código, e sim uma limitação da ferramenta. Procure uma forma equivalente de escrever o mesmo circuito.',
   },
+  {
+    // Saída real do tplab-sandbox para `always @* $display(1);` (aviso, a
+    // simulação roda normalmente) - texto do Figma 2.3 e 4.1.
+    pattern: /@\* found no sensitivities/i,
+    title: () => 'O bloco always @* nunca será disparado',
+    hint: 'Ele não lê nenhum sinal, então nada o aciona. Verifique se faltou algo dentro dele.',
+  },
   // "syntax error" por último: é o padrão mais genérico do catálogo e outras
   // mensagens (ex.: "Unknown module type") também citam "error" no texto.
   {

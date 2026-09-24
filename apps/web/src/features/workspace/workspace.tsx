@@ -338,16 +338,13 @@ export function Workspace({
               defaultSize={(initialVertical ?? DEFAULT_VERTICAL_LAYOUT)[1]}
               minSize={PANEL_MIN_SIZE.CONSOLE}
             >
-              <PanelHeading>Console</PanelHeading>
-              <div className="h-[calc(100%-1.75rem)]">
-                <ConsolePanel
-                  result={result}
-                  error={error}
-                  isRunning={isRunning}
-                  onSelectDiagnostic={focusDiagnostic}
-                  knownFileNames={knownFileNames}
-                />
-              </div>
+              <ConsolePanel
+                result={result}
+                error={error}
+                isRunning={isRunning}
+                onSelectDiagnostic={focusDiagnostic}
+                knownFileNames={knownFileNames}
+              />
             </Panel>
           </PanelGroup>
         </Panel>
