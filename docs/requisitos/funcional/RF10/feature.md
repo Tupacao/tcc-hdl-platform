@@ -98,9 +98,9 @@ da ferramenta em uma demonstracao.
 ## 8. Quebra em issues
 
 | Issue | Titulo | Branch | Tamanho | Status |
-| --- | --- | --- | --- |
+| --- | --- | --- | --- | --- |
 | [issue-01](issue-01-seletor-tres-modos.md) | Seletor de tema com os tres modos | `feat/rf10-seletor-tres-modos` | P | Concluido |
-| [issue-02](issue-02-anti-flash-carregamento.md) | Aplicar o tema antes da primeira pintura | `feat/rf10-anti-flash-carregamento` | P |
+| [issue-02](issue-02-anti-flash-carregamento.md) | Aplicar o tema antes da primeira pintura | `feat/rf10-anti-flash-carregamento` | P | Pendente |
 
 ## 9. Dependencias
 
