@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import {
+  Panel,
+  PanelGroup,
+  PanelResizeHandle,
+  type ImperativePanelGroupHandle,
+} from 'react-resizable-panels';
 import { toast } from 'sonner';
 import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
 import {
@@ -18,6 +23,15 @@ import { WaveformPanel } from './components/waveform-panel';
 import { WorkspaceHeader } from './components/workspace-header';
 import { useProjectLink, type WorkspaceFile } from './hooks/use-project-link';
 import { useRunSimulation } from './hooks/use-run-simulation';
+import {
+  DEFAULT_HORIZONTAL_LAYOUT,
+  DEFAULT_VERTICAL_LAYOUT,
+  HORIZONTAL_LAYOUT_KEY,
+  PANEL_MIN_SIZE,
+  VERTICAL_LAYOUT_KEY,
+  loadLayout,
+  saveLayout,
+} from './utils/layout';
 import { EXPORT_ERROR_MESSAGE } from './utils/messages';
 
 interface WorkspaceProps {
@@ -55,6 +69,11 @@ export function Workspace({
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const runMutation = useRunSimulation();
   const codeEditorRef = useRef<CodeEditorHandle>(null);
+  // RF09-I01 - layout salvo lido uma vez, na montagem; `Panel` só usa o defaultSize inicial.
+  const [initialHorizontal] = useState(() => loadLayout(HORIZONTAL_LAYOUT_KEY));
+  const [initialVertical] = useState(() => loadLayout(VERTICAL_LAYOUT_KEY));
+  const horizontalGroupRef = useRef<ImperativePanelGroupHandle>(null);
+  const verticalGroupRef = useRef<ImperativePanelGroupHandle>(null);
   // RF05-I02 - diagnóstico escolhido no console aguardando a troca de aba
   // terminar de renderizar, para então revelar a posição no editor certo.
   const [pendingReveal, setPendingReveal] = useState<{
@@ -145,6 +164,11 @@ export function Workspace({
     }
   }
 
+  function handleResetLayout() {
+    horizontalGroupRef.current?.setLayout([...DEFAULT_HORIZONTAL_LAYOUT]);
+    verticalGroupRef.current?.setLayout([...DEFAULT_VERTICAL_LAYOUT]);
+  }
+
   const activeFile = sources[activeTab];
 
   return (
@@ -158,6 +182,7 @@ export function Workspace({
         onOpenDocs={onOpenDocs}
         onRun={handleRun}
         isRunning={isRunning}
+        onResetLayout={handleResetLayout}
       />
 
       <RestoreDraftDialog draft={pendingDraft} onUseDraft={useDraft} onDiscard={discardDraft} />
@@ -175,10 +200,26 @@ export function Workspace({
         }}
       />
 
-      <PanelGroup direction="horizontal" className="flex-1">
-        <Panel defaultSize={58} minSize={30}>
-          <PanelGroup direction="vertical">
-            <Panel defaultSize={70} minSize={30} className="flex flex-col">
+      <PanelGroup
+        ref={horizontalGroupRef}
+        direction="horizontal"
+        className="flex-1"
+        onLayout={(sizes) => saveLayout(HORIZONTAL_LAYOUT_KEY, sizes, DEFAULT_HORIZONTAL_LAYOUT)}
+      >
+        <Panel
+          defaultSize={(initialHorizontal ?? DEFAULT_HORIZONTAL_LAYOUT)[0]}
+          minSize={PANEL_MIN_SIZE.EDITOR_COLUMN}
+        >
+          <PanelGroup
+            ref={verticalGroupRef}
+            direction="vertical"
+            onLayout={(sizes) => saveLayout(VERTICAL_LAYOUT_KEY, sizes, DEFAULT_VERTICAL_LAYOUT)}
+          >
+            <Panel
+              defaultSize={(initialVertical ?? DEFAULT_VERTICAL_LAYOUT)[0]}
+              minSize={PANEL_MIN_SIZE.EDITOR}
+              className="flex flex-col"
+            >
               <div role="tablist" aria-label="Arquivos do projeto" className="flex border-b">
                 {(['design', 'testbench'] as const).map((tab) => (
                   <button
@@ -211,7 +252,10 @@ export function Workspace({
 
             <ResizeHandle direction="vertical" />
 
-            <Panel defaultSize={30} minSize={15}>
+            <Panel
+              defaultSize={(initialVertical ?? DEFAULT_VERTICAL_LAYOUT)[1]}
+              minSize={PANEL_MIN_SIZE.CONSOLE}
+            >
               <PanelHeading>Console</PanelHeading>
               <div className="h-[calc(100%-1.75rem)]">
                 <ConsolePanel
@@ -228,7 +272,10 @@ export function Workspace({
 
         <ResizeHandle direction="horizontal" />
 
-        <Panel defaultSize={42} minSize={20}>
+        <Panel
+          defaultSize={(initialHorizontal ?? DEFAULT_HORIZONTAL_LAYOUT)[1]}
+          minSize={PANEL_MIN_SIZE.WAVEFORM}
+        >
           <PanelHeading>Formas de onda</PanelHeading>
           <div className="h-[calc(100%-1.75rem)]">
             <WaveformPanel vcd={result?.vcd ?? null} />

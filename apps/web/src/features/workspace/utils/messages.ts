@@ -17,6 +17,7 @@ export const WAVEFORM_TRUNCATED_MESSAGE =
   'O arquivo .vcd foi truncado; a forma de onda pode estar incompleta.';
 
 export const OPEN_PROJECTS_BUTTON_LABEL = 'Meus projetos';
+export const RESET_LAYOUT_BUTTON_LABEL = 'Restaurar layout padrão';
 
 // --- Vínculo com o projeto aberto (RF07-I03) --------------------------------
 
