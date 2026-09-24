@@ -21,7 +21,7 @@ import {
   SAVED_INDICATOR_LABEL,
   UNSAVED_INDICATOR_LABEL,
 } from '../utils/messages';
-import { SHORTCUTS_DIALOG, formatCombo, getShortcut, isMacPlatform } from '../utils/shortcuts';
+import { SHORTCUTS_DIALOG, isMacPlatform } from '../utils/shortcuts';
 
 interface WorkspaceHeaderProps {
   /** `null` no rascunho anônimo (RF20) - sem nome, sem indicador, sem "Salvar"/"Exportar". */
@@ -54,7 +54,6 @@ export function WorkspaceHeader({
   onOpenShortcuts,
 }: WorkspaceHeaderProps) {
   const isMac = isMacPlatform();
-  const runKeys = formatCombo(getShortcut('run').combo, isMac).join(isMac ? '' : '+');
 
   return (
     <header className="flex items-center gap-3 border-b px-4 py-2">
@@ -106,9 +105,6 @@ export function WorkspaceHeader({
         >
           {isRunning ? <Loader2 aria-hidden className="animate-spin" /> : <Play aria-hidden />}
           {isRunning ? 'Executando' : 'Executar'}
-          <span aria-hidden className="font-mono text-[10.5px] font-normal opacity-80">
-            {runKeys}
-          </span>
         </Button>
         <Button
           variant="ghost"
