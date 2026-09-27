@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF03](feature.md) |
-| Branch | `feat/rf03-limites-de-submissao` |
+| Branch | `feat-RF03-01-limites-de-submissao-back` |
 | Tamanho | P (aprox. 0,5 dia) |
 | Depende de | - |
 
@@ -41,12 +41,27 @@ recurso de fila ou container.
 
 ## Criterios de aceite
 
-- [ ] Corpo acima do `bodyLimit` retorna `413` com JSON valido.
-- [ ] Arquivo com extensao diferente de `.v`/`.sv` retorna `400` com mensagem em
+- [x] Corpo acima do `bodyLimit` retorna `413` com JSON valido.
+- [x] Arquivo com extensao diferente de `.v`/`.sv` retorna `400` com mensagem em
       portugues.
-- [ ] Conteudo acima de 256 KB retorna `400`, sem criar job.
-- [ ] Nenhum job entra na fila quando a validacao falha.
-- [ ] Mensagem chega ao usuario no toast do frontend.
+- [x] Conteudo acima de 256 KB retorna `400`, sem criar job.
+- [x] Nenhum job entra na fila quando a validacao falha.
+- [x] Mensagem chega ao usuario no toast do frontend. _(ja coberta pela barra de
+      estado do RF09-I03, que exibe `runMutation.error.message` — o mesmo texto
+      que a API devolve; nenhuma mudanca de frontend fez parte desta issue)_
+
+## Nota de implementacao
+
+O passo a passo original previa alterar `apps/web/src/lib/api.ts` para exibir a
+mensagem via toast. Isso ficou obsoleto: RF09-I03 (concluida antes desta issue)
+ja mostra `runMutation.error?.message` na barra de estado do workspace — a
+mesma mensagem que `request()` extrai do corpo de erro da API. Como
+front e back nunca compartilham branch (`docs/ARCHITECTURE.md`), e o front ja
+cobria o criterio, esta issue ficou 100% backend: `apps/api/src/app.ts`
+(bodyLimit dimensionado a partir de `MAX_SOURCE_BYTES`, tratamento de `413` e
+mensagem especifica do Zod no `400`) e `packages/shared/src/schemas/{hdl,common}.ts`
+(mensagens em portugues de tamanho de arquivo e `topModule` vazio). Testes em
+`apps/api/src/modules/simulation/routes.test.ts`.
 
 ## Verificacao
 
