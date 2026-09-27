@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF03](feature.md) |
-| Branch | `feat/rf03-observabilidade-worker` |
+| Branch | `feat-RF03-04-observabilidade-worker-back` |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | - |
 
@@ -54,13 +54,32 @@ de contadores que sustente as afirmacoes de desempenho do trabalho.
 
 ## Criterios de aceite
 
-- [ ] Cada job concluido emite exatamente uma linha JSON com os campos acima.
-- [ ] `GET /health/metrics` devolve total de jobs, taxa de falha por tipo e
-      duracao media.
-- [ ] Os tempos parciais do sandbox aparecem no log e somam aproximadamente o
-      `durationMs` total.
-- [ ] Nenhum trecho de codigo do usuario aparece nos logs - apenas tamanhos.
-- [ ] `pnpm --filter @tplab/api test` cobre a montagem do registro de log.
+- [x] Cada job concluido emite exatamente uma linha JSON com os campos acima.
+      _(verificado ao vivo: `{"jobId":"78","durationMs":2373,"failure":null,
+      "exitCode":0,"vcdBytes":711,"sourceBytes":722,"queueWaitMs":3,
+      "timings":{...},"msg":"job de simulacao concluido"}`)_
+- [x] `GET /health/metrics` devolve total de jobs, taxa de falha por tipo e
+      duracao media. _(verificado ao vivo contra o Redis real deste ambiente —
+      `{"totalJobs":1,"succeededJobs":1,"failedJobs":0,"failuresByType":{},
+      "averageDurationMs":2373}` apos uma simulacao real)_
+- [x] Os tempos parciais do sandbox aparecem no log e somam aproximadamente o
+      `durationMs` total. _(medido: 1383+984+4=2371 vs durationMs 2373 — a
+      diferenca de 2ms e escrita dos fontes + limpeza do container/workdir,
+      fora dos tres tempos medidos)_
+- [x] Nenhum trecho de codigo do usuario aparece nos logs - apenas tamanhos.
+      _(`buildJobLogRecord` so calcula `.length`, nunca repassa `content`;
+      testado em `job-log.test.ts`)_
+- [x] `pnpm --filter @tplab/api test` cobre a montagem do registro de log.
+      _(`job-log.test.ts` — mapeamento `SandboxOutcome`+metadados do job para
+      o registro, sem Docker; `metrics.test.ts` — parsing do hash do Redis)_
+
+## Nota de implementacao
+
+`GET /health/metrics` nao ficou em `modules/health/routes.ts` (caminho do
+escopo tecnico original) porque o modulo `health` ja tinha sido migrado para
+`application/domain/infra` antes desta issue chegar nele — a rota entrou em
+`application/health/controller/health.controller.ts`, seguindo o layout atual
+do `ARCHITECTURE.md`.
 
 ## Verificacao
 

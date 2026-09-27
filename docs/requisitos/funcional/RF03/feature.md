@@ -73,7 +73,9 @@ alterados de um lado so):
 - `infra/sandbox/Dockerfile` e `run-simulation.sh`: imagem com `iverilog`.
 - `packages/shared/src/schemas/hdl.ts`: `MAX_SOURCE_BYTES` de 256 KB e regex de
   nome de arquivo.
-- **Falta**: observabilidade do worker (I04).
+- `apps/api/src/lib/logger.ts` e `lib/metrics.ts`: log estruturado (pino) e
+  contadores agregados no Redis, expostos em `GET /health/metrics`.
+- **Falta**: nada — I04 fecha o ultimo item pendente de RF03.
 
 ## 6. Escopo
 
@@ -108,7 +110,8 @@ alterados de um lado so):
 | [issue-01](issue-01-limites-de-submissao.md) | Limites e validacao de submissao | `feat-RF03-01-limites-de-submissao-back` | P | Concluido |
 | [issue-02](issue-02-rate-limit-e-fila-cheia.md) | Rate limit e tratamento de fila saturada | `feat-RF03-02-rate-limit-e-fila-cheia-back` + `-front` | M | Concluido |
 | [issue-03](issue-03-retencao-resultados-job.md) | Retencao e expiracao dos resultados de job | `feat-RF03-03-retencao-resultados-job-back` + `-front` | P | Concluido |
-| [issue-04](issue-04-observabilidade-worker.md) | Logs estruturados e metricas do worker | `feat/rf03-observabilidade-worker` | M | |
+| [issue-04](issue-04-observabilidade-worker.md) | Logs estruturados e metricas do worker | `feat-RF03-04-observabilidade-worker-back` | M | Concluido |
+
 
 ## 9. Dependencias
 
