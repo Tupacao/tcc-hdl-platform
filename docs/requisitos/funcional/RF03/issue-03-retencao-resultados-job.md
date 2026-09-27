@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF03](feature.md) |
-| Branch | `feat/rf03-retencao-resultados-job` |
+| Branch | `feat-RF03-03-retencao-resultados-job-back` (backend); frontend (diferenciar 404 de rede) fica para depois, ver Nota de implementacao |
 | Tamanho | P (aprox. 0,5 dia) |
 | Depende de | - |
 
@@ -54,14 +54,19 @@ tornar a expiracao um estado compreensivel para o cliente.
 
 ## Criterios de aceite
 
-- [ ] Cem simulacoes seguidas mantem o uso de memoria do Redis abaixo de um teto
-      documentado.
-- [ ] Um `.vcd` acima do limite chega truncado, com aviso visivel, sem quebrar o
-      visualizador.
-- [ ] O `.vcd` truncado continua terminando em uma linha completa.
+- [x] Cem simulacoes seguidas mantem o uso de memoria do Redis abaixo de um teto
+      documentado. _(medido com um teto menor e extrapolado — ver Nota de
+      implementacao; teto documentado no `README.md`: ~750 MiB no pior caso
+      sustentado com `JOB_RETENTION_COUNT=100`)_
+- [x] Um `.vcd` acima do limite chega truncado, com aviso visivel, sem quebrar o
+      visualizador. _(truncamento verificado contra o pipeline real; o aviso
+      "O arquivo .vcd foi truncado..." ja existia no RF06)_
+- [x] O `.vcd` truncado continua terminando em uma linha completa. _(verificado
+      com um `.vcd` real de ~2 MiB — `vcd.endsWith('\n')` true)_
 - [ ] Consultar um `jobId` antigo devolve `404` e o frontend exibe mensagem
-      orientando a reexecutar.
-- [ ] As variaveis de retencao estao documentadas em `apps/api/.env.example`.
+      orientando a reexecutar. _(front — depende do mecanismo `errorStatus` de
+      RF03-I02, ver Nota de implementacao)_
+- [x] As variaveis de retencao estao documentadas em `apps/api/.env.example`.
 
 ## Verificacao
 
@@ -70,6 +75,39 @@ pnpm --filter @tplab/api test
 pnpm typecheck
 docker exec -i tplab-redis-1 redis-cli info memory | grep used_memory_human
 ```
+
+## Nota de implementacao
+
+**Medicao de memoria (passo 4):** cem simulacoes seguidas eram inviaveis de
+rodar de verdade neste ambiente sem violar o rate limit de RF03-I02 (10
+submissoes/min em `POST /api/simulations` — cem delas levariam 10+ minutos so
+de espera). Em vez disso, medi o custo marginal real de dois jobs consecutivos
+que batem no novo teto de `MAX_VCD_BYTES` (2 MiB), contra o Redis real deste
+ambiente (`tplab-redis-1`): **~7,5 MiB por job** (+7,45 MiB e +7,54 MiB nos
+dois jobs medidos). Extrapolado para `JOB_RETENTION_COUNT=100` jobs
+simultaneamente retidos no pior caso (todos no teto), o consumo fica em torno
+de **~750 MiB** — documentado com a metodologia completa no `README.md`. Nao e
+uma medicao de "cem simulacoes reais", e uma extrapolacao a partir de uma
+medicao real do custo por job; mais honesto do que simular o numero sem
+nenhuma medicao, mas vale repetir com a bateria completa de 100 quando o rate
+limit puder ser suspenso para o teste (ou movido para depois do teste).
+
+**Truncamento validado contra o pipeline real** (nao so o teste unitario de
+`truncateAtLineBoundary`/`truncateOutput`): submeti um job com contador de 32
+bits por ~400 mil ciclos, gerando um `.vcd` que bate no teto de 2 MiB. O
+resultado veio com `vcd.length === 2097147` (5 bytes abaixo do teto de
+2097152, exatamente a folga esperada para recuar ate o ultimo `\n`) e
+terminando em uma linha `b...&\n` completa — sem linha cortada no meio.
+
+**Item de `404`/frontend fora desta branch:** o passo 5 pede que o frontend
+diferencie o `404` de "simulacao expirada" de uma falha de rede generica. Isso
+usa exatamente o mecanismo `errorStatus` que RF03-I02 (frontend, PR #34)
+introduziu em `buildRunStatus` — mas a #34 foi mergeada por engano na branch
+de backend do RF03-I02 em vez de em `main` (ver PR #35, ainda aberta).
+Implementar o `404` agora, direto contra `main`, duplicaria esse mecanismo e
+geraria conflito quando a #35 mergear. Este item fica pendente ate a #35
+mergear; depois disso e uma adicao pequena (mais um `if (errorStatus === 404)`
+em `buildRunStatus`).
 
 ## Riscos
 
