@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Parcial — I01, I02 e I03 concluidas; falta I04 (observabilidade do worker) |
+| Status | Concluido — I01, I02, I03 e I04 |
 | Requisitos relacionados | RF04, RF05, RNF04, RNF05, RNF07, RNF08 |
 
 ## 1. Enunciado
