@@ -1,8 +1,8 @@
 import type { SimulationResult } from '@tplab/shared';
 import { countDiagnostics } from './console-tabs';
 
-/** Estado da última execução exibido na barra de estado (RF09-I03, Figma 2.1 e 2.3). */
-export type RunStatusKind = 'idle' | 'running' | 'success' | 'failure';
+/** Estado da última execução exibido na barra de estado (RF09-I03, Figma 2.1, 2.3 e 2.4). */
+export type RunStatusKind = 'idle' | 'queued' | 'running' | 'success' | 'failure';
 
 export interface RunStatus {
   kind: RunStatusKind;
@@ -18,9 +18,16 @@ export interface RunStatus {
 
 export const RUN_STATUS_LABELS = {
   IDLE: 'Nenhuma execução ainda',
+  QUEUED: 'Na fila',
+  QUEUED_WAITING: 'aguardando um executor livre',
   RUNNING: 'Executando…',
   SUCCESS: 'Executado sem erros',
   REQUEST_FAILED: 'Falha ao executar',
+  /** RF03-I02, Figma 4.2 · Limite de uso atingido (429). */
+  RATE_LIMITED: 'Limite de uso atingido',
+  /** RF03-I02, Figma 2.4 · Executor indisponível (503 — fila cheia ou Redis fora do ar). */
+  SERVICE_UNAVAILABLE: 'Não foi possível executar',
+  SERVICE_UNAVAILABLE_DETAIL: 'problema no servidor',
   COMPILE_ERROR_DETAIL: 'simulação não executada',
   FAILURES: {
     compile_error: 'Falhou na compilação',
@@ -49,11 +56,34 @@ interface RunStatusInput {
   result: SimulationResult | null;
   /** Mensagem quando a requisição em si falhou (rede, 429, 400), sem resultado da toolchain. */
   error: string | null;
+  /** Status HTTP da falha da requisição (RF03-I02), para diferenciar 429/503 de rede; `null` fora de `error`. */
+  errorStatus: number | null;
   isRunning: boolean;
+  /** `true` enquanto o job está `queued` (RF03-I02) — a submissão foi aceita, mas nenhum executor a pegou ainda. */
+  queued: boolean;
+  /** Posição (1-based) na fila; `null` fora do status `queued` ou quando ainda não calculada. */
+  queuePosition: number | null;
 }
 
-export function buildRunStatus({ result, error, isRunning }: RunStatusInput): RunStatus {
+export function buildRunStatus({
+  result,
+  error,
+  errorStatus,
+  isRunning,
+  queued,
+  queuePosition,
+}: RunStatusInput): RunStatus {
   if (isRunning) {
+    if (queued) {
+      return {
+        kind: 'queued',
+        label: RUN_STATUS_LABELS.QUEUED,
+        duration: null,
+        counts: null,
+        detail:
+          queuePosition !== null ? `posição ${queuePosition}` : RUN_STATUS_LABELS.QUEUED_WAITING,
+      };
+    }
     return {
       kind: 'running',
       label: RUN_STATUS_LABELS.RUNNING,
@@ -63,6 +93,24 @@ export function buildRunStatus({ result, error, isRunning }: RunStatusInput): Ru
     };
   }
   if (error) {
+    if (errorStatus === 429) {
+      return {
+        kind: 'failure',
+        label: RUN_STATUS_LABELS.RATE_LIMITED,
+        duration: null,
+        counts: null,
+        detail: error,
+      };
+    }
+    if (errorStatus === 503) {
+      return {
+        kind: 'failure',
+        label: RUN_STATUS_LABELS.SERVICE_UNAVAILABLE,
+        duration: null,
+        counts: null,
+        detail: RUN_STATUS_LABELS.SERVICE_UNAVAILABLE_DETAIL,
+      };
+    }
     return {
       kind: 'failure',
       label: RUN_STATUS_LABELS.REQUEST_FAILED,
