@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF04](feature.md) |
-| Branch | `feat/rf04-contrato-testbench` |
+| Branch | `feat-RF04-01-contrato-testbench-back` |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | - |
 
@@ -64,13 +64,54 @@ ensinem o que corrigir.
 
 ## Criterios de aceite
 
-- [ ] Testbench que nao instancia o `topModule` gera aviso antes da execucao.
-- [ ] Design que nao declara o `topModule` gera aviso antes da execucao.
-- [ ] Testbench sem `$dumpvars` gera aviso com exemplo copiavel.
-- [ ] Os avisos aparecem no console de RF05 junto com os diagnosticos do
-      `iverilog`, sem componente novo.
-- [ ] Nenhum aviso impede a submissao - todos sao `warning`.
-- [ ] Os exemplos de `apps/web/src/lib/samples.ts` nao geram nenhum aviso.
+- [x] Testbench que nao instancia o `topModule` gera aviso antes da execucao.
+      _(verificado ao vivo — ver Nota de implementacao)_
+- [x] Design que nao declara o `topModule` gera aviso antes da execucao.
+- [x] Testbench sem `$dumpvars` gera aviso com exemplo copiavel.
+      _(verificado ao vivo)_
+- [x] Os avisos aparecem no console de RF05 junto com os diagnosticos do
+      `iverilog`, sem componente novo. _(sao `Diagnostic` normais no mesmo
+      array; `ConsolePanel` ja existente renderiza sem mudanca)_
+- [x] Nenhum aviso impede a submissao - todos sao `warning`.
+- [x] Os exemplos de `apps/web/src/lib/samples.ts` nao geram nenhum aviso.
+      _(o par design/testbench de `samples.ts` foi copiado para
+      `testbench.test.ts` — apps/api e apps/web nao se importam entre si no
+      monorepo; se o exemplo mudar, o teste precisa acompanhar)_
+
+## Nota de implementacao
+
+"Antes da execucao" e "antes de gastar container" (criterio da feature) sao
+sobre a ORIGEM do aviso — analise textual, nao o resultado do `iverilog` —, nao
+sobre pular a execucao: a submissao sempre roda no sandbox mesmo com avisos.
+As checagens estaticas rodam no worker, logo no inicio do processamento do
+job, antes de qualquer coisa do resultado existir; ficam junto com o aviso
+pos-execucao (`vcd` nulo sem falha) no mesmo array `diagnostics` devolvido ao
+cliente.
+
+Nao ficou nesta branch: reaproveitar o texto do contrato do testbench no guia
+"Primeiro projeto" de RF11 (`apps/web/src/features/docs/content/inicio-rapido.tsx`)
+— e mudanca de frontend/conteudo, fora do escopo de uma branch de backend
+(`docs/ARCHITECTURE.md`), e o passo 7 do passo-a-passo original nao e um
+criterio de aceite. O texto do contrato ja esta documentado no `README.md`.
+
+Tambem nao ficou nesta branch: o estado vazio do `WaveformPanel` com o card
+"A simulação rodou, mas nada foi gravado" (copiavel, botao "Inserir no
+testbench") do Figma 5.1 — hoje o painel ja mostra uma dica textual generica
+sobre `$dumpfile`/`$dumpvars` (`apps/web/src/features/workspace/utils/messages.ts`),
+que cobre o criterio "a interface explica por que nao ha forma de onda" da
+feature; o card completo do Figma e uma melhoria de UI, nao coberta pelos
+criterios desta issue especifica.
+
+Verificado ao vivo contra o pipeline real (worker + API deste ambiente):
+submeti um testbench que instancia um modulo diferente do `topModule`
+declarado e nao chama `$dumpvars` — a simulacao terminou `succeeded`,
+`failure: null`, e o resultado trouxe os dois avisos esperados, sem nenhum
+erro:
+
+```
+[warning] full_adder_tb.v: O testbench nao parece instanciar "full_adder"...
+[warning] full_adder_tb.v: O testbench nao chama $dumpfile/$dumpvars...
+```
 
 ## Verificacao
 

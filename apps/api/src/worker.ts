@@ -13,6 +13,7 @@ import { parseIcarusDiagnostics } from './modules/simulation/diagnostics.js';
 import { attachHints } from './modules/simulation/hints.js';
 import { buildJobLogRecord } from './modules/simulation/job-log.js';
 import { runInSandbox } from './modules/simulation/sandbox.js';
+import { analyzePostExecution, analyzeTestbenchContract } from './modules/simulation/testbench.js';
 
 /** Conexao separada da do BullMQ (RF03-I04) — so para os contadores em `lib/metrics.ts`. */
 const metricsConnection = createRedisConnection();
@@ -25,9 +26,31 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
   SIMULATION_QUEUE,
   async (job): Promise<SimulationJobResult> => {
     const outcome = await runInSandbox(job.data);
-    const diagnostics = attachHints(
-      parseIcarusDiagnostics(outcome.stderr, [job.data.design.name, job.data.testbench.name]),
+
+    // RF04-I01: contrato do testbench (topModule coerente, $dumpfile/$dumpvars
+    // presentes) — heuristica, nunca bloqueia; vira `warning` no mesmo console
+    // dos diagnosticos do iverilog, sem componente novo no frontend.
+    const contract = analyzeTestbenchContract(
+      job.data.design,
+      job.data.testbench,
+      job.data.topModule,
     );
+    const postExecutionWarnings = analyzePostExecution({
+      testbenchName: job.data.testbench.name,
+      topModule: job.data.topModule,
+      failure: outcome.failure,
+      stdout: outcome.stdout,
+      vcd: outcome.vcd,
+      alreadyWarnedMissingDump: contract.missingDumpDirectives,
+    });
+
+    const diagnostics = [
+      ...contract.diagnostics,
+      ...attachHints(
+        parseIcarusDiagnostics(outcome.stderr, [job.data.design.name, job.data.testbench.name]),
+      ),
+      ...postExecutionWarnings,
+    ];
 
     logger.info(
       buildJobLogRecord({
