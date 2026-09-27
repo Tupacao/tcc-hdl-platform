@@ -136,6 +136,42 @@ linhas `"msg":"job de simulacao concluido"` para o detalhe por job — inclusive
 os tempos parciais, uteis para separar overhead do Docker (RNF07-I02) do tempo
 de `iverilog`/`vvp` propriamente dito.
 
+## Contrato do testbench (RF04-I01)
+
+A plataforma nunca gera estimulo nem infere clock — **o testbench e do usuario**
+por decisao deliberada (escrever testbench faz parte do que a disciplina
+ensina). Isso funciona bem quando o testbench instancia o design certo e pede
+a gravacao da forma de onda; falha de formas confusas quando nao. Antes de
+gastar um container, `modules/simulation/testbench.ts` roda uma analise
+heuristica (regex, nunca bloqueia) e devolve tres avisos possiveis, sempre
+como diagnostico `warning` no mesmo console dos erros do `iverilog`:
+
+1. O arquivo de design nao declara `module <topModule>`.
+2. O testbench nao instancia `<topModule>` (aceita parametrizacao e quebra de
+   linha; ignora mencoes dentro de comentario).
+3. O testbench nao chama `$dumpfile(...)` e `$dumpvars(...)` — sem isso nenhuma
+   forma de onda e gerada, mesmo com a simulacao rodando sem erro.
+
+Depois da execucao, se a simulacao terminou sem erro mas sem `.vcd`, um quarto
+aviso complementa: se tambem nao houve `stdout`, o testbench provavelmente nao
+instanciou nada; se houve `stdout` mas nenhum aviso estatico de `$dumpvars` foi
+emitido, sugere conferir o escopo passado a `$dumpvars`.
+
+Contrato minimo esperado de um testbench, para nao disparar nenhum aviso:
+
+```verilog
+module meu_circuito_tb;
+    // ... declaracoes e instanciacao de `meu_circuito` (o topModule) ...
+
+    initial begin
+        $dumpfile("saida.vcd");
+        $dumpvars(0, meu_circuito_tb);
+        // ... estimulos ...
+        $finish;
+    end
+endmodule
+```
+
 ## Estado atual
 
 Ja implementado:

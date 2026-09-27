@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Parcial (executa; falta contrato de testbench e controle de saida) |
+| Status | Parcial — I01 (contrato de testbench) concluida; faltam I02 (limites/truncamento) e I03 (estados de execucao no frontend) |
 | Requisitos relacionados | RF02, RF03, RF05, RF06, RNF04, RNF05, RNF07 |
 
 ## 1. Enunciado
@@ -73,10 +73,14 @@ ja limita a leitura por `MAX_VCD_BYTES`.
 - `apps/api/src/worker.ts` empacota o resultado no formato de
   `SimulationResultSchema`.
 - `packages/shared/src/schemas/hdl.ts` define `topModule` como obrigatorio, mas o
-  script **nao usa** esse valor: hoje ele e puramente informativo.
-- **Falta**: validar que o testbench realmente instancia o `topModule`, avisar
-  quando nao ha `$dumpfile`/`$dumpvars`, tratar simulacao sem `$finish`, limitar o
-  volume de saida e dar feedback de progresso durante a execucao.
+  script **nao usa** esse valor: hoje ele e puramente informativo — a coerencia
+  entre o `topModule` declarado e o que o testbench de fato instancia e
+  responsabilidade de `modules/simulation/testbench.ts` (I01), nao do script.
+- `apps/api/src/modules/simulation/testbench.ts`: analise heuristica do
+  contrato do testbench (I01) — topModule declarado/instanciado,
+  `$dumpfile`/`$dumpvars` presentes — sempre `warning`, nunca bloqueia.
+- **Falta**: limitar o volume de saida com aviso estruturado (I02) e dar
+  feedback de progresso/cancelamento durante a execucao no frontend (I03).
 
 ## 6. Escopo
 
@@ -103,18 +107,19 @@ ja limita a leitura por `MAX_VCD_BYTES`.
       que nao ha forma de onda, em vez de mostrar painel vazio sem contexto.
 - [ ] Um testbench sem `$finish` termina por timeout e o usuario recebe
       `failure: 'timeout'` com explicacao acionavel.
-- [ ] `topModule` incoerente com o testbench gera aviso antes de gastar container.
+- [x] `topModule` incoerente com o testbench gera aviso antes de gastar
+      container. _(I01)_
 - [ ] Saida muito grande e truncada com aviso, sem quebrar o console nem o
       visualizador.
 - [ ] O usuario consegue cancelar a espera por uma simulacao em andamento.
 
 ## 8. Quebra em issues
 
-| Issue | Titulo | Branch | Tamanho |
-| --- | --- | --- | --- |
-| [issue-01](issue-01-contrato-testbench.md) | Contrato de testbench e coerencia do modulo de topo | `feat/rf04-contrato-testbench` | M |
-| [issue-02](issue-02-limites-saida-simulacao.md) | Limites e truncamento da saida da simulacao | `feat/rf04-limites-saida-simulacao` | P |
-| [issue-03](issue-03-estados-execucao-frontend.md) | Estados de execucao e cancelamento no frontend | `feat/rf04-estados-execucao-frontend` | M |
+| Issue | Titulo | Branch | Tamanho | Status |
+| --- | --- | --- | --- | --- |
+| [issue-01](issue-01-contrato-testbench.md) | Contrato de testbench e coerencia do modulo de topo | `feat-RF04-01-contrato-testbench-back` | M | Concluido |
+| [issue-02](issue-02-limites-saida-simulacao.md) | Limites e truncamento da saida da simulacao | `feat/rf04-limites-saida-simulacao` | P | |
+| [issue-03](issue-03-estados-execucao-frontend.md) | Estados de execucao e cancelamento no frontend | `feat/rf04-estados-execucao-frontend` | M | |
 
 ## 9. Dependencias
 
