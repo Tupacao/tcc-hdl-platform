@@ -28,6 +28,9 @@ export const RUN_STATUS_LABELS = {
   /** RF03-I02, Figma 2.4 · Executor indisponível (503 — fila cheia ou Redis fora do ar). */
   SERVICE_UNAVAILABLE: 'Não foi possível executar',
   SERVICE_UNAVAILABLE_DETAIL: 'problema no servidor',
+  /** RF03-I03 · `jobId` expirado (retenção do Redis) ou nunca existiu. */
+  RESULT_EXPIRED: 'Simulação expirada',
+  RESULT_EXPIRED_DETAIL: 'execute novamente',
   COMPILE_ERROR_DETAIL: 'simulação não executada',
   FAILURES: {
     compile_error: 'Falhou na compilação',
@@ -109,6 +112,15 @@ export function buildRunStatus({
         duration: null,
         counts: null,
         detail: RUN_STATUS_LABELS.SERVICE_UNAVAILABLE_DETAIL,
+      };
+    }
+    if (errorStatus === 404) {
+      return {
+        kind: 'failure',
+        label: RUN_STATUS_LABELS.RESULT_EXPIRED,
+        duration: null,
+        counts: null,
+        detail: RUN_STATUS_LABELS.RESULT_EXPIRED_DETAIL,
       };
     }
     return {

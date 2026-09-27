@@ -155,6 +155,17 @@ test('RF03-I02: 429 e 503 têm rótulos distintos de uma falha de rede genérica
   assert.equal(network.label, 'Falha ao executar');
 });
 
+test('RF03-I03: 404 de jobId expirado orienta a reexecutar', () => {
+  const expired = buildRunStatus({
+    ...IDLE_INPUT,
+    isRunning: false,
+    error: 'Simulacao nao encontrada ou expirada',
+    errorStatus: 404,
+  });
+  assert.equal(expired.label, 'Simulação expirada');
+  assert.equal(expired.detail, 'execute novamente');
+});
+
 test('announcementFor junta as partes presentes em uma frase só', () => {
   const status = buildRunStatus({
     ...IDLE_INPUT,
