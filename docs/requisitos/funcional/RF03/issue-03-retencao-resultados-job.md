@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF03](feature.md) |
-| Branch | `feat-RF03-03-retencao-resultados-job-back` (backend); frontend (diferenciar 404 de rede) fica para depois, ver Nota de implementacao |
+| Branch | `feat-RF03-03-retencao-resultados-job-back` + `-front` |
 | Tamanho | P (aprox. 0,5 dia) |
 | Depende de | - |
 
@@ -63,9 +63,9 @@ tornar a expiracao um estado compreensivel para o cliente.
       "O arquivo .vcd foi truncado..." ja existia no RF06)_
 - [x] O `.vcd` truncado continua terminando em uma linha completa. _(verificado
       com um `.vcd` real de ~2 MiB — `vcd.endsWith('\n')` true)_
-- [ ] Consultar um `jobId` antigo devolve `404` e o frontend exibe mensagem
-      orientando a reexecutar. _(front — depende do mecanismo `errorStatus` de
-      RF03-I02, ver Nota de implementacao)_
+- [x] Consultar um `jobId` antigo devolve `404` e o frontend exibe mensagem
+      orientando a reexecutar. _(front — "Simulação expirada · execute
+      novamente" na barra de estado, mesmo padrao de 429/503 de RF03-I02)_
 - [x] As variaveis de retencao estao documentadas em `apps/api/.env.example`.
 
 ## Verificacao
