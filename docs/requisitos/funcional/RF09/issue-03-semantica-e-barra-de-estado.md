@@ -59,15 +59,15 @@ sirva a tela inteira.
 
 ## Criterios de aceite
 
-- [ ] As abas seguem o padrao ARIA de tabs: uma parada de tabulacao, navegacao
+- [x] As abas seguem o padrao ARIA de tabs: uma parada de tabulacao, navegacao
       por setas, `tabpanel` associado.
-- [ ] Aba com erro e aba com alteracao nao salva sao distinguiveis sem cor.
-- [ ] Os divisores tem rotulo e sao ajustaveis por teclado.
-- [ ] A barra de estado mostra o desfecho da ultima execucao de qualquer painel.
-- [ ] Clicar nos contadores de erro leva ao console.
-- [ ] O desfecho e anunciado uma unica vez por leitor de tela.
-- [ ] Nenhuma altura de painel depende de valor codificado em mais de um lugar.
-- [ ] A auditoria de acessibilidade nao acusa violacao de nivel A ou AA no
+- [x] Aba com erro e aba com alteracao nao salva sao distinguiveis sem cor.
+- [x] Os divisores tem rotulo e sao ajustaveis por teclado.
+- [x] A barra de estado mostra o desfecho da ultima execucao de qualquer painel.
+- [x] Clicar nos contadores de erro leva ao console.
+- [x] O desfecho e anunciado uma unica vez por leitor de tela.
+- [x] Nenhuma altura de painel depende de valor codificado em mais de um lugar.
+- [x] A auditoria de acessibilidade nao acusa violacao de nivel A ou AA no
       workspace.
 
 ## Verificacao
@@ -86,3 +86,40 @@ executar uma simulacao com erro e conferir o anuncio unico.
   `automaticLayout`; validar o redimensionamento apos a mudanca.
 - Excesso de regioes `aria-live` gera anuncio duplicado com o `sonner`; decidir
   aqui que a barra de estado e a fonte unica e ajustar os toasts.
+
+## Decisoes de design (Figma 2.1, 2.3, 2.9) e desvios conscientes
+
+Conferido contra o Figma antes de implementar:
+
+- **Divisores:** os quatro estados do frame 2.9 - repouso (linha de 1px), hover
+  (alca de 8x42), arraste (linha e alca laranja, medida em px dos dois lados ao
+  vivo, lida do tamanho real dos paineis vizinhos) e foco por teclado (anel e
+  "← →  ajustar"; "↑ ↓  ajustar" no divisor horizontal). A area sensivel de 16px
+  vem do `hitAreaMargins` da biblioteca. Rotulos: "Ajustar largura entre editor
+  e formas de onda" e "Ajustar altura entre editor e console".
+- **Abas de arquivo:** ARIA completo (uma parada de Tab, setas, Home/End,
+  `tabpanel` com `aria-labelledby`) e a etiqueta de papel ("circuito" /
+  "testbench") do Figma 2.1. Erro = icone X + texto para leitor de tela;
+  alteracao nao salva = ponto + texto - nunca so cor. A marca de nao salvo e
+  por arquivo (`changedFiles`).
+- **Barra de estado:** desfecho (com icone), duracao, contagem de erros/avisos
+  (botao que leva a aba Problemas), detalhe ("simulacao nao executada" em erro
+  de compilacao), linguagem, codificacao, Ln/Col do cursor e estado do projeto.
+  A regiao `role="status"` (sr-only) e o **unico ponto de anuncio** do
+  desfecho; por isso os toasts de sucesso/erro da execucao foram removidos. A
+  mensagem de falha de requisicao continua no console e na barra.
+- **Fora do Figma, por nao haver dado:** "4 vetores de teste · 80 ns
+  simulados" (a API nao devolve isso) nao foi implementado.
+- **"Verilog" em vez de "Verilog-2005":** o Figma mostra 2005, mas o sandbox
+  compila com `iverilog -g2012`; mostrar 2005 seria informar errado.
+- **Layout:** `h-[calc(100%-1.75rem)]` substituido por flex nos paineis de
+  ondas e console; a barra e um filho flex do workspace. O conteudo principal
+  agora esta em `<main>`.
+- **Auditoria de acessibilidade:** a skill `a11y-audit` depende de scripts
+  Python que nao rodam neste ambiente; usado o Lighthouse (modo snapshot): 100
+  no workspace. Com um resultado na tela, o Lighthouse acusou contraste
+  insuficiente so em tokens de sintaxe do tema `vs-dark` do Monaco (comentarios,
+  numeros) - fora desta issue, pertence a RF02-I02/RNF09.
+- **Nao testado no navegador:** a marca de "alteracoes nao salvas" na aba (exige
+  projeto aberto); coberta so por teste unitario de `changedFiles`.
+

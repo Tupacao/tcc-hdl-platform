@@ -8,7 +8,7 @@ import {
   type ProjectDraft,
 } from '@/features/projects';
 import { SAMPLE_SOURCES } from '@/lib/samples';
-import { sourcesEqual } from '../utils/sources-equal';
+import { changedFiles, sourcesEqual } from '../utils/sources-equal';
 
 const DRAFT_DEBOUNCE_MS = 800;
 
@@ -19,6 +19,8 @@ export interface UseProjectLinkResult {
   updateFile: (file: WorkspaceFile, content: string) => void;
   /** `false` sem projeto aberto - o rascunho anônimo (RF20) nunca "salva" nem avisa. */
   isDirty: boolean;
+  /** RF09-I03 - por arquivo; tudo `false` sem projeto aberto. */
+  dirtyFiles: Record<WorkspaceFile, boolean>;
   save: () => void;
   /** Rascunho local mais novo que a última versão salva, encontrado ao abrir o projeto. */
   pendingDraft: ProjectDraft | null;
@@ -81,6 +83,8 @@ export function useProjectLink(
   }, []);
 
   const isDirty = project !== null && !sourcesEqual(sources, savedSources);
+  const dirtyFiles =
+    project === null ? { design: false, testbench: false } : changedFiles(sources, savedSources);
 
   // Rascunho local com debounce - cobre fechar a aba por acidente sem gravar
   // no projeto "oficial" a cada tecla digitada.
@@ -134,5 +138,5 @@ export function useProjectLink(
     setPendingDraft(null);
   }, [project]);
 
-  return { sources, updateFile, isDirty, save, pendingDraft, useDraft, discardDraft };
+  return { sources, updateFile, isDirty, dirtyFiles, save, pendingDraft, useDraft, discardDraft };
 }

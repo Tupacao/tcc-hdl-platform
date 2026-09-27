@@ -153,6 +153,10 @@ Ja implementado:
   editor para a navegacao por Tab. Tamanho dos paineis persistido, com botao
   "Restaurar layout padrao" (RF09-I01)
 
+- Barra de estado no rodape (RF09-I03) com o desfecho da ultima execucao, duracao,
+  contagem de erros/avisos, cursor e estado do projeto; abas de arquivo e
+  divisores com semantica acessivel (ARIA, rotulos, ajuste por teclado)
+
 Evidencia de desempenho (RNF07), medida com o painel de performance do Chrome
 sobre um `.vcd` real de ~8 MiB (teto do sandbox, truncado) gerado por uma
 simulacao de ~400 mil ciclos de clock:
