@@ -10,6 +10,7 @@ import {
   hasZodFastifySchemaValidationErrors,
   jsonSchemaTransform,
 } from 'fastify-type-provider-zod';
+import { MAX_SOURCE_BYTES } from '@tplab/shared';
 import { healthRoutes } from './application/health/controller/health.controller.js';
 import { projectRoutes } from './application/projects/controller/project.controller.js';
 import { InMemoryProjectRepository } from './application/projects/repository/in-memory-project.repository.js';
@@ -19,6 +20,14 @@ import { env } from './config/env.js';
 import type { ProjectService } from './domain/projects/services/project.service.js';
 import { getPrismaClient } from './infra/prisma/client.js';
 import { simulationRoutes } from './modules/simulation/routes.js';
+
+/**
+ * Maior corpo esperado e a submissao de simulacao (RF03): design + testbench,
+ * cada um ate `MAX_SOURCE_BYTES`. O multiplicador de 4x cobre o pior caso de
+ * escape de aspas/barras invertidas na serializacao JSON, mais folga para os
+ * demais campos do corpo (`topModule`, `language`, `projectId`).
+ */
+const SIMULATION_BODY_LIMIT_BYTES = MAX_SOURCE_BYTES * 2 * 4;
 
 /**
  * Com `DATABASE_URL`, persiste em Postgres via Prisma; sem ela, sobe em memoria
@@ -35,7 +44,7 @@ function createProjectService(): ProjectService {
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: env.NODE_ENV === 'development' ? { level: 'info' } : true,
-    bodyLimit: 1024 * 1024,
+    bodyLimit: SIMULATION_BODY_LIMIT_BYTES,
   });
 
   // Toda validacao de entrada/saida usa os schemas Zod de `packages/shared`.
@@ -65,11 +74,23 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   app.setErrorHandler((error: FastifyError, request, reply) => {
     if (hasZodFastifySchemaValidationErrors(error)) {
+      // error.validation[0].message carrega a mensagem em portugues do schema
+      // Zod que falhou (ex.: extensao de arquivo, tamanho, topModule vazio).
+      const firstValidationMessage = (error.validation[0] as { message?: string } | undefined)
+        ?.message;
       return reply.status(400).send({
         statusCode: 400,
         error: 'Bad Request',
-        message: 'Dados de entrada invalidos',
+        message: firstValidationMessage ?? 'Dados de entrada invalidos',
         details: error.validation,
+      });
+    }
+
+    if (error.code === 'FST_ERR_CTP_BODY_TOO_LARGE') {
+      return reply.status(413).send({
+        statusCode: 413,
+        error: 'Payload Too Large',
+        message: 'Corpo da requisicao excede o limite permitido',
       });
     }
 

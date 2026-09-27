@@ -6,8 +6,8 @@ export const IdSchema = z.string().min(1).max(64);
 /** Nome de modulo Verilog: identificador valido da linguagem. */
 export const ModuleNameSchema = z
   .string()
-  .min(1)
-  .max(128)
+  .min(1, 'Nome do modulo de topo e obrigatorio')
+  .max(128, 'Nome do modulo de topo excede 128 caracteres')
   .regex(/^[A-Za-z_][A-Za-z0-9_$]*$/, 'Nome de modulo Verilog invalido');
 
 export const IsoDateSchema = z.iso.datetime();
