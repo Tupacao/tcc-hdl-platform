@@ -31,6 +31,20 @@ export interface SandboxOutcome {
   stderr: string;
   vcd: string | null;
   durationMs: number;
+  timings: SandboxTimings;
+}
+
+/**
+ * Tempos parciais dentro de `durationMs` (RF03-I04) — separam o overhead do
+ * Docker (criacao do container) da execucao de verdade (`iverilog`/`vvp`) e
+ * da leitura dos artefatos, para investigar RNF07-I02 sem adivinhar onde o
+ * tempo foi gasto. Somados, ficam perto de `durationMs` (a diferenca e o
+ * tempo gasto escrevendo os fontes no tmpdir e removendo o container/workdir).
+ */
+export interface SandboxTimings {
+  containerCreateMs: number;
+  executionMs: number;
+  artifactsReadMs: number;
 }
 
 /**
@@ -45,6 +59,7 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
     await writeFile(join(workdir, sources.design.name), sources.design.content, 'utf8');
     await writeFile(join(workdir, sources.testbench.name), sources.testbench.content, 'utf8');
 
+    const containerCreateStartedAt = Date.now();
     const container = await docker.createContainer({
       Image: env.SANDBOX_IMAGE,
       WorkingDir: '/work',
@@ -69,8 +84,11 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
       },
     });
 
+    const containerCreateMs = Date.now() - containerCreateStartedAt;
+
     let timedOut = false;
     try {
+      const executionStartedAt = Date.now();
       await container.start();
 
       // Margem sobre o timeout interno do script, que ja mata o `vvp`.
@@ -86,10 +104,13 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
       } finally {
         clearTimeout(killTimer);
       }
+      const executionMs = Date.now() - executionStartedAt;
 
+      const artifactsReadStartedAt = Date.now();
       const logs = await container.logs({ stdout: true, stderr: true, follow: false });
       const { stdout, stderr } = demuxDockerLogs(logs as unknown as Buffer);
       const vcd = await readVcd(workdir);
+      const artifactsReadMs = Date.now() - artifactsReadStartedAt;
 
       return {
         exitCode,
@@ -98,6 +119,7 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
         stderr: truncateOutput(stderr),
         vcd,
         durationMs: Date.now() - startedAt,
+        timings: { containerCreateMs, executionMs, artifactsReadMs },
       };
     } finally {
       await container.remove({ force: true }).catch(() => undefined);

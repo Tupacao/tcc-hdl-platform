@@ -103,6 +103,39 @@ O Vite faz proxy de `/api` para a API, entao nao ha CORS no desenvolvimento.
 > Codigo submetido pelo usuario **nunca** e executado no processo da API — sempre
 > pelo caminho `runInSandbox`.
 
+## Observabilidade do pipeline (RF03-I04)
+
+API e worker logam em JSON estruturado (pino), pela mesma instancia
+(`apps/api/src/lib/logger.ts`). Cada job concluido gera uma linha no worker
+com `jobId`, `durationMs`, `failure`, `exitCode`, `vcdBytes`, `sourceBytes`,
+`queueWaitMs` (tempo entre enfileirar e um worker pegar o job) e `timings`
+(`containerCreateMs`/`executionMs`/`artifactsReadMs` — os tres somados ficam
+perto de `durationMs`; a diferenca e escrita dos fontes no tmpdir e limpeza do
+container/workdir). **Nunca** inclui o texto do `.vcd`/`stdout`/`stderr` nem o
+codigo submetido, so tamanhos.
+
+`GET /health/metrics` devolve o agregado desde o ultimo restart do Redis (os
+contadores nao sao uma serie historica — zeram em `FLUSHALL` ou reinicio do
+container):
+
+```json
+{
+  "totalJobs": 12,
+  "succeededJobs": 10,
+  "failedJobs": 2,
+  "failuresByType": { "compile_error": 1, "timeout": 1 },
+  "averageDurationMs": 2148.5
+}
+```
+
+Para o capitulo de resultados do TCC (evidencia de RNF07 — "menos de cinco
+segundos"): rodar uma bateria de simulacoes representativas, depois `curl -s
+http://localhost:3333/health/metrics` para o agregado, e `grep` na saida do
+worker (`pnpm dev:worker`, ou `docker compose logs worker` em producao) pelas
+linhas `"msg":"job de simulacao concluido"` para o detalhe por job — inclusive
+os tempos parciais, uteis para separar overhead do Docker (RNF07-I02) do tempo
+de `iverilog`/`vvp` propriamente dito.
+
 ## Estado atual
 
 Ja implementado:

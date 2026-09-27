@@ -1,4 +1,4 @@
-import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
+import Fastify, { type FastifyError } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
@@ -19,6 +19,7 @@ import { DefaultProjectService } from './application/projects/service/project.se
 import { env } from './config/env.js';
 import type { ProjectService } from './domain/projects/services/project.service.js';
 import { getPrismaClient } from './infra/prisma/client.js';
+import { logger } from './lib/logger.js';
 import { simulationRoutes } from './modules/simulation/routes.js';
 
 /**
@@ -41,9 +42,16 @@ function createProjectService(): ProjectService {
   return new DefaultProjectService(new InMemoryProjectRepository());
 }
 
-export async function buildApp(): Promise<FastifyInstance> {
+// Sem tipo de retorno explicito: `loggerInstance: logger` (pino) faz a
+// instancia inferida ficar mais especifica que `FastifyInstance` generico
+// (com `FastifyBaseLogger`) — anotar aqui quebraria por invariancia do
+// generico `childLoggerFactory`. Quem chama `buildApp()` so usa o valor
+// (`app.inject`, `app.close`, `app.listen`), nunca anota o tipo do retorno.
+export async function buildApp() {
   const app = Fastify({
-    logger: env.NODE_ENV === 'development' ? { level: 'info' } : true,
+    // Mesma instancia pino do worker (RF03-I04) — os dois processos passam a
+    // logar no mesmo formato estruturado, correlavel entre si.
+    loggerInstance: logger,
     bodyLimit: SIMULATION_BODY_LIMIT_BYTES,
   });
 

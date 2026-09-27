@@ -2,6 +2,8 @@ import { Worker } from 'bullmq';
 import type { SimulationResult } from '@tplab/shared';
 import { createRedisConnection } from './lib/redis.js';
 import { env } from './config/env.js';
+import { logger } from './lib/logger.js';
+import { recordJobOutcome } from './lib/metrics.js';
 import {
   SIMULATION_QUEUE,
   type SimulationJobData,
@@ -9,7 +11,11 @@ import {
 } from './modules/simulation/queue.js';
 import { parseIcarusDiagnostics } from './modules/simulation/diagnostics.js';
 import { attachHints } from './modules/simulation/hints.js';
+import { buildJobLogRecord } from './modules/simulation/job-log.js';
 import { runInSandbox } from './modules/simulation/sandbox.js';
+
+/** Conexao separada da do BullMQ (RF03-I04) — so para os contadores em `lib/metrics.ts`. */
+const metricsConnection = createRedisConnection();
 
 /**
  * Consumidor da fila: cada job vira um container efemero. Rodar como processo
@@ -22,6 +28,20 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
     const diagnostics = attachHints(
       parseIcarusDiagnostics(outcome.stderr, [job.data.design.name, job.data.testbench.name]),
     );
+
+    logger.info(
+      buildJobLogRecord({
+        jobId: String(job.id),
+        sources: job.data,
+        outcome,
+        queuedAt: job.timestamp,
+        processedAt: job.processedOn,
+      }),
+      'job de simulacao concluido',
+    );
+    await recordJobOutcome(metricsConnection, outcome).catch((cause: unknown) => {
+      logger.warn({ err: cause }, 'falha ao gravar metricas do worker no Redis');
+    });
 
     return {
       failure: outcome.failure,
@@ -43,7 +63,7 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
 );
 
 worker.on('failed', (job, error) => {
-  console.error(`[worker] job ${job?.id ?? '?'} falhou:`, error.message);
+  logger.error({ jobId: job?.id ?? null, err: error }, 'job falhou antes de produzir um resultado');
 });
 
 // Sem listener aqui, um erro de conexao (Redis fora do ar) sobe como excecao
@@ -51,10 +71,10 @@ worker.on('failed', (job, error) => {
 // tem do lado da API, so que o Worker precisa da conexao ativa para consumir a
 // fila, entao o erro aparece de verdade (aqui, nao so ao enfileirar um job).
 worker.on('error', (error) => {
-  console.error('[worker] erro de conexao com o Redis:', error.message);
+  logger.error({ err: error }, 'erro de conexao com o Redis');
 });
 
-console.log(`[worker] escutando a fila "${SIMULATION_QUEUE}" (imagem ${env.SANDBOX_IMAGE})`);
+logger.info({ image: env.SANDBOX_IMAGE }, `escutando a fila "${SIMULATION_QUEUE}"`);
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.once(signal, () => {
