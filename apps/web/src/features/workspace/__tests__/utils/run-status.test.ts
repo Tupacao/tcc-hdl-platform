@@ -37,6 +37,7 @@ function resultWith(
     vcd: null,
     durationMs,
     finishedAt: null,
+    queuePosition: null,
   };
 }
 

@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Parcial — I01 (limites e validacao de submissao) concluida; faltam I02 (rate limit e fila cheia), I03 (retencao de resultados) e I04 (observabilidade do worker) |
+| Status | Parcial — I01 (limites e validacao de submissao) concluida; I02 (rate limit e fila cheia) com o backend concluido, falta o frontend; faltam I03 (retencao de resultados) e I04 (observabilidade do worker) |
 | Requisitos relacionados | RF04, RF05, RNF04, RNF05, RNF07, RNF08 |
 
 ## 1. Enunciado
@@ -99,7 +99,7 @@ alterados de um lado so):
       diagnosticos.
 - [ ] Nenhuma execucao de `iverilog` acontece no processo da API.
 - [x] Submissao acima dos limites e rejeitada com `400` e mensagem clara. _(I01)_
-- [ ] Rajada de submissoes e limitada, com `429`, sem derrubar a API.
+- [x] Rajada de submissoes e limitada, com `429`, sem derrubar a API. _(I02)_
 - [ ] Resultados antigos deixam de ocupar o Redis indefinidamente.
 
 ## 8. Quebra em issues
@@ -107,7 +107,7 @@ alterados de um lado so):
 | Issue | Titulo | Branch | Tamanho | Status |
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-limites-de-submissao.md) | Limites e validacao de submissao | `feat-RF03-01-limites-de-submissao-back` | P | Concluido |
-| [issue-02](issue-02-rate-limit-e-fila-cheia.md) | Rate limit e tratamento de fila saturada | `feat/rf03-rate-limit-e-fila-cheia` | M | |
+| [issue-02](issue-02-rate-limit-e-fila-cheia.md) | Rate limit e tratamento de fila saturada | `feat-RF03-02-rate-limit-e-fila-cheia-back` | M | Parcial (back) |
 | [issue-03](issue-03-retencao-resultados-job.md) | Retencao e expiracao dos resultados de job | `feat/rf03-retencao-resultados-job` | P | |
 | [issue-04](issue-04-observabilidade-worker.md) | Logs estruturados e metricas do worker | `feat/rf03-observabilidade-worker` | M | |
 

@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF03](feature.md) |
-| Branch | `feat/rf03-rate-limit-e-fila-cheia` |
+| Branch | `feat-RF03-02-rate-limit-e-fila-cheia-back` (backend); frontend em branch separada, ver nota abaixo |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | RF03-I01 |
 
@@ -60,14 +60,37 @@ explicito de fila congestionada em vez de espera silenciosa.
 
 ## Criterios de aceite
 
-- [ ] Onze submissoes seguidas da mesma origem em um minuto: a decima primeira
-      retorna `429` com `Retry-After` e corpo no formato `ApiErrorSchema`.
-- [ ] Listar projetos continua funcionando normalmente apos o `429` de simulacao.
-- [ ] Com a fila acima do teto, novas submissoes retornam `503` com mensagem
-      distinta da mensagem de "Redis indisponivel".
+- [x] Onze submissoes seguidas da mesma origem em um minuto: a decima primeira
+      retorna `429` com `Retry-After` e corpo no formato `ApiErrorSchema`. _(back)_
+- [x] Listar projetos continua funcionando normalmente apos o `429` de simulacao. _(back)_
+- [x] Com a fila acima do teto, novas submissoes retornam `503` com mensagem
+      distinta da mensagem de "Redis indisponivel". _(back — verificado por
+      leitura de codigo; nao ha como simular fila cheia sem Redis real neste
+      ambiente, ver Verificacao abaixo)_
 - [ ] Enquanto o job esta `queued`, o resultado traz `queuePosition` e a
-      interface mostra a posicao.
-- [ ] Nenhum job entra na fila quando a submissao e recusada.
+      interface mostra a posicao. _(backend calcula e devolve `queuePosition`;
+      falta a interface mostrar "na fila (posicao N)")_
+- [x] Nenhum job entra na fila quando a submissao e recusada. _(back — tanto o
+      429 quanto o 503 de fila cheia retornam antes de `simulationQueue.add`)_
+
+## Nota de implementacao
+
+Divida em duas branches (`docs/ARCHITECTURE.md` — front e back nunca
+compartilham branch): `feat-RF03-02-rate-limit-e-fila-cheia-back` cobre tudo
+de `apps/api` e `packages/shared` listado no escopo tecnico; a mudanca de
+`apps/web/src/lib/api.ts` e `features/workspace/workspace.tsx` (passo 6 e 7 do
+passo a passo — diferenciar 429/503/rede no toast e mostrar "na fila (posicao
+N)") fica para uma branch de frontend separada.
+
+O rate limit de 11 submissoes foi testado enviando corpos invalidos
+propositalmente (`topModule` vazio) — o hook de `@fastify/rate-limit` roda em
+`onRequest`, antes da validacao do corpo, entao o teto e contado do mesmo jeito
+sem precisar de uma submissao valida (que exigiria Redis real, indisponivel
+neste ambiente de teste). O caso de fila cheia (`getWaitingCount() >=
+SIMULATION_MAX_QUEUE_DEPTH`) nao tem teste automatizado pelo mesmo motivo —
+verificado por leitura de codigo; a verificacao manual com Redis real (rajada
+de `curl`, sugerida abaixo) fica pendente para quando o ambiente tiver Redis
+no ar.
 
 ## Verificacao
 

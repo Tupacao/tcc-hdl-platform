@@ -94,6 +94,16 @@ export async function buildApp(): Promise<FastifyInstance> {
       });
     }
 
+    if (error.statusCode === 429) {
+      // @fastify/rate-limit ja define o cabecalho Retry-After antes de lancar;
+      // so trocamos o corpo pela mensagem em portugues no formato ApiErrorSchema.
+      return reply.status(429).send({
+        statusCode: 429,
+        error: 'Too Many Requests',
+        message: 'Muitas simulacoes em sequencia. Aguarde antes de tentar novamente.',
+      });
+    }
+
     request.log.error(error);
     const statusCode = error.statusCode ?? 500;
     return reply.status(statusCode).send({

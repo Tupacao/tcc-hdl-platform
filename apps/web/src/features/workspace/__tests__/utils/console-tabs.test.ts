@@ -27,6 +27,7 @@ function resultWith(diagnostics: Diagnostic[]): SimulationResult {
     vcd: null,
     durationMs: 10,
     finishedAt: null,
+    queuePosition: null,
   };
 }
 

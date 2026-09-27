@@ -31,6 +31,8 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
       vcd: outcome.vcd,
       durationMs: outcome.durationMs,
       finishedAt: new Date().toISOString(),
+      // O job terminou de processar — por definicao nao esta mais na fila (RF03-I02).
+      queuePosition: null,
     } satisfies Omit<SimulationResult, 'jobId' | 'status'>;
   },
   {
