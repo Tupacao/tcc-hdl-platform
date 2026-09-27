@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Parcial — I01 (limites e validacao de submissao) e I02 (rate limit e fila cheia) concluidas; faltam I03 (retencao de resultados) e I04 (observabilidade do worker) |
+| Status | Parcial — I01, I02 e I03 concluidas; falta I04 (observabilidade do worker) |
 | Requisitos relacionados | RF04, RF05, RNF04, RNF05, RNF07, RNF08 |
 
 ## 1. Enunciado
@@ -107,7 +107,7 @@ alterados de um lado so):
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-limites-de-submissao.md) | Limites e validacao de submissao | `feat-RF03-01-limites-de-submissao-back` | P | Concluido |
 | [issue-02](issue-02-rate-limit-e-fila-cheia.md) | Rate limit e tratamento de fila saturada | `feat-RF03-02-rate-limit-e-fila-cheia-back` + `-front` | M | Concluido |
-| [issue-03](issue-03-retencao-resultados-job.md) | Retencao e expiracao dos resultados de job | `feat/rf03-retencao-resultados-job` | P | |
+| [issue-03](issue-03-retencao-resultados-job.md) | Retencao e expiracao dos resultados de job | `feat-RF03-03-retencao-resultados-job-back` + `-front` | P | Concluido |
 | [issue-04](issue-04-observabilidade-worker.md) | Logs estruturados e metricas do worker | `feat/rf03-observabilidade-worker` | M | |
 
 ## 9. Dependencias
