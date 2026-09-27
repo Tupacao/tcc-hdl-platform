@@ -30,6 +30,16 @@ export const DiagnosticSchema = z.object({
 /** Estados do job na fila de compilacao/simulacao (BullMQ). */
 export const JobStatusSchema = z.enum(['queued', 'running', 'succeeded', 'failed']);
 
+/**
+ * Quais artefatos vieram cortados por teto de tamanho (RF04-I02) — flag
+ * estruturada em vez de a interface ter que adivinhar pelo conteudo.
+ */
+export const TruncatedFlagsSchema = z.object({
+  stdout: z.boolean(),
+  stderr: z.boolean(),
+  vcd: z.boolean(),
+});
+
 /** Motivo da falha, para o frontend diferenciar erro do usuario de erro da plataforma. */
 export const SimulationFailureSchema = z.enum([
   'compile_error',
@@ -68,10 +78,12 @@ export const SimulationResultSchema = z.object({
   finishedAt: IsoDateSchema.nullable(),
   /** Posicao (1-based) na fila de espera; `null` fora do status `queued`. */
   queuePosition: z.number().int().nonnegative().nullable(),
+  truncated: TruncatedFlagsSchema,
 });
 
 export type Diagnostic = z.infer<typeof DiagnosticSchema>;
 export type JobStatus = z.infer<typeof JobStatusSchema>;
+export type TruncatedFlags = z.infer<typeof TruncatedFlagsSchema>;
 export type SimulationFailure = z.infer<typeof SimulationFailureSchema>;
 export type CompileRequest = z.infer<typeof CompileRequestSchema>;
 export type SimulationJob = z.infer<typeof SimulationJobSchema>;

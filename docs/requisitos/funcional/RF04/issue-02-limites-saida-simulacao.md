@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF04](feature.md) |
-| Branch | `feat/rf04-limites-saida-simulacao` |
+| Branch | `feat-RF04-02-limites-saida-simulacao-back` (backend); frontend em branch separada, ver Nota de implementacao |
 | Tamanho | P (aprox. 0,5 dia) |
 | Depende de | - |
 
@@ -60,13 +60,19 @@ silencio.
 
 ## Criterios de aceite
 
-- [ ] `stdout` acima do teto chega cortado, com as ultimas linhas preservadas e
-      aviso do corte.
-- [ ] `.vcd` acima do teto chega cortado no fim de uma linha, com o cabecalho
-      intacto.
-- [ ] `result.truncated` indica corretamente qual artefato foi cortado.
+- [x] `stdout` acima do teto chega cortado, com as ultimas linhas preservadas e
+      aviso do corte. _(back — verificado ao vivo: testbench com 20 mil
+      `$display` voltou com `stdout.length` no teto exato e terminando na
+      linha de `$finish`, a mais informativa)_
+- [x] `.vcd` acima do teto chega cortado no fim de uma linha, com o cabecalho
+      intacto. _(back — mesma logica de RF03-I03, agora com o teto vindo de
+      `env.MAX_VCD_BYTES`)_
+- [x] `result.truncated` indica corretamente qual artefato foi cortado. _(back)_
 - [ ] A interface avisa o corte em vez de mostrar dado incompleto sem contexto.
-- [ ] Uma simulacao normal dos exemplos nao dispara nenhum aviso de truncamento.
+      _(front — pendente, ver Nota de implementacao)_
+- [x] Uma simulacao normal dos exemplos nao dispara nenhum aviso de
+      truncamento. _(os testes de `sandbox.test.ts` cobrem o caso "cabe no
+      limite"; os exemplos de `samples.ts` ficam bem abaixo dos tetos)_
 
 ## Verificacao
 
@@ -77,6 +83,22 @@ pnpm typecheck
 ```
 
 Manual: testbench com `always #1 $display("x");` e sem `$finish`.
+
+## Nota de implementacao
+
+Dividido em duas branches (`docs/ARCHITECTURE.md` — front e back nunca
+compartilham branch): `feat-RF04-02-limites-saida-simulacao-back` cobre
+`env.ts`, `sandbox.ts`, `worker.ts`, `routes.ts` e `SimulationResultSchema`; a
+exibicao do aviso em `ConsolePanel`/`WaveformPanel` fica para uma branch de
+frontend separada.
+
+O corte na origem (passo 5 — `head -c` dentro do container, via
+`run-simulation.sh`) ficou fora: o problema que resolveria (bytes demais
+atravessando o socket do Docker) so aparece em escala bem maior que qualquer
+simulacao real do MVP produz, e mexer no `/bin/sh` do Alpine sem
+`pipefail` para preservar o codigo de saida do `vvp` e risco desproporcional
+ao ganho agora — revisar se RNF07-I02 (medicao de overhead do Docker)
+apontar isso como gargalo real.
 
 ## Riscos
 
