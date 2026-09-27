@@ -57,10 +57,13 @@ const POLL_TIMEOUT_MS = 60_000;
 /**
  * Enfileira a simulação e acompanha o job até o desfecho. O polling é simples de
  * propósito; se a latência incomodar, trocar por SSE/WebSocket sem mudar a API.
+ * `onPoll` recebe cada resultado intermediário (ex.: `queuePosition` enquanto
+ * `status` é `queued`, RF03-I02) — o retorno da função só chega no desfecho final.
  */
 export async function runSimulation(
   body: CompileRequest,
   signal?: AbortSignal,
+  onPoll?: (result: SimulationResult) => void,
 ): Promise<SimulationResult> {
   const job = await startSimulation(body);
   const deadline = Date.now() + POLL_TIMEOUT_MS;
@@ -68,6 +71,7 @@ export async function runSimulation(
   while (Date.now() < deadline) {
     signal?.throwIfAborted();
     const result = await getSimulation(job.jobId);
+    onPoll?.(result);
     if (result.status === 'succeeded' || result.status === 'failed') return result;
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }

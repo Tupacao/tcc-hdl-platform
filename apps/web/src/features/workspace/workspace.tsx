@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Panel, PanelGroup, type ImperativePanelGroupHandle } from 'react-resizable-panels';
 import { toast } from 'sonner';
 import type { Diagnostic, HdlSources, SimulationResult } from '@tplab/shared';
+import { ApiRequestError } from '@/lib/api';
 import {
   buildExportFileName,
   buildProjectZip,
@@ -104,6 +105,8 @@ export function Workspace({
 
   const result = lastResult;
   const error = runMutation.error?.message ?? null;
+  const errorStatus =
+    runMutation.error instanceof ApiRequestError ? runMutation.error.status : null;
   const isRunning = runMutation.isPending;
 
   const handleRun = useCallback(() => {
@@ -250,7 +253,14 @@ export function Workspace({
   }
 
   const activeFile = sources[activeTab];
-  const runStatus = buildRunStatus({ result, error, isRunning });
+  const runStatus = buildRunStatus({
+    result,
+    error,
+    errorStatus,
+    isRunning,
+    queued: runMutation.queued,
+    queuePosition: runMutation.queuePosition,
+  });
   const filesWithErrors = {
     design: (result?.diagnostics ?? []).some(
       (d) => d.severity === 'error' && d.file === sources.design.name,

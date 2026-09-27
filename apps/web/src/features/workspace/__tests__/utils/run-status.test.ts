@@ -52,15 +52,23 @@ test('formatCounts concorda o plural', () => {
   assert.equal(formatCounts(2, 3), '2 erros · 3 avisos');
 });
 
+const IDLE_INPUT = {
+  result: null,
+  error: null,
+  errorStatus: null,
+  queued: false,
+  queuePosition: null,
+};
+
 test('sem resultado a barra fica ociosa; executando mostra o andamento', () => {
-  assert.equal(buildRunStatus({ result: null, error: null, isRunning: false }).kind, 'idle');
-  assert.equal(buildRunStatus({ result: null, error: null, isRunning: true }).kind, 'running');
+  assert.equal(buildRunStatus({ ...IDLE_INPUT, isRunning: false }).kind, 'idle');
+  assert.equal(buildRunStatus({ ...IDLE_INPUT, isRunning: true }).kind, 'running');
 });
 
 test('sucesso com aviso mostra desfecho, duração e contagem', () => {
   const status = buildRunStatus({
+    ...IDLE_INPUT,
     result: resultWith([diag('warning')]),
-    error: null,
     isRunning: false,
   });
   assert.equal(status.kind, 'success');
@@ -72,8 +80,8 @@ test('sucesso com aviso mostra desfecho, duração e contagem', () => {
 
 test('erro de compilação informa que a simulação não rodou', () => {
   const status = buildRunStatus({
+    ...IDLE_INPUT,
     result: resultWith([diag('error')], 'compile_error', 120),
-    error: null,
     isRunning: false,
   });
   assert.equal(status.kind, 'failure');
@@ -84,22 +92,73 @@ test('erro de compilação informa que a simulação não rodou', () => {
 
 test('timeout e falha de requisição são falhas sem detalhe de compilação', () => {
   const timeout = buildRunStatus({
+    ...IDLE_INPUT,
     result: resultWith([], 'timeout', 10000),
-    error: null,
     isRunning: false,
   });
   assert.equal(timeout.label, 'Tempo limite excedido');
   assert.equal(timeout.detail, null);
 
-  const request = buildRunStatus({ result: null, error: 'Muitas execuções', isRunning: false });
+  const request = buildRunStatus({ ...IDLE_INPUT, error: 'Muitas execuções', isRunning: false });
   assert.equal(request.kind, 'failure');
   assert.equal(request.label, 'Falha ao executar');
 });
 
+test('RF03-I02: job na fila mostra a posição na barra de estado', () => {
+  const withPosition = buildRunStatus({
+    ...IDLE_INPUT,
+    isRunning: true,
+    queued: true,
+    queuePosition: 3,
+  });
+  assert.equal(withPosition.kind, 'queued');
+  assert.equal(withPosition.label, 'Na fila');
+  assert.equal(withPosition.detail, 'posição 3');
+
+  const withoutPosition = buildRunStatus({
+    ...IDLE_INPUT,
+    isRunning: true,
+    queued: true,
+    queuePosition: null,
+  });
+  assert.equal(withoutPosition.detail, 'aguardando um executor livre');
+});
+
+test('RF03-I02: 429 e 503 têm rótulos distintos de uma falha de rede genérica', () => {
+  const rateLimited = buildRunStatus({
+    ...IDLE_INPUT,
+    isRunning: false,
+    error: 'Muitas simulacoes em sequencia. Aguarde antes de tentar novamente.',
+    errorStatus: 429,
+  });
+  assert.equal(rateLimited.label, 'Limite de uso atingido');
+  assert.equal(
+    rateLimited.detail,
+    'Muitas simulacoes em sequencia. Aguarde antes de tentar novamente.',
+  );
+
+  const serviceUnavailable = buildRunStatus({
+    ...IDLE_INPUT,
+    isRunning: false,
+    error: 'Fila de simulacoes cheia. Tente novamente em alguns minutos.',
+    errorStatus: 503,
+  });
+  assert.equal(serviceUnavailable.label, 'Não foi possível executar');
+  assert.equal(serviceUnavailable.detail, 'problema no servidor');
+
+  const network = buildRunStatus({
+    ...IDLE_INPUT,
+    isRunning: false,
+    error: 'Failed to fetch',
+    errorStatus: null,
+  });
+  assert.equal(network.label, 'Falha ao executar');
+});
+
 test('announcementFor junta as partes presentes em uma frase só', () => {
   const status = buildRunStatus({
+    ...IDLE_INPUT,
     result: resultWith([diag('error')], 'compile_error', 120),
-    error: null,
     isRunning: false,
   });
   assert.equal(

@@ -44,7 +44,8 @@ export function StatusBar({
             'flex items-center gap-1.5 font-medium',
             status.kind === 'success' && 'text-success',
             status.kind === 'failure' && 'text-destructive',
-            (status.kind === 'idle' || status.kind === 'running') && 'text-muted-foreground',
+            (status.kind === 'idle' || status.kind === 'running' || status.kind === 'queued') &&
+              'text-muted-foreground',
           )}
         >
           {status.kind === 'success' && <Check aria-hidden className="size-3" />}
