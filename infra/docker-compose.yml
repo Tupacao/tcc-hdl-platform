@@ -24,7 +24,10 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: ['redis-server', '--appendonly', 'yes']
+    # noeviction: um job de simulacao (fila BullMQ) nunca pode ser descartado em
+    # silencio por pressao de memoria — a retencao quem controla e JOB_RETENTION_*
+    # (RF03-I03), nao uma politica de cache do Redis.
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory-policy', 'noeviction']
     ports:
       - '6379:6379'
     volumes:

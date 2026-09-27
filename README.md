@@ -158,8 +158,10 @@ Ja implementado:
   divisores com semantica acessivel (ARIA, rotulos, ajuste por teclado)
 
 Evidencia de desempenho (RNF07), medida com o painel de performance do Chrome
-sobre um `.vcd` real de ~8 MiB (teto do sandbox, truncado) gerado por uma
-simulacao de ~400 mil ciclos de clock:
+sobre um `.vcd` real de ~8 MiB (teto do sandbox na epoca da medicao, truncado)
+gerado por uma simulacao de ~400 mil ciclos de clock. O teto foi reduzido para
+2 MiB desde entao (RF03-I03, ver abaixo) — o numero aqui documenta o parser
+sob a carga que ele enfrentou, nao o teto atual:
 
 - Parse (worker, incluindo ida e volta de `postMessage`): **~1823 ms**, fora da
   main thread — a UI permanece responsiva durante a interpretacao.
@@ -170,6 +172,21 @@ simulacao de ~400 mil ciclos de clock:
   porque `sliceTransitionsForViewport` (busca binaria) e
   `reduceSegmentsForPixels` (reducao por coluna de pixel) limitam o trabalho de
   desenho ao intervalo de tempo realmente visivel.
+
+Retencao e memoria do Redis (RF03-I03): `MAX_VCD_BYTES` caiu de 8 MiB para
+2 MiB e `stdout`/`stderr` passaram a ser truncados em 256 KB cada, com aviso
+explicito no corte — o corte do `.vcd` sempre fica no fim de uma linha
+completa, para o parser de RF06 nunca receber um registro pela metade.
+Medido contra o Redis real deste ambiente
+(`docker exec tplab-redis-1 redis-cli info memory`), submetendo simulacoes
+que batem no novo teto de 2 MiB (contador de 32 bits por ~400 mil ciclos):
+cada job retido custou **~7,5 MiB** de `used_memory` (dois jobs consecutivos:
++7,45 MiB e +7,54 MiB). Com `JOB_RETENTION_COUNT=100`, o pior caso sustentado
+(100 jobs simultaneamente retidos, todos no teto) fica em torno de **~750 MiB**
+— dentro da memoria da VM B2s de producao (4 GiB) mesmo no cenario mais caro;
+o limite antigo (8 MiB de `.vcd`, ate 500 jobs retidos) nao tinha teto
+equivalente medido, mas a conta ingenua (8 MiB x 500) ja excedia os 4 GiB
+sozinha, sem contar overhead do Redis.
 
 Pendente:
 

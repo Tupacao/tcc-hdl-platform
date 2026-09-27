@@ -73,8 +73,7 @@ alterados de um lado so):
 - `infra/sandbox/Dockerfile` e `run-simulation.sh`: imagem com `iverilog`.
 - `packages/shared/src/schemas/hdl.ts`: `MAX_SOURCE_BYTES` de 256 KB e regex de
   nome de arquivo.
-- **Falta**: protecao contra abuso (rate limit), retencao/expiracao do resultado
-  do job, tratamento explicito de fila cheia e observabilidade do worker.
+- **Falta**: observabilidade do worker (I04).
 
 ## 6. Escopo
 
@@ -100,7 +99,7 @@ alterados de um lado so):
 - [ ] Nenhuma execucao de `iverilog` acontece no processo da API.
 - [x] Submissao acima dos limites e rejeitada com `400` e mensagem clara. _(I01)_
 - [x] Rajada de submissoes e limitada, com `429`, sem derrubar a API. _(I02)_
-- [ ] Resultados antigos deixam de ocupar o Redis indefinidamente.
+- [x] Resultados antigos deixam de ocupar o Redis indefinidamente. _(I03)_
 
 ## 8. Quebra em issues
 

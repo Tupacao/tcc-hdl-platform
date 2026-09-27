@@ -10,6 +10,13 @@ const EnvSchema = z
     REDIS_URL: z.string().default('redis://localhost:6379'),
     /** Acima disso, novas submissoes sao recusadas com 503 (RF03-I02). */
     SIMULATION_MAX_QUEUE_DEPTH: z.coerce.number().int().positive().default(50),
+    /**
+     * Retencao dos resultados no Redis (RF03-I03). 1800s cobre com folga o
+     * `POLL_TIMEOUT_MS` (60s) do polling em `apps/web/src/lib/api.ts` — nunca
+     * baixar disso, ou uma rede lenta perde o resultado no meio do polling.
+     */
+    JOB_RETENTION_SECONDS: z.coerce.number().int().positive().default(1800),
+    JOB_RETENTION_COUNT: z.coerce.number().int().positive().default(100),
     /** Sem ela, projetos persistem em memoria (RF07) — obrigatoria em producao. */
     DATABASE_URL: z.string().optional(),
 

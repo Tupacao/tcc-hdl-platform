@@ -7,8 +7,16 @@ import { env } from '../../config/env.js';
 
 const docker = new Docker();
 
-/** Teto do .vcd devolvido ao navegador — evita estourar a memoria do visualizador. */
-const MAX_VCD_BYTES = 8 * 1024 * 1024;
+/**
+ * Teto do .vcd devolvido ao navegador (RF03-I03). Cada job retido no Redis
+ * carrega esse conteudo inteiro em `returnvalue` — 500 jobs no limite antigo de
+ * 8 MB seriam 4 GB, mais que a memoria da VM B2s de producao. 2 MB cobre com
+ * folga os exemplos de `apps/web/src/lib/samples.ts`.
+ */
+const MAX_VCD_BYTES = 2 * 1024 * 1024;
+
+/** Teto de stdout/stderr retidos por job (RF03-I03), pelo mesmo motivo do .vcd. */
+const MAX_OUTPUT_BYTES = 256 * 1024;
 
 /** Codigos de saida definidos por `infra/sandbox/run-simulation.sh`. */
 const EXIT_COMPILE_ERROR = 2;
@@ -86,8 +94,8 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
       return {
         exitCode,
         failure: mapFailure(timedOut ? EXIT_TIMEOUT : exitCode),
-        stdout,
-        stderr,
+        stdout: truncateOutput(stdout),
+        stderr: truncateOutput(stderr),
         vcd,
         durationMs: Date.now() - startedAt,
       };
@@ -124,7 +132,25 @@ async function readVcd(workdir: string): Promise<string | null> {
   const content = await readFile(join(workdir, vcdName), 'utf8').catch(() => null);
   if (content === null) return null;
 
-  return content.length > MAX_VCD_BYTES ? content.slice(0, MAX_VCD_BYTES) : content;
+  return truncateAtLineBoundary(content, MAX_VCD_BYTES);
+}
+
+/**
+ * Corta no ultimo `\n` dentro do limite, nunca no meio de uma linha — o parser
+ * de RF06 le o .vcd linha a linha e ja tolera um corte assim (marca
+ * `truncated: true` e para no ultimo registro completo), mas uma linha pela
+ * metade no meio de um token multi-byte quebraria a leitura do arquivo inteiro.
+ */
+export function truncateAtLineBoundary(content: string, maxBytes: number): string {
+  if (content.length <= maxBytes) return content;
+  const lastNewline = content.lastIndexOf('\n', maxBytes);
+  return lastNewline === -1 ? content.slice(0, maxBytes) : content.slice(0, lastNewline + 1);
+}
+
+/** Trunca stdout/stderr retidos (RF03-I03), com um aviso explicito no corte. */
+export function truncateOutput(text: string, maxBytes = MAX_OUTPUT_BYTES): string {
+  if (text.length <= maxBytes) return text;
+  return `${text.slice(0, maxBytes)}\n[saida truncada em ${Math.round(maxBytes / 1024)} KB]`;
 }
 
 /**
