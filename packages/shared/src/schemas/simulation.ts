@@ -66,6 +66,8 @@ export const SimulationResultSchema = z.object({
   /** Tempo total de execucao no sandbox, em ms (RNF07: alvo < 5000). */
   durationMs: z.number().int().nonnegative(),
   finishedAt: IsoDateSchema.nullable(),
+  /** Posicao (1-based) na fila de espera; `null` fora do status `queued`. */
+  queuePosition: z.number().int().nonnegative().nullable(),
 });
 
 export type Diagnostic = z.infer<typeof DiagnosticSchema>;

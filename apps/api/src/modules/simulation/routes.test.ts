@@ -95,3 +95,47 @@ test('POST /api/simulations com corpo acima do bodyLimit retorna 413 com JSON va
 
   await app.close();
 });
+
+/**
+ * Cobre RF03-I02: limite de 10 submissoes/min por origem em POST
+ * /api/simulations. O corpo enviado e deliberadamente invalido (`topModule`
+ * vazio) — o hook de rate limit roda em `onRequest`, antes da validacao do
+ * corpo, entao o teto e contado igual com um corpo que nunca chegaria a
+ * enfileirar nada (evita depender de Redis, indisponivel neste ambiente).
+ */
+test('POST /api/simulations: a 11a submissao no mesmo minuto retorna 429 com Retry-After', async () => {
+  const app = await buildApp();
+  const body = validCompileRequestBody();
+  body.topModule = '';
+
+  for (let i = 0; i < 10; i += 1) {
+    const response = await app.inject({ method: 'POST', url: '/api/simulations', payload: body });
+    assert.equal(response.statusCode, 400, `submissao ${i + 1} deveria falhar por validacao`);
+  }
+
+  const eleventh = await app.inject({ method: 'POST', url: '/api/simulations', payload: body });
+
+  assert.equal(eleventh.statusCode, 429);
+  assert.ok(eleventh.headers['retry-after'], 'esperava o cabecalho Retry-After');
+  const payload = eleventh.json();
+  assert.equal(payload.statusCode, 429);
+  assert.equal(payload.error, 'Too Many Requests');
+  assert.equal(typeof payload.message, 'string');
+
+  await app.close();
+});
+
+test('POST /api/simulations sob rate limit nao afeta GET /api/projects', async () => {
+  const app = await buildApp();
+  const body = validCompileRequestBody();
+  body.topModule = '';
+
+  for (let i = 0; i < 11; i += 1) {
+    await app.inject({ method: 'POST', url: '/api/simulations', payload: body });
+  }
+
+  const projects = await app.inject({ method: 'GET', url: '/api/projects' });
+  assert.equal(projects.statusCode, 200);
+
+  await app.close();
+});

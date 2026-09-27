@@ -8,6 +8,8 @@ const EnvSchema = z
     CORS_ORIGIN: z.string().default('http://localhost:5173'),
 
     REDIS_URL: z.string().default('redis://localhost:6379'),
+    /** Acima disso, novas submissoes sao recusadas com 503 (RF03-I02). */
+    SIMULATION_MAX_QUEUE_DEPTH: z.coerce.number().int().positive().default(50),
     /** Sem ela, projetos persistem em memoria (RF07) — obrigatoria em producao. */
     DATABASE_URL: z.string().optional(),
 
