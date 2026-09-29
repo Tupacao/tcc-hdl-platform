@@ -2,21 +2,10 @@ import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Docker from 'dockerode';
-import type { HdlSources, SimulationFailure } from '@tplab/shared';
+import type { HdlSources, SimulationFailure, TruncatedFlags } from '@tplab/shared';
 import { env } from '../../config/env.js';
 
 const docker = new Docker();
-
-/**
- * Teto do .vcd devolvido ao navegador (RF03-I03). Cada job retido no Redis
- * carrega esse conteudo inteiro em `returnvalue` — 500 jobs no limite antigo de
- * 8 MB seriam 4 GB, mais que a memoria da VM B2s de producao. 2 MB cobre com
- * folga os exemplos de `apps/web/src/lib/samples.ts`.
- */
-const MAX_VCD_BYTES = 2 * 1024 * 1024;
-
-/** Teto de stdout/stderr retidos por job (RF03-I03), pelo mesmo motivo do .vcd. */
-const MAX_OUTPUT_BYTES = 256 * 1024;
 
 /** Codigos de saida definidos por `infra/sandbox/run-simulation.sh`. */
 const EXIT_COMPILE_ERROR = 2;
@@ -32,6 +21,8 @@ export interface SandboxOutcome {
   vcd: string | null;
   durationMs: number;
   timings: SandboxTimings;
+  /** RF04-I02 — quais dos tres artefatos acima vieram cortados por teto de tamanho. */
+  truncated: TruncatedFlags;
 }
 
 /**
@@ -109,17 +100,24 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
       const artifactsReadStartedAt = Date.now();
       const logs = await container.logs({ stdout: true, stderr: true, follow: false });
       const { stdout, stderr } = demuxDockerLogs(logs as unknown as Buffer);
-      const vcd = await readVcd(workdir);
+      const stdoutResult = truncateFromEnd(stdout, env.MAX_STDOUT_BYTES);
+      const stderrResult = truncateFromEnd(stderr, env.MAX_STDERR_BYTES);
+      const vcdResult = await readVcd(workdir);
       const artifactsReadMs = Date.now() - artifactsReadStartedAt;
 
       return {
         exitCode,
         failure: mapFailure(timedOut ? EXIT_TIMEOUT : exitCode),
-        stdout: truncateOutput(stdout),
-        stderr: truncateOutput(stderr),
-        vcd,
+        stdout: stdoutResult.text,
+        stderr: stderrResult.text,
+        vcd: vcdResult.text,
         durationMs: Date.now() - startedAt,
         timings: { containerCreateMs, executionMs, artifactsReadMs },
+        truncated: {
+          stdout: stdoutResult.truncated,
+          stderr: stderrResult.truncated,
+          vcd: vcdResult.truncated,
+        },
       };
     } finally {
       await container.remove({ force: true }).catch(() => undefined);
@@ -146,33 +144,55 @@ function mapFailure(exitCode: number): SimulationFailure | null {
   }
 }
 
-async function readVcd(workdir: string): Promise<string | null> {
+export interface TruncationResult {
+  text: string;
+  truncated: boolean;
+}
+
+async function readVcd(workdir: string): Promise<{ text: string | null; truncated: boolean }> {
   const entries = await readdir(workdir).catch(() => [] as string[]);
   const vcdName = entries.find((entry) => entry.endsWith('.vcd'));
-  if (!vcdName) return null;
+  if (!vcdName) return { text: null, truncated: false };
 
   const content = await readFile(join(workdir, vcdName), 'utf8').catch(() => null);
-  if (content === null) return null;
+  if (content === null) return { text: null, truncated: false };
 
-  return truncateAtLineBoundary(content, MAX_VCD_BYTES);
+  return truncateAtLineBoundary(content, env.MAX_VCD_BYTES);
 }
 
 /**
- * Corta no ultimo `\n` dentro do limite, nunca no meio de uma linha — o parser
- * de RF06 le o .vcd linha a linha e ja tolera um corte assim (marca
- * `truncated: true` e para no ultimo registro completo), mas uma linha pela
- * metade no meio de um token multi-byte quebraria a leitura do arquivo inteiro.
+ * Corta no ultimo `\n` dentro do limite, nunca no meio de uma linha — o
+ * cabecalho `$var` (inicio do arquivo) e obrigatorio para interpretar os
+ * valores, e o parser de RF06 le o .vcd linha a linha; ja tolera um corte
+ * assim (marca `truncated: true` e para no ultimo registro completo), mas uma
+ * linha pela metade no meio de um token multi-byte quebraria a leitura do
+ * arquivo inteiro.
  */
-export function truncateAtLineBoundary(content: string, maxBytes: number): string {
-  if (content.length <= maxBytes) return content;
+export function truncateAtLineBoundary(content: string, maxBytes: number): TruncationResult {
+  if (content.length <= maxBytes) return { text: content, truncated: false };
   const lastNewline = content.lastIndexOf('\n', maxBytes);
-  return lastNewline === -1 ? content.slice(0, maxBytes) : content.slice(0, lastNewline + 1);
+  const text = lastNewline === -1 ? content.slice(0, maxBytes) : content.slice(0, lastNewline + 1);
+  return { text, truncated: true };
 }
 
-/** Trunca stdout/stderr retidos (RF03-I03), com um aviso explicito no corte. */
-export function truncateOutput(text: string, maxBytes = MAX_OUTPUT_BYTES): string {
-  if (text.length <= maxBytes) return text;
-  return `${text.slice(0, maxBytes)}\n[saida truncada em ${Math.round(maxBytes / 1024)} KB]`;
+/**
+ * Corta stdout/stderr pelo fim (RF04-I02): as ultimas linhas costumam ser as
+ * informativas quando ha erro, ao contrario do `.vcd` (onde o cabecalho no
+ * inicio e obrigatorio). Recua ate a proxima quebra de linha para nao entregar
+ * o inicio do texto cortado no meio de uma linha.
+ */
+export function truncateFromEnd(text: string, maxBytes: number): TruncationResult {
+  if (text.length <= maxBytes) return { text, truncated: false };
+
+  const discardedBytes = text.length - maxBytes;
+  const rawKept = text.slice(discardedBytes);
+  const firstNewline = rawKept.indexOf('\n');
+  const kept = firstNewline === -1 ? rawKept : rawKept.slice(firstNewline + 1);
+
+  return {
+    text: `[${discardedBytes} bytes descartados do inicio]\n${kept}`,
+    truncated: true,
+  };
 }
 
 /**

@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Parcial — I01 (contrato de testbench) concluida; faltam I02 (limites/truncamento) e I03 (estados de execucao no frontend) |
+| Status | Parcial — I01 concluida; I02 (limites/truncamento) com o backend concluido, falta o frontend; falta I03 (estados de execucao no frontend) |
 | Requisitos relacionados | RF02, RF03, RF05, RF06, RNF04, RNF05, RNF07 |
 
 ## 1. Enunciado
@@ -79,8 +79,11 @@ ja limita a leitura por `MAX_VCD_BYTES`.
 - `apps/api/src/modules/simulation/testbench.ts`: analise heuristica do
   contrato do testbench (I01) — topModule declarado/instanciado,
   `$dumpfile`/`$dumpvars` presentes — sempre `warning`, nunca bloqueia.
-- **Falta**: limitar o volume de saida com aviso estruturado (I02) e dar
-  feedback de progresso/cancelamento durante a execucao no frontend (I03).
+- `stdout`/`stderr`/`.vcd` cortam em tetos configuraveis (`MAX_STDOUT_BYTES`/
+  `MAX_STDERR_BYTES`/`MAX_VCD_BYTES`) com `SimulationResultSchema.truncated`
+  sinalizando qual artefato foi cortado (I02, backend).
+- **Falta**: a interface avisar o corte usando `truncated` (I02, frontend) e
+  dar feedback de progresso/cancelamento durante a execucao (I03).
 
 ## 6. Escopo
 
@@ -119,7 +122,7 @@ ja limita a leitura por `MAX_VCD_BYTES`.
 | Issue | Titulo | Branch | Tamanho | Status |
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-contrato-testbench.md) | Contrato de testbench e coerencia do modulo de topo | `feat-RF04-01-contrato-testbench-back` | M | Concluido |
-| [issue-02](issue-02-limites-saida-simulacao.md) | Limites e truncamento da saida da simulacao | `feat/rf04-limites-saida-simulacao` | P | |
+| [issue-02](issue-02-limites-saida-simulacao.md) | Limites e truncamento da saida da simulacao | `feat-RF04-02-limites-saida-simulacao-back` | P | Parcial (back) |
 | [issue-03](issue-03-estados-execucao-frontend.md) | Estados de execucao e cancelamento no frontend | `feat-RF04-03-estados-execucao-frontend-front` | M | Concluido |
 
 ## 9. Dependencias

@@ -76,6 +76,7 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
       finishedAt: new Date().toISOString(),
       // O job terminou de processar — por definicao nao esta mais na fila (RF03-I02).
       queuePosition: null,
+      truncated: outcome.truncated,
     } satisfies Omit<SimulationResult, 'jobId' | 'status'>;
   },
   {

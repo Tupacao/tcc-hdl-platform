@@ -26,6 +26,28 @@ const EnvSchema = z
     SANDBOX_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
     SANDBOX_MEMORY_MB: z.coerce.number().int().positive().default(128),
     SANDBOX_CPUS: z.coerce.number().positive().default(0.5),
+    /**
+     * Tetos dos artefatos retidos por job (RF04-I02, dimensionados junto com
+     * RF03-I03 para nao ter dois numeros divergentes no mesmo Redis).
+     * `stdout`/`stderr` cortam pelo fim (as ultimas linhas costumam ser as
+     * informativas quando ha erro); `.vcd` corta pelo inicio (o cabecalho
+     * `$var` e obrigatorio para interpretar os valores).
+     */
+    MAX_STDOUT_BYTES: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(256 * 1024),
+    MAX_STDERR_BYTES: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(64 * 1024),
+    MAX_VCD_BYTES: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(2 * 1024 * 1024),
   })
   .refine((value) => value.NODE_ENV !== 'production' || Boolean(value.DATABASE_URL), {
     message: 'DATABASE_URL e obrigatoria quando NODE_ENV=production (RF07)',

@@ -128,6 +128,7 @@ export async function simulationRoutes(app: FastifyInstance): Promise<void> {
         durationMs: 0,
         finishedAt: null,
         queuePosition: status === 'queued' ? await getQueuePosition(job.id) : null,
+        truncated: { stdout: false, stderr: false, vcd: false },
       };
 
       if (status !== 'succeeded' || !job.returnvalue) {

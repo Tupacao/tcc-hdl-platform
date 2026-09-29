@@ -23,6 +23,7 @@ function outcome(overrides: Partial<SandboxOutcome> = {}): SandboxOutcome {
     vcd: null,
     durationMs: 500,
     timings: { containerCreateMs: 100, executionMs: 300, artifactsReadMs: 50 },
+    truncated: { stdout: false, stderr: false, vcd: false },
     ...overrides,
   };
 }
