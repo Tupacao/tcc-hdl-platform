@@ -57,6 +57,14 @@
   --code-string: #15803d;
   --code-comment: #5f6570;
   --code-operator: #1c1c22;
+
+  /* RF02-I02 — cromo do Monaco (tema customizado, nao vs/vs-dark padrao).
+     docs/design-system-fundamentos.md secao 8, quatro ultimas linhas. */
+  --editor-background: #fafafb;
+  --editor-line-number: #84848e;
+  --editor-current-line: #f1f1f4;
+  --editor-selection: #ffe3cc;
+  --editor-error-line: #fef2f2;
 }
 
 .dark {
@@ -99,6 +107,12 @@
   --code-string: #4ade80;
   --code-comment: #7b8290;
   --code-operator: #c7c7ce;
+
+  --editor-background: #0f0f14;
+  --editor-line-number: #5a5a66;
+  --editor-current-line: #17171e;
+  --editor-selection: #3a2a18;
+  --editor-error-line: #1c1013;
 }
 
 @theme inline {
@@ -142,6 +156,11 @@
   --color-code-string: var(--code-string);
   --color-code-comment: var(--code-comment);
   --color-code-operator: var(--code-operator);
+  --color-editor-background: var(--editor-background);
+  --color-editor-line-number: var(--editor-line-number);
+  --color-editor-current-line: var(--editor-current-line);
+  --color-editor-selection: var(--editor-selection);
+  --color-editor-error-line: var(--editor-error-line);
 }
 
 @layer base {
@@ -167,5 +186,11 @@
   body,
   #root {
     height: 100%;
+  }
+
+  /* RF02-I02 — linha com erro no Monaco (decoração aplicada por code-editor.tsx a
+     partir dos diagnósticos de severidade "error"; avisos não ganham este fundo). */
+  .tplab-editor-error-line {
+    background-color: var(--editor-error-line);
   }
 }

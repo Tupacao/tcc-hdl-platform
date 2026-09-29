@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Edicao de codigo |
-| Status | Parcial (Monaco integrado; falta linguagem propria e ergonomia) |
+| Status | Concluido — I01, I02 e I03 |
 | Requisitos relacionados | RF05, RF09, RF10, RF18, RNF01, RNF09 |
 
 ## 1. Enunciado
@@ -64,9 +64,12 @@ paleta de cores do editor tenha contraste AA nos dois temas.
 - `apps/web/src/features/workspace/code-editor.tsx` renderiza o editor.
 - `apps/web/src/features/workspace/workspace.tsx` mantem `sources` com duas abas
   (`design` e `testbench`), tipadas por `HdlSourcesSchema`.
-- **Falta**: tema do editor amarrado ao tema da aplicacao, opcoes de ergonomia
-  explicitas, verificacao do destaque contra construcoes reais de Verilog e
-  ausencia de estado "arquivo nao salvo".
+- `apps/web/src/lib/monaco-theme.ts` define um tema Monaco customizado
+  (`tplab`), lido dos tokens `--code-*`/`--editor-*` de
+  `docs/design-system-fundamentos.md` secao 8, sincronizado com o tema global
+  a cada troca (I02).
+- **Falta**: nada — I01, I02 e I03 fecham RF02. "Arquivo nao salvo" e RF07-I03,
+  fora deste requisito.
 
 ## 6. Escopo
 
@@ -87,22 +90,28 @@ paleta de cores do editor tenha contraste AA nos dois temas.
 
 ## 7. Criterios de aceite da feature
 
-- [ ] Um arquivo Verilog representativo exibe palavras-chave, tipos, numeros com
+- [x] Um arquivo Verilog representativo exibe palavras-chave, tipos, numeros com
       base (`4'b1010`), comentarios `//` e `/* */` e tarefas de sistema (`$...`)
-      com cores distintas.
-- [ ] O editor mostra numeros de linha e destaca o par de `begin`/`end`.
-- [ ] Alternar entre design e testbench preserva conteudo, cursor e scroll.
-- [ ] O tema do editor acompanha a alternancia claro/escuro sem recarregar a
-      pagina.
-- [ ] Nenhuma requisicao a CDN externa e feita ao abrir o editor.
+      com cores distintas. _(I01/I02 — verificado ao vivo nos dois temas com
+      `full_adder`/`full_adder_tb`, ver issue-01)_
+- [x] O editor mostra numeros de linha e destaca o par de `begin`/`end`.
+      _(`conf.brackets` do Monaco inclui `begin`/`end`; `matchBrackets` -
+      padrao do Monaco - destaca o par ao aproximar o cursor)_
+- [x] Alternar entre design e testbench preserva conteudo, cursor e scroll.
+      _(I03 — verificado ao vivo: cursor de cada aba preservado
+      independentemente ao alternar)_
+- [x] O tema do editor acompanha a alternancia claro/escuro sem recarregar a
+      pagina. _(I02 — verificado ao vivo)_
+- [x] Nenhuma requisicao a CDN externa e feita ao abrir o editor. _(I01 -
+      verificado ao vivo, aba Network)_
 
 ## 8. Quebra em issues
 
-| Issue | Titulo | Branch | Tamanho |
-| --- | --- | --- | --- |
-| [issue-01](issue-01-linguagem-verilog-monaco.md) | Validar e ajustar a definicao de linguagem Verilog no Monaco | `feat/rf02-linguagem-verilog-monaco` | M |
-| [issue-02](issue-02-tema-e-ergonomia-editor.md) | Tema sincronizado e opcoes de ergonomia do editor | `feat/rf02-tema-e-ergonomia-editor` | P |
-| [issue-03](issue-03-abas-design-testbench.md) | Abas de arquivo com preservacao de estado por arquivo | `feat/rf02-abas-design-testbench` | M |
+| Issue | Titulo | Branch | Tamanho | Status |
+| --- | --- | --- | --- | --- |
+| [issue-01](issue-01-linguagem-verilog-monaco.md) | Validar e ajustar a definicao de linguagem Verilog no Monaco | `feat-RF02-destaque-tema-abas-front` | M | Concluido |
+| [issue-02](issue-02-tema-e-ergonomia-editor.md) | Tema sincronizado e opcoes de ergonomia do editor | `feat-RF02-destaque-tema-abas-front` | P | Concluido |
+| [issue-03](issue-03-abas-design-testbench.md) | Abas de arquivo com preservacao de estado por arquivo | `feat-RF02-destaque-tema-abas-front` | M | Concluido |
 
 ## 9. Dependencias
 
