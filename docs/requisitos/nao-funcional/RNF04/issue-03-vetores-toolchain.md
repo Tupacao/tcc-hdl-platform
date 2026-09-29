@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RNF04](feature.md) |
-| Branch | `chore/rnf04-vetores-toolchain` |
+| Branch | `feat-RNF04-03-vetores-toolchain-back` |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | RNF04-I01 |
 
@@ -73,14 +73,14 @@ os que passarem pelas barreiras existentes.
 
 ## Criterios de aceite
 
-- [ ] Cada vetor da lista foi testado e o resultado registrado.
-- [ ] O `iverilog` esta coberto por timeout, assim como o `vvp`.
-- [ ] Bomba de compilacao termina por timeout, sem derrubar o worker.
-- [ ] Escrita fora do workdir por `$fopen`/`$dumpfile` esta impedida ou avaliada.
-- [ ] O estado de `$system` na imagem esta verificado e documentado.
-- [ ] Os codigos de saida do script continuam 0/2/3/124.
-- [ ] Uso legitimo (`$dumpfile("wave.vcd")`, `$display`) continua funcionando.
-- [ ] `docs/SEGURANCA.md` registra vetor, impacto e decisao.
+- [x] Cada vetor da lista foi testado e o resultado registrado. _(`docs/SEGURANCA.md` secao 6)_
+- [x] O `iverilog` esta coberto por timeout, assim como o `vvp`. _(RNF05-I01, exit 4)_
+- [x] Bomba de compilacao termina por timeout, sem derrubar o worker. _(macro recursiva: timeout de 5 s; `include` circular: para no limite de descritores)_
+- [x] Escrita fora do workdir por `$fopen`/`$dumpfile` esta impedida ou avaliada. _(impedida pelo rootfs somente leitura; aviso ao usuario)_
+- [x] O estado de `$system` na imagem esta verificado e documentado. _(nao definido no Icarus 12.0)_
+- [x] Os codigos de saida do script continuam 0/2/3/124. _(mantidos; 4, 137 e 153 acrescentados — nenhum existente mudou de significado)_
+- [x] Uso legitimo (`$dumpfile("wave.vcd")`, `$display`) continua funcionando.
+- [x] `docs/SEGURANCA.md` registra vetor, impacto e decisao.
 
 ## Verificacao
 
@@ -90,6 +90,27 @@ pnpm --filter @tplab/api test
 ```
 
 Manual: submeter cada vetor pela interface e conferir o desfecho.
+
+## Nota de implementacao
+
+O risco que esta issue previa (leitura/escrita fora do workdir, execucao de comando)
+ficou **menor** que o esperado: `$system` nao existe nesta build, o rootfs e a
+imagem e somente leitura, e o que `include`/`$readmemh`/`$fgets` alcancam e o
+conteudo da propria imagem. **O risco real estava em outro lugar**, e so apareceu
+porque a issue mandou testar de verdade em vez de assumir: dois vetores de
+**inundacao** que as barreiras de RNF04 nao cobrem — o disco do workdir (bind no
+host, sem cota: 75 MB em 10 s sem teto) e o log do container (`$display` em laco
+fazia `container.logs()` estourar com `ERR_STRING_TOO_LONG` e derrubava o job
+inteiro). Corrigidos com `ulimit -f/-n` no script (exit 153 com mensagem propria) e
+`LogConfig` rotacionado. Antes/depois em `docs/SEGURANCA.md` secao 6.
+
+Avisar em vez de bloquear (passo 3): `vectors.ts` emite `warning` com linha para
+caminho absoluto ou com `..` em `include`/`$readmemh`/`$fopen`/`$dumpfile` e para
+`$system` — `$readmemh` e a forma normal de carregar memoria em exercicios.
+
+Passo 5 (permissao do workdir): `prepareWorkdir` — sem ele, um worker Linux com
+`mkdtemp` em modo 0700 nao entregaria os fontes ao uid 10001 do sandbox. Nao e
+observavel no Windows de desenvolvimento; verificado em RNF04-I02.
 
 ## Riscos
 
