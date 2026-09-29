@@ -100,10 +100,20 @@ alimentada por `result.truncated.vcd`: o aviso que ja existia ali dependia
 so do parser (RF06) detectar um registro incompleto no fim do arquivo, o que
 nunca acontece com o corte do backend (sempre no fim de uma linha completa)
 — sem esse novo sinal explicito, um `.vcd` cortado pelo backend nao mostrava
-nenhum aviso. Verificacao ao vivo no navegador nao foi possivel nesta branch
-(MCP do chrome-devtools caiu no meio da sessao); validado por typecheck,
-build e pela mesma logica de truncamento ja confirmada ao vivo na branch de
-backend.
+nenhum aviso.
+
+Verificado ao vivo no navegador apos o merge (a MCP do chrome-devtools tinha
+caido no meio da sessao anterior e so reconectou depois): um testbench com 20
+mil `$display` (sem instanciar o `topModule`, so pra estourar `stdout`) voltou
+com o banner "Parte da saida (stdout/stderr) foi descartada para nao
+sobrecarregar o navegador..." acima da lista de diagnosticos, seguido da
+marca `[1306851 bytes descartados do inicio]` e a cauda mantida. Um segundo
+testbench, instanciando `full_adder` de verdade por 200 mil ciclos (mesmo
+gerador do `.vcd` de ~2 MiB ja usado na verificacao da branch de backend),
+voltou com "O arquivo .vcd foi truncado; a forma de onda pode estar
+incompleta." no `WaveformPanel` — confirmando que o sinal vem mesmo de
+`result.truncated.vcd` (o parser sozinho nunca deteta esse corte, exatamente
+o gap que esta issue fechou).
 
 O corte na origem (passo 5 — `head -c` dentro do container, via
 `run-simulation.sh`) ficou fora: o problema que resolveria (bytes demais
