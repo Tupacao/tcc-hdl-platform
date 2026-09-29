@@ -16,6 +16,7 @@ export interface JobLogRecord {
   /** RNF05-I01 — estouro de memoria confirmado pelo Docker, e etapa em que o tempo estourou. */
   oomKilled: boolean;
   timeoutPhase: string | null;
+  logsUnavailable: boolean;
 }
 
 export interface JobLogInput {
@@ -47,5 +48,6 @@ export function buildJobLogRecord(input: JobLogInput): JobLogRecord {
     truncated: input.outcome.truncated,
     oomKilled: input.outcome.oomKilled,
     timeoutPhase: input.outcome.timeoutPhase,
+    logsUnavailable: input.outcome.logsUnavailable,
   };
 }
