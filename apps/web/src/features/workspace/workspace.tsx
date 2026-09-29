@@ -281,6 +281,7 @@ export function Workspace({
         onOpenDocs={onOpenDocs}
         onRun={handleRun}
         isRunning={isRunning}
+        onCancel={runMutation.cancel}
         onResetLayout={handleResetLayout}
         onOpenShortcuts={() => setShortcutsOpen(true)}
       />
@@ -359,6 +360,8 @@ export function Workspace({
                   result={result}
                   error={error}
                   isRunning={isRunning}
+                  queued={runMutation.queued}
+                  queuePosition={runMutation.queuePosition}
                   onSelectDiagnostic={focusDiagnostic}
                   knownFileNames={knownFileNames}
                 />

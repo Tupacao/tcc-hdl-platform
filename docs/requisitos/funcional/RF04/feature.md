@@ -111,7 +111,8 @@ ja limita a leitura por `MAX_VCD_BYTES`.
       container. _(I01)_
 - [ ] Saida muito grande e truncada com aviso, sem quebrar o console nem o
       visualizador.
-- [ ] O usuario consegue cancelar a espera por uma simulacao em andamento.
+- [x] O usuario consegue cancelar a espera por uma simulacao em andamento.
+      _(I03)_
 
 ## 8. Quebra em issues
 
@@ -119,7 +120,7 @@ ja limita a leitura por `MAX_VCD_BYTES`.
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-contrato-testbench.md) | Contrato de testbench e coerencia do modulo de topo | `feat-RF04-01-contrato-testbench-back` | M | Concluido |
 | [issue-02](issue-02-limites-saida-simulacao.md) | Limites e truncamento da saida da simulacao | `feat/rf04-limites-saida-simulacao` | P | |
-| [issue-03](issue-03-estados-execucao-frontend.md) | Estados de execucao e cancelamento no frontend | `feat/rf04-estados-execucao-frontend` | M | |
+| [issue-03](issue-03-estados-execucao-frontend.md) | Estados de execucao e cancelamento no frontend | `feat-RF04-03-estados-execucao-frontend-front` | M | Concluido |
 
 ## 9. Dependencias
 

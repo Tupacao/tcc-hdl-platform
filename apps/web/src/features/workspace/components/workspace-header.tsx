@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { DOCS_BUTTON_LABEL } from '@/features/docs';
 import {
+  CANCEL_RUN_BUTTON_LABEL,
   EXPORT_BUTTON_LABEL,
   OPEN_PROJECTS_BUTTON_LABEL,
   RESET_LAYOUT_BUTTON_LABEL,
@@ -34,6 +35,8 @@ interface WorkspaceHeaderProps {
   onOpenDocs: () => void;
   onRun: () => void;
   isRunning: boolean;
+  /** RF04-I03 — só cancela a espera no navegador; o container segue até o timeout. */
+  onCancel: () => void;
   /** RF09-I01 - volta os painéis ao tamanho padrão e apaga o layout salvo. */
   onResetLayout: () => void;
   /** RF09-I02 - abre o diálogo de atalhos de teclado. */
@@ -50,6 +53,7 @@ export function WorkspaceHeader({
   onOpenDocs,
   onRun,
   isRunning,
+  onCancel,
   onResetLayout,
   onOpenShortcuts,
 }: WorkspaceHeaderProps) {
@@ -100,12 +104,18 @@ export function WorkspaceHeader({
         <Button
           onClick={onRun}
           disabled={isRunning}
+          aria-busy={isRunning}
           size="sm"
           aria-keyshortcuts={isMac ? 'Meta+Enter' : 'Control+Enter'}
         >
           {isRunning ? <Loader2 aria-hidden className="animate-spin" /> : <Play aria-hidden />}
-          {isRunning ? 'Executando' : 'Executar'}
+          <span aria-live="polite">{isRunning ? 'Executando' : 'Executar'}</span>
         </Button>
+        {isRunning && (
+          <Button variant="outline" size="sm" onClick={onCancel}>
+            {CANCEL_RUN_BUTTON_LABEL}
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"

@@ -18,6 +18,8 @@ export const WAVEFORM_TRUNCATED_MESSAGE =
 
 export const OPEN_PROJECTS_BUTTON_LABEL = 'Meus projetos';
 export const RESET_LAYOUT_BUTTON_LABEL = 'Restaurar layout padrão';
+/** RF04-I03 — cancela a espera no navegador; o container no servidor segue até o timeout. */
+export const CANCEL_RUN_BUTTON_LABEL = 'Cancelar';
 
 // --- Vínculo com o projeto aberto (RF07-I03) --------------------------------
 
@@ -78,6 +80,13 @@ export const CONSOLE_EMPTY_STATE = {
 };
 
 export const CONSOLE_RUNNING_MESSAGE = 'Compilando e simulando...';
+
+/** RF04-I03 — distingue "na fila" de "executando" enquanto isRunning é true. */
+export function formatConsoleQueuedMessage(position: number | null): string {
+  return position !== null
+    ? `Na fila · posição ${position}`
+    : 'Na fila · aguardando um executor livre';
+}
 
 export const PROBLEMS_PANEL = {
   LIST_LABEL: 'Diagnósticos',

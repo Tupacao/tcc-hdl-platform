@@ -15,7 +15,12 @@ import {
   defaultConsoleTab,
   type ConsoleTab,
 } from '../utils/console-tabs';
-import { CONSOLE_EMPTY_STATE, CONSOLE_RUNNING_MESSAGE, CONSOLE_TABS } from '../utils/messages';
+import {
+  CONSOLE_EMPTY_STATE,
+  CONSOLE_RUNNING_MESSAGE,
+  CONSOLE_TABS,
+  formatConsoleQueuedMessage,
+} from '../utils/messages';
 import { formatCombo, getShortcut, isMacPlatform } from '../utils/shortcuts';
 import { ProblemsList } from './problems-list';
 
@@ -23,6 +28,9 @@ interface ConsolePanelProps {
   result: SimulationResult | null;
   error: string | null;
   isRunning: boolean;
+  /** RF04-I03 — job aceito mas ainda sem executor; distingue "na fila" de "executando". */
+  queued: boolean;
+  queuePosition: number | null;
   onSelectDiagnostic: (diagnostic: Diagnostic) => void;
   /** RF05-I02 - nomes dos dois arquivos do projeto; decide se um diagnóstico é navegável. */
   knownFileNames: string[];
@@ -50,7 +58,7 @@ const TAB_ORDER: ConsoleTab[] = ['console', 'problems'];
  * mas também ver que existe uma saída real por trás dela.
  */
 export const ConsolePanel = forwardRef<ConsolePanelHandle, ConsolePanelProps>(function ConsolePanel(
-  { result, error, isRunning, onSelectDiagnostic, knownFileNames },
+  { result, error, isRunning, queued, queuePosition, onSelectDiagnostic, knownFileNames },
   ref,
 ) {
   const baseId = useId();
@@ -92,7 +100,13 @@ export const ConsolePanel = forwardRef<ConsolePanelHandle, ConsolePanelProps>(fu
   }
 
   function renderBody(): ReactNode {
-    if (isRunning) return <Empty>{CONSOLE_RUNNING_MESSAGE}</Empty>;
+    if (isRunning) {
+      return (
+        <Empty>
+          {queued ? formatConsoleQueuedMessage(queuePosition) : CONSOLE_RUNNING_MESSAGE}
+        </Empty>
+      );
+    }
     if (error) return <Empty tone="error">{error}</Empty>;
     if (tab === 'problems') {
       return (

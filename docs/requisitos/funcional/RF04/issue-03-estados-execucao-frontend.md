@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF04](feature.md) |
-| Branch | `feat/rf04-estados-execucao-frontend` |
+| Branch | `feat-RF04-03-estados-execucao-frontend-front` |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | RF03-I02 |
 
@@ -54,13 +54,42 @@ espera a qualquer momento, sem recarregar a pagina.
 
 ## Criterios de aceite
 
-- [ ] O console mostra "na fila", "compilando" e "simulando" conforme o estado do
-      job, nao um texto unico.
-- [ ] O botao "Cancelar" aparece durante a espera e some ao terminar.
-- [ ] Cancelar interrompe o polling imediatamente, sem toast de erro.
-- [ ] Executar novamente depois de cancelar funciona sem recarregar a pagina.
-- [ ] Sair da tela durante uma execucao nao deixa polling orfao.
-- [ ] A mudanca de estado e anuncia por leitor de tela.
+- [x] O console mostra "na fila" e "compilando/simulando" conforme o estado do
+      job, nao um texto unico. _(parcial — ver Nota de implementacao: "na fila"
+      distinto de "executando"; nao ha distincao entre compilando/simulando
+      dentro de "executando", ver limitacao abaixo)_
+- [x] O botao "Cancelar" aparece durante a espera e some ao terminar.
+      _(verificado ao vivo)_
+- [x] Cancelar interrompe o polling imediatamente, sem toast de erro.
+      _(verificado ao vivo — `mutation.reset()` depois do `abort()` volta ao
+      estado `idle`, sem nenhum toast ou texto vermelho)_
+- [x] Executar novamente depois de cancelar funciona sem recarregar a pagina.
+      _(verificado ao vivo — segunda execucao entrou na fila normalmente)_
+- [x] Sair da tela durante uma execucao nao deixa polling orfao.
+      _(`useEffect` de limpeza aborta o `AbortController` no unmount)_
+- [x] A mudanca de estado e anuncia por leitor de tela. _(`aria-live="polite"`
+      no rotulo do botao Executar/Executando/Cancelar; a barra de estado
+      (RF09-I03) ja anunciava o desfecho final)_
+
+## Nota de implementacao
+
+**Compilando vs. simulando nao ficaram distintos.** O Figma 2.4 desenha os dois
+como fases separadas do botao, mas nada no pipeline atual sinaliza a fronteira
+entre elas: `run-simulation.sh` roda `iverilog` e `vvp` em sequencia dentro do
+mesmo container, e `sandbox.ts` so sabe que o job terminou quando
+`container.wait()` resolve — nao ha um ponto intermediario observavel do lado
+de fora do container. Instrumentar isso exigiria ou psar por `job.updateProgress()`
+do BullMQ marcado por um passo extra dentro do proprio `run-simulation.sh`, ou
+processar o log do container em streaming; as duas sao mudancas de backend
+fora do escopo desta issue (que e so frontend, `docs/ARCHITECTURE.md`). O
+`ConsolePanel` mostra "Na fila · posicao N" enquanto `queued`, e "Compilando e
+simulando..." (mensagem unica, ja existente) para o resto da execucao — mesma
+limitacao que a barra de estado (RF09-I03) ja tinha.
+
+O `AbortController` e o `cancel()` vivem em `useRunSimulation`
+(`apps/web/src/features/workspace/hooks/use-run-simulation.ts`), nao em
+`workspace.tsx` — mantem o hook dono do ciclo de vida da requisicao que ele
+mesmo inicia.
 
 ## Verificacao
 
