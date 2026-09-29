@@ -172,6 +172,22 @@ module meu_circuito_tb;
 endmodule
 ```
 
+## Limites de saida da simulacao (RF04-I02)
+
+`stdout`, `stderr` e `.vcd` tem teto proprio (`MAX_STDOUT_BYTES`,
+`MAX_STDERR_BYTES`, `MAX_VCD_BYTES` em `apps/api/src/config/env.ts` —
+256 KB/64 KB/2 MB por padrao), porque um teto so acima cabe em qualquer um dos
+tres crescer sem limite (`$display` dentro de um loop sem controle de tempo,
+por exemplo) e transportar isso pelo Redis e pela resposta HTTP ate o
+navegador. O `.vcd` corta **pelo inicio do arquivo** (o cabecalho `$var` e
+obrigatorio para interpretar os valores depois dele) e sempre no fim de uma
+linha completa; `stdout`/`stderr` cortam **pelo fim** — as ultimas linhas
+costumam ser as informativas quando algo deu errado (ex.: a linha de
+`$finish`) — e tambem recuam para o inicio de uma linha completa. Nos dois
+casos o corte vem com um aviso explicito no proprio texto, mais uma flag
+estruturada em `SimulationResultSchema.truncated` (`{ stdout, stderr, vcd }`),
+para a interface nao ter que adivinhar pelo conteudo.
+
 ## Estado atual
 
 Ja implementado:

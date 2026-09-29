@@ -38,6 +38,7 @@ function resultWith(
     durationMs,
     finishedAt: null,
     queuePosition: null,
+    truncated: { stdout: false, stderr: false, vcd: false },
   };
 }
 

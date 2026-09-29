@@ -1,4 +1,4 @@
-import type { HdlSources } from '@tplab/shared';
+import type { HdlSources, TruncatedFlags } from '@tplab/shared';
 import type { SandboxOutcome, SandboxTimings } from './sandbox.js';
 
 export interface JobLogRecord {
@@ -11,6 +11,8 @@ export interface JobLogRecord {
   /** `null` quando `processedAt` ainda nao foi setado pelo BullMQ. */
   queueWaitMs: number | null;
   timings: SandboxTimings;
+  /** RF04-I02 — quais artefatos vieram cortados por teto de tamanho. */
+  truncated: TruncatedFlags;
 }
 
 export interface JobLogInput {
@@ -39,5 +41,6 @@ export function buildJobLogRecord(input: JobLogInput): JobLogRecord {
     sourceBytes: input.sources.design.content.length + input.sources.testbench.content.length,
     queueWaitMs: input.processedAt !== undefined ? input.processedAt - input.queuedAt : null,
     timings: input.outcome.timings,
+    truncated: input.outcome.truncated,
   };
 }

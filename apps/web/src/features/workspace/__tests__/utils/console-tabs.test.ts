@@ -28,6 +28,7 @@ function resultWith(diagnostics: Diagnostic[]): SimulationResult {
     durationMs: 10,
     finishedAt: null,
     queuePosition: null,
+    truncated: { stdout: false, stderr: false, vcd: false },
   };
 }
 
