@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Toaster } from 'sonner';
 import type { HdlSources } from '@tplab/shared';
 import { ThemeProvider } from '@/components/theme-provider';
+import { ThemedToaster } from '@/components/themed-toaster';
 import { Workspace } from '@/features/workspace/workspace';
 import { OpenExampleDialog } from '@/features/workspace/components/open-example-dialog';
 import { ProjectsPage, useLocalProjects, type LocalProject } from '@/features/projects';
@@ -137,7 +137,7 @@ export default function App() {
           onConfirm={handleConfirmOpenExample}
         />
 
-        <Toaster position="bottom-right" closeButton />
+        <ThemedToaster />
       </ThemeProvider>
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>

@@ -59,9 +59,13 @@
   --code-operator: #1c1c22;
 
   /* RF02-I02 — cromo do Monaco (tema customizado, nao vs/vs-dark padrao).
-     docs/design-system-fundamentos.md secao 8, quatro ultimas linhas. */
+     docs/design-system-fundamentos.md secao 8, quatro ultimas linhas.
+     --editor-line-number: nao e decorativo (numero de linha e texto que o
+     usuario le para localizar erro/aviso), entao segue o limiar de texto
+     (4,5:1) de RNF09, nao o de 3:1 de elemento nao textual — ajustado em
+     RNF09-I02, ver docs/ACESSIBILIDADE.md. */
   --editor-background: #fafafb;
-  --editor-line-number: #84848e;
+  --editor-line-number: #6e6e75;
   --editor-current-line: #f1f1f4;
   --editor-selection: #ffe3cc;
   --editor-error-line: #fef2f2;
@@ -109,7 +113,7 @@
   --code-operator: #c7c7ce;
 
   --editor-background: #0f0f14;
-  --editor-line-number: #5a5a66;
+  --editor-line-number: #80809a;
   --editor-current-line: #17171e;
   --editor-selection: #3a2a18;
   --editor-error-line: #1c1013;
