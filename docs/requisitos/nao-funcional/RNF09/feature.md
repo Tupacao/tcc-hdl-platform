@@ -6,7 +6,7 @@
 | Categoria | Requisito Nao Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Experiencia integrada |
-| Status | Nao verificado (a base foi escolhida com isso em mente) |
+| Status | Concluido — I01 e I02 |
 | Requisitos relacionados | RF10, RF02, RF05, RF06, RNF01 |
 
 ## 1. Enunciado
@@ -77,8 +77,15 @@ instalado.
 - `--border` e `--input` no tema escuro usam branco com 12% e 18% de opacidade,
   valores que podem nao atingir 3:1 para contraste de elementos.
 - shadcn/ui sobre Radix entrega foco visivel e semantica adequada de fabrica.
-- Nao ha nenhuma verificacao de contraste registrada.
-- **Falta**: auditar os tokens, o editor e o canvas.
+- `apps/web/src/index.css` usa a paleta laranja/preto/branco de
+  `docs/design-system-fundamentos.md` (nao mais o preset slate/oklch que este
+  documento descrevia antes) — todos os valores em hex, sem opacidade nos
+  tokens base.
+- `apps/web/scripts/check-contrast.mjs` recalcula a razao de contraste de
+  todos os pares em uso, nos dois temas, direto de `index.css` (RNF09-I01) —
+  ver `docs/ACESSIBILIDADE.md`.
+- **Falta**: nada — I01 e I02 fecham RNF09. Regressao futura e pega por
+  `pnpm --filter @tplab/web audit:contrast`.
 
 ## 6. Escopo
 
@@ -100,21 +107,26 @@ instalado.
 
 ## 7. Criterios de aceite da feature
 
-- [ ] Todo par texto/fundo atinge 4,5:1 (ou 3:1 para texto grande) nos dois
-      temas.
-- [ ] Bordas de controle, icones informativos e indicador de foco atingem 3:1.
-- [ ] O tema do editor atende AA para os tokens de sintaxe.
-- [ ] As cores do visualizador de ondas atendem AA.
-- [ ] Nenhuma informacao e comunicada apenas por cor.
-- [ ] Os resultados estao registrados, par a par.
-- [ ] Ha verificacao repetivel para regressao.
+- [x] Todo par texto/fundo atinge 4,5:1 (ou 3:1 para texto grande) nos dois
+      temas. _(quatro correções reais, ver `docs/ACESSIBILIDADE.md`)_
+- [x] Bordas de controle, icones informativos e indicador de foco atingem 3:1
+      — ou tem exceção justificada por elemento decorativo, registrada.
+- [x] O tema do editor atende AA para os tokens de sintaxe. _(RF02-I02, mais o
+      ajuste de `--editor-line-number` nesta issue)_
+- [x] As cores do visualizador de ondas atendem AA — exceto a grade
+      (`--wave-grid`), decorativa, exceção justificada.
+- [x] Nenhuma informacao e comunicada apenas por cor. _(verificado: RF05,
+      RF06 e RF09-I03 já usam forma/ícone/texto redundante)_
+- [x] Os resultados estao registrados, par a par. _(`docs/ACESSIBILIDADE.md`)_
+- [x] Ha verificacao repetivel para regressao.
+      _(`pnpm --filter @tplab/web audit:contrast`)_
 
 ## 8. Quebra em issues
 
-| Issue | Titulo | Branch | Tamanho |
-| --- | --- | --- | --- |
-| [issue-01](issue-01-auditoria-tokens-de-tema.md) | Auditoria de contraste dos tokens de tema | `chore/rnf09-auditoria-tokens-de-tema` | M |
-| [issue-02](issue-02-contraste-editor-e-ondas.md) | Contraste do editor e do visualizador de ondas | `chore/rnf09-contraste-editor-e-ondas` | M |
+| Issue | Titulo | Branch | Tamanho | Status |
+| --- | --- | --- | --- | --- |
+| [issue-01](issue-01-auditoria-tokens-de-tema.md) | Auditoria de contraste dos tokens de tema | `feat-RNF09-auditoria-contraste-front` | M | Concluido |
+| [issue-02](issue-02-contraste-editor-e-ondas.md) | Contraste do editor e do visualizador de ondas | `feat-RNF09-auditoria-contraste-front` | M | Concluido |
 
 ## 9. Dependencias
 

@@ -67,7 +67,11 @@ export function ProblemsList({
       )}
 
       {showAllClear && (
-        <p className="mt-3 inline-block rounded-md border border-success/40 bg-success/10 px-2.5 py-1 font-mono text-[11px] text-success">
+        // RNF09-I01 — bg-success/10 reprovava contraste do texto no tema claro
+        // (4,38:1 contra o mínimo de 4,5:1); /5 passa nos dois temas. border-success/40
+        // reprovava contraste de elemento (3:1); a informação já está redundante no
+        // texto "0 erros", mas manter opacidade total custa zero e remove a dúvida.
+        <p className="mt-3 inline-block rounded-md border border-success bg-success/5 px-2.5 py-1 font-mono text-[11px] text-success">
           <span aria-hidden>✓ </span>
           {PROBLEMS_PANEL.ALL_CLEAR}
         </p>
@@ -152,14 +156,10 @@ function DiagnosticItem({
               diagnostic.severity === 'error' ? 'text-destructive' : 'text-warning',
             )}
           />
-          <span
-            className={cn(
-              'truncate font-mono text-[11px]',
-              isNavigable ? 'text-muted-foreground' : 'text-muted-foreground/70',
-            )}
-          >
-            {location}
-          </span>
+          {/* RNF09-I01 — /70 reprovava contraste (3,48:1 claro / 4,20:1 escuro contra o
+              mínimo de 4,5:1); a linha continua marcada como não navegável só pela
+              ausência do botão "Ir para a linha" abaixo, sem precisar apagar o texto. */}
+          <span className="truncate font-mono text-[11px] text-muted-foreground">{location}</span>
         </span>
         <span className="min-w-0 flex-1">
           <span
@@ -184,7 +184,7 @@ function DiagnosticItem({
             {PROBLEMS_PANEL.GO_TO_LINE}
           </span>
         ) : (
-          <span className="shrink-0 pt-0.5 font-mono text-[10px] whitespace-nowrap text-muted-foreground/70">
+          <span className="shrink-0 pt-0.5 font-mono text-[10px] whitespace-nowrap text-muted-foreground">
             {PROBLEMS_PANEL.NO_POSITION}
           </span>
         )}

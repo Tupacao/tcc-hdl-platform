@@ -148,8 +148,10 @@ export const ConsolePanel = forwardRef<ConsolePanelHandle, ConsolePanelProps>(fu
           <span
             className={cn(
               'ml-1.5 rounded-[5px] px-1.5 font-mono text-[10px] font-bold',
-              tone === 'error' && 'bg-destructive/15 text-destructive',
-              tone === 'warning' && 'bg-warning/15 text-warning',
+              // RNF09-I01 — /15 reprovava contraste do texto no tema claro (4,46:1 e
+              // 4,40:1 contra o mínimo de 4,5:1); /10 passa nos dois temas.
+              tone === 'error' && 'bg-destructive/10 text-destructive',
+              tone === 'warning' && 'bg-warning/10 text-warning',
               tone === 'neutral' && 'bg-background text-muted-foreground',
             )}
           >
