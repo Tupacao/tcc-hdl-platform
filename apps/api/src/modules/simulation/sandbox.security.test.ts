@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import {
   SANDBOX_LABEL,
   buildSandboxContainerOptions,
+  prepareWorkdir,
   removeOrphanWorkdirs,
   type SandboxLimits,
 } from './sandbox.js';
@@ -64,6 +65,13 @@ test('rotulo: todo container de simulacao e rotulado para a varredura de orfaos'
   assert.deepEqual(options.Labels, { [SANDBOX_LABEL]: 'true' });
 });
 
+test('log: rotacionado (1 MiB x 2) — $display em laco nao enche o disco do host nem estoura o docker-modem', () => {
+  assert.deepEqual(host.LogConfig, {
+    Type: 'json-file',
+    Config: { 'max-size': '1m', 'max-file': '2' },
+  });
+});
+
 test('efemero: sem AutoRemove (removido explicitamente apos ler os logs) e sem TTY', () => {
   assert.equal(host.AutoRemove, false);
   assert.equal(options.Tty, false);
@@ -94,3 +102,23 @@ test('removeOrphanWorkdirs apaga so diretorios hdl-sim-* mais velhos que o limit
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test(
+  'prepareWorkdir: dono sandbox (0755) quando ha privilegio, senao 0777 — nunca 0700 (o uid 10001 nao entraria)',
+  { skip: process.platform === 'win32' },
+  async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'sandbox-security-test-'));
+    try {
+      const result = await prepareWorkdir(dir);
+      const info = await stat(dir);
+      if (result === 'owner') {
+        assert.equal(info.uid, 10001);
+        assert.equal(info.mode & 0o777, 0o755);
+      } else {
+        assert.equal(info.mode & 0o777, 0o777);
+      }
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  },
+);

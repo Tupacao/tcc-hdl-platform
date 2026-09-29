@@ -1,9 +1,10 @@
 import type { Diagnostic, SimulationFailure } from '@tplab/shared';
-import type { TimeoutPhase } from './sandbox.js';
+import { EXIT_FILE_SIZE_LIMIT, type TimeoutPhase } from './sandbox.js';
 
 export interface LimitFailureInput {
   failure: SimulationFailure | null;
   timeoutPhase: TimeoutPhase | null;
+  exitCode: number;
   /** Arquivo a que o diagnostico se associa na lista de Problemas (o testbench). */
   testbenchName: string;
   timeoutMs: number;
@@ -61,6 +62,17 @@ export function analyzeLimitFailure(input: LimitFailureInput): Diagnostic[] {
     ];
   }
 
+  if (input.failure === 'runtime_error' && input.exitCode === EXIT_FILE_SIZE_LIMIT) {
+    return [
+      limitError(
+        file,
+        'Arquivo grande demais',
+        'O testbench gravou mais de 16 MB em um único arquivo e a simulação foi interrompida.',
+        'Costuma ser um $fwrite/$fdisplay ou um $dumpvars dentro de um laço muito longo. Reduza o tempo simulado, os sinais em $dumpvars ou o que é gravado a cada ciclo.',
+      ),
+    ];
+  }
+
   if (input.failure === 'internal_error') {
     return [
       limitError(
@@ -75,16 +87,19 @@ export function analyzeLimitFailure(input: LimitFailureInput): Diagnostic[] {
   return [];
 }
 
+/** "Killed" (timeout/OOM) e "File size limit exceeded (core dumped)" (RLIMIT_FSIZE) — mensagens do sh, nao do compilador. */
+const SHELL_NOISE = /^(Killed|File size limit exceeded.*)$/;
+
 /**
- * O shell do container imprime "Killed" em stderr quando o `timeout -s KILL` mata o
- * processo — o parser de diagnosticos o le como um erro qualquer, duplicando a
- * mensagem de limite (que ja explica o que aconteceu). Descartado so quando ha
- * um diagnostico de limite para substitui-lo.
+ * O shell do container imprime essas linhas em stderr quando o `timeout -s KILL` ou o
+ * limite de tamanho de arquivo mata o processo — o parser de diagnosticos as le como um
+ * erro qualquer, duplicando a mensagem de limite (que ja explica o que aconteceu).
+ * Descartadas so quando ha um diagnostico de limite para substitui-las.
  */
-export function dropKilledNoise(
+export function dropShellNoise(
   diagnostics: Diagnostic[],
   limitDiagnostics: Diagnostic[],
 ): Diagnostic[] {
   if (limitDiagnostics.length === 0) return diagnostics;
-  return diagnostics.filter((diagnostic) => diagnostic.raw.trim() !== 'Killed');
+  return diagnostics.filter((diagnostic) => !SHELL_NOISE.test(diagnostic.raw.trim()));
 }

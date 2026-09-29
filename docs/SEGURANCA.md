@@ -130,8 +130,8 @@ antes → depois, reproduzido com o fluxo real (`runInSandbox`):
 | --- | --- | --- |
 | Simulação sem `$finish` | `timeout` (exit 124), ~12,9 s | `timeout`, fase `simulate`, exit 124 |
 | Estouro de memória no `vvp` | **`timeout`** (o script convertia todo 137 em 124) | `memory_limit`, `OOMKilled = true` |
-| Estouro de memória no `iverilog` (macro recursiva) | **`compile_error`** (`\|\| exit 2`) | `memory_limit` se o Docker marcou `OOMKilled`; senão `internal_error` |
-| `` `include `` circular / compilação infinita | **preso até o `killTimer` do host** (~23,8 s), reportado `timeout` | interrompido pelo `timeout` próprio (`SANDBOX_COMPILE_TIMEOUT_MS`, 5 s), exit **4**, fase `compile` |
+| Macro recursiva (`` `define A `B ``/`` `define B `A ``) | **`compile_error`** com `Killed` (OOM do `iverilog` lido como erro de compilação) | interrompida em 5 s pelo `timeout` próprio (exit **4**, fase `compile`); se a memória estourar antes, `memory_limit` por `OOMKilled` |
+| `` `include `` circular | **preso até o `killTimer` do host** (~23,8 s) | termina em poucos segundos: o limite de descritores de RNF04-I03 (`ulimit -n 64`) faz a recursão falhar (`Include file tb.v not found`) |
 | `kill -9` de um processo, sem OOM | `memory_limit` (137) | `internal_error` — não acusa o usuário |
 
 Mudanças (script e `mapFailure` no mesmo commit, como o acoplamento exige):
@@ -157,6 +157,29 @@ de 1 s do limite de tempo pode sair do script como 124 — o `OOMKilled` do Dock
 consultado pelo host, corrige esse caso (foi o que aconteceu no teste de
 memória do Verilog: exit 124 com `oomKilled = true` → `memory_limit`).
 
+### Limite de memória sem contabilidade de swap (achado ao repetir a verificação)
+
+Na máquina de desenvolvimento (Rancher Desktop / WSL2) `docker info` informa
+`SwapLimit=false`: o kernel do WSL2 tem uma partição de swap e o Docker não a
+contabiliza por container, então **`MemorySwap = Memory` não é aplicado**. Efeito
+medido: um `sh` que dobra uma string sob limite de 32 MB **não foi morto por OOM
+por 166 s** (paginou para o swap), e um teste desse tipo falhou de forma
+intermitente (`OOMKilled = false`, container "dead or marked for removal"). Quando
+o OOM acontece, o desfecho está correto (`memory_limit` por `OOMKilled`, visto em
+todas as execuções que o dispararam) — o problema é o **quando**.
+
+Consequências e tratamento:
+
+- **Na VM (Azure B2s, Ubuntu)** o limite de memória só protege a máquina se o
+  kernel contabilizar swap ou se a VM não tiver swap (o padrão do Azure é sem
+  swap). Verificar no deploy (RF01-I02): `docker info --format '{{.SwapLimit}}'`
+  deve ser `true`, ou `swapon --show` deve estar vazio.
+- O worker agora **avisa no start** quando `SwapLimit=false` (log `warn`), para a
+  falha não ser silenciosa.
+- Os dois testes de memória de `test:sandbox` são **pulados** com o motivo
+  explícito quando o Docker não tem `SwapLimit`, em vez de reprovar de forma
+  intermitente.
+
 ### PIDs e CPU
 
 - **PIDs**: coberto na seção 2 (`can't fork` no limite de 128).
@@ -172,6 +195,62 @@ confere que chegam aos limites e às opções do container (`SIM_TIMEOUT_S=4`,
 tempo e de memória passam limites reduzidos a `runInSandbox` e conferem o
 comportamento efetivo (timeout em 3 s, OOM a 32 MB).
 
-## 5. Achados que alimentam as outras issues
+## 5. Pendências entre issues
 
-- **Permissão do workdir e `/tmp` compartilhado** — RNF04-I03 e RNF04-I02.
+- **`/tmp` compartilhado com o host e o socket do Docker** — RNF04-I02.
+
+## 6. Vetores específicos da toolchain Verilog (RNF04-I03)
+
+Recursos legítimos da linguagem que, num ambiente que executa código de
+terceiros, tocam o sistema de arquivos ou o sistema operacional. Cada vetor foi
+testado com um par design/testbench pelo fluxo real (`runInSandbox`).
+
+| Vetor | Teste | Resultado observado | Impacto | Decisão |
+| --- | --- | --- | --- | --- |
+| `` `include "/etc/passwd" `` | include absoluto | lê o arquivo **da imagem** (o rootfs é a imagem, não o host); o conteúdo não chega ao usuário (`syntax error` na 1ª linha) | baixo — só existe o que já está na imagem pública | **aviso** ao usuário (não bloqueia) |
+| `$readmemh("/etc/passwd", …)` | leitura em tempo de simulação | `Invalid input character: r` — vaza o 1º caractere de um arquivo da imagem | baixo | **aviso** |
+| `$fopen("/etc/passwd","r")` + `$fgets` + `$display` | despejar arquivo | imprime `root:x:0:0:root:/root:/bin/sh` — arquivo da imagem; `/proc/self/environ` só tem `HOSTNAME` (sem `DATABASE_URL` etc.) | baixo — nenhum dado do host nem da API | risco aceito; ver seção 2 (ambiente limpo) |
+| `$fopen("/etc/pwn","w")`, `/usr`, `/`, `/work/../` | gravar fora do workdir | `fd = 0` (falhou) nos quatro | nenhum | barreira: `ReadonlyRootfs`; **aviso** |
+| `$dumpfile("/etc/x.vcd")`, `"../x.vcd"` | VCD fora do workdir | `VCD Error … Unable to open` → `runtime_error`, sem VCD | nenhum | barreira; **aviso** |
+| `$system("…")` | executar comando | **não definido** nesta build (`System task/function $system() is not defined by any module`) | nenhum — não há execução de comando por Verilog | **aviso** (a linha vai falhar) |
+| Macro recursiva | bomba de compilação | antes: `compile_error` por OOM (ou preso até o `killTimer`); agora interrompida em `SANDBOX_COMPILE_TIMEOUT_MS` (5 s), exit 4 | médio (ocupava o slot do worker) | resolvido em RNF05-I01 |
+| `` `include `` circular | recursão de arquivos | antes: ~23,8 s até o `killTimer` do host; agora a recursão para no limite de descritores (`ulimit -n 64`): `Include file tb.v not found`, em segundos | médio | resolvido como efeito do limite de descritores (RNF04-I03) |
+| `$fwrite` / `$dumpvars` em laço | **inundação de disco** do workdir (bind no host, sem cota) | 75 MB em 10,6 s **sem teto** (na máquina de desenvolvimento, por 9p; num SSD da VM, muito mais) | **alto** — `PidsLimit`/memória/CPU não cobrem disco | **corrigido**: `ulimit -f` = 16 MiB por arquivo (exit 153 → `runtime_error` com mensagem própria) e `ulimit -n 64` |
+| `$display` em laço | **inundação do log** do container (json-file no host, sem teto) | `container.logs()` do `docker-modem` estourou com `ERR_STRING_TOO_LONG` (>512 MB em 10 s) — derrubava o job inteiro sem resultado | **alto** | **corrigido**: `LogConfig` `max-size 1m` × `max-file 2` (sobram sempre as últimas linhas, que é o que `truncateFromEnd` mantém) |
+
+Antes → depois dos dois vetores de inundação:
+
+| | Antes | Depois |
+| --- | --- | --- |
+| `$fwrite` em laço | 75 MB+ em 10,6 s, sem limite | para em **16.777.216 bytes** em 3,7 s, exit 153 |
+| `$dumpvars` em laço | sem limite | para em 16 MiB em 3,6 s, exit 153; o VCD parcial ainda chega cortado a 2 MiB |
+| `$display` em laço | job falha com `ERR_STRING_TOO_LONG` | log de 1,2 MB, resultado normal (`timeout`, últimas linhas preservadas) |
+
+**Limite da mitigação de disco**: `RLIMIT_FSIZE` é **por arquivo**, e
+`ulimit -n 64` limita quantos um testbench mantém abertos: no pior caso, alguns
+arquivos de 16 MiB por job (≪ GB), contido pelo tempo (10 s) e pela concorrência
+(2). Uma cota de verdade exigiria XFS com `pquota` (`StorageOpt size`) ou trocar o
+workdir por um volume com tamanho fixo — fica registrado como evolução se o disco
+da VM virar preocupação (RNF05-I02 mede o consumo real).
+
+### Avisos ao usuário (`vectors.ts`)
+
+Caminho absoluto ou com `..` em `` `include ``, `$readmemh/$readmemb`, `$fopen`,
+`$dumpfile`, e `$system`, viram **`warning` com a linha** no console (o contrato
+`DiagnosticSchema` de RF05), nunca bloqueio: `$readmemh` é a forma normal de
+carregar memória em exercícios de sistemas digitais, e o impacto sob as barreiras
+é baixo. Comentários não geram aviso e não deslocam a numeração.
+
+### Permissão do workdir (passo 5 da issue)
+
+`mkdtemp` cria o diretório com modo 0700 e dono = quem roda o worker; quem lê os
+fontes e grava o `.vcd` dentro do container é o uid **10001** (`sandbox`).
+`prepareWorkdir` (em `sandbox.ts`) troca o dono para 10001 e usa 0755 quando o
+worker tem privilégio (container como root — o caso da VM), e cai para 0777 quando
+não tem (desenvolvimento fora de container). Sem isso o worker de produção não
+entregaria os fontes ao sandbox. Na máquina de desenvolvimento (Windows, bind por
+9p) a permissão não é observável; a verificação real numa VM/worker Linux é feita
+em RNF04-I02 (worker containerizado). `readVcd` passou a ler só arquivo regular
+(`lstat`), para que um link simbólico no workdir nunca faça o worker ler um
+arquivo do host no lugar do VCD (o Verilog não cria links — sem `$system` —, mas
+custa uma linha garantir).

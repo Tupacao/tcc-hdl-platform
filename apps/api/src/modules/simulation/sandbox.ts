@@ -1,4 +1,14 @@
-import { mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import {
+  chmod,
+  chown,
+  lstat,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Docker from 'dockerode';
@@ -15,6 +25,8 @@ export const EXIT_COMPILE_ERROR = 2;
 export const EXIT_RUNTIME_ERROR = 3;
 export const EXIT_COMPILE_TIMEOUT = 4;
 export const EXIT_TIMEOUT = 124;
+/** 128 + SIGXFSZ: um arquivo gravado pelo testbench passou do teto por arquivo (RNF04-I03). */
+export const EXIT_FILE_SIZE_LIMIT = 153;
 export const EXIT_KILLED = 137;
 
 /** Em qual etapa o limite de tempo estourou — `host` = o `killTimer` do worker, nao o script. */
@@ -94,6 +106,11 @@ export function buildSandboxContainerOptions(
       PidsLimit: 128,
       CapDrop: ['ALL'],
       SecurityOpt: ['no-new-privileges'],
+      // RNF04-I03 — o log do container vive no disco do host e nao tem teto: um $display
+      // em laco gera GBs em 10 s, e o docker-modem estoura ao montar a string (
+      // ERR_STRING_TOO_LONG). Rotaciona em 1 MiB x 2 arquivos: sobram sempre as ultimas
+      // linhas — as que interessam, ja que stdout/stderr cortam pelo fim (RF04-I02).
+      LogConfig: { Type: 'json-file', Config: { 'max-size': '1m', 'max-file': '2' } },
     },
   };
 }
@@ -129,7 +146,41 @@ export async function removeOrphanSandboxContainers(): Promise<number> {
   return removed;
 }
 
+/**
+ * `MemorySwap = Memory` (sem swap) so e aplicado se o kernel/Docker tem contabilidade de swap
+ * (`docker info`: SwapLimit). Sem ela — o caso do WSL2 com particao de swap — o processo que
+ * estoura a memoria e paginado em vez de morto: o OOM demora minutos (ou nunca vem) e o
+ * limite de memoria deixa de proteger a maquina. Verificado na maquina de desenvolvimento
+ * (SwapLimit=false: um estouro de 32 MB levou 166 s para ser morto).
+ */
+export async function dockerSupportsSwapLimit(): Promise<boolean> {
+  const info = (await docker.info()) as { SwapLimit?: boolean };
+  return info.SwapLimit === true;
+}
+
 const WORKDIR_PREFIX = 'hdl-sim-';
+
+/** uid do usuario `sandbox` — fixado em `infra/sandbox/Dockerfile` (`adduser -u 10001`); mudar um exige mudar o outro. */
+const SANDBOX_UID = 10001;
+
+/**
+ * O workdir e criado pelo worker (`mkdtemp` => modo 0700, dono = quem roda o worker), mas
+ * quem le os fontes e grava o `.vcd` dentro do container e o uid do `sandbox`. Num worker
+ * com privilegio (container como root, o caso da VM) o dono passa a ser o `sandbox` — so ele
+ * e o worker alcancam o diretorio (0755, sem escrita para terceiros). Sem privilegio para
+ * trocar o dono (dev fora de container), cai para 0777: o diretorio e efemero e o pai
+ * (`hdl-sim-*`) tem nome aleatorio, mas e o custo de nao exigir root em desenvolvimento.
+ */
+export async function prepareWorkdir(workdir: string): Promise<'owner' | 'open'> {
+  try {
+    await chown(workdir, SANDBOX_UID, SANDBOX_UID);
+    await chmod(workdir, 0o755);
+    return 'owner';
+  } catch {
+    await chmod(workdir, 0o777);
+    return 'open';
+  }
+}
 
 /** Igual ao de containers: diretorio temporario de um worker morto fica para tras, com os fontes do usuario. */
 export async function removeOrphanWorkdirs(
@@ -165,6 +216,7 @@ export async function runInSandbox(
   const startedAt = Date.now();
 
   try {
+    await prepareWorkdir(workdir);
     await writeFile(join(workdir, sources.design.name), sources.design.content, 'utf8');
     await writeFile(join(workdir, sources.testbench.name), sources.testbench.content, 'utf8');
 
@@ -266,6 +318,7 @@ export function mapFailure(
     case EXIT_COMPILE_ERROR:
       return 'compile_error';
     case EXIT_RUNTIME_ERROR:
+    case EXIT_FILE_SIZE_LIMIT:
       return 'runtime_error';
     case EXIT_COMPILE_TIMEOUT:
     case EXIT_TIMEOUT:
@@ -293,6 +346,12 @@ async function readVcd(workdir: string): Promise<{ text: string | null; truncate
   const entries = await readdir(workdir).catch(() => [] as string[]);
   const vcdName = entries.find((entry) => entry.endsWith('.vcd'));
   if (!vcdName) return { text: null, truncated: false };
+
+  // So arquivo regular: o workdir e gravavel pelo codigo do usuario, e um link simbolico
+  // (que o Verilog nao consegue criar, mas custa uma linha garantir) faria o worker ler
+  // um arquivo do host no lugar do VCD.
+  const info = await lstat(join(workdir, vcdName)).catch(() => null);
+  if (!info?.isFile()) return { text: null, truncated: false };
 
   const content = await readFile(join(workdir, vcdName), 'utf8').catch(() => null);
   if (content === null) return { text: null, truncated: false };
