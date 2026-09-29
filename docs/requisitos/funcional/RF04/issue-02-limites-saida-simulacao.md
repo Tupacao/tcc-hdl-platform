@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RF04](feature.md) |
-| Branch | `feat-RF04-02-limites-saida-simulacao-back` (backend); frontend em branch separada, ver Nota de implementacao |
+| Branch | `feat-RF04-02-limites-saida-simulacao-back` + `-front` |
 | Tamanho | P (aprox. 0,5 dia) |
 | Depende de | - |
 
@@ -68,8 +68,10 @@ silencio.
       intacto. _(back — mesma logica de RF03-I03, agora com o teto vindo de
       `env.MAX_VCD_BYTES`)_
 - [x] `result.truncated` indica corretamente qual artefato foi cortado. _(back)_
-- [ ] A interface avisa o corte em vez de mostrar dado incompleto sem contexto.
-      _(front — pendente, ver Nota de implementacao)_
+- [x] A interface avisa o corte em vez de mostrar dado incompleto sem contexto.
+      _(front — `ConsolePanel` mostra um aviso quando `truncated.stdout` ou
+      `truncated.stderr`; `WaveformPanel` recebe `truncated.vcd` direto do
+      backend, alem da deteccao que ja existia no parser de RF06)_
 - [x] Uma simulacao normal dos exemplos nao dispara nenhum aviso de
       truncamento. _(os testes de `sandbox.test.ts` cobrem o caso "cabe no
       limite"; os exemplos de `samples.ts` ficam bem abaixo dos tetos)_
@@ -88,9 +90,20 @@ Manual: testbench com `always #1 $display("x");` e sem `$finish`.
 
 Dividido em duas branches (`docs/ARCHITECTURE.md` — front e back nunca
 compartilham branch): `feat-RF04-02-limites-saida-simulacao-back` cobre
-`env.ts`, `sandbox.ts`, `worker.ts`, `routes.ts` e `SimulationResultSchema`; a
-exibicao do aviso em `ConsolePanel`/`WaveformPanel` fica para uma branch de
-frontend separada.
+`env.ts`, `sandbox.ts`, `worker.ts`, `routes.ts` e `SimulationResultSchema`;
+`-front` cobre `ConsolePanel` e `WaveformPanel`.
+
+`ConsolePanel` mostra um aviso (`border-warning`, mesmo padrao visual do
+aviso ja existente em `WaveformPanel`) quando `result.truncated.stdout` ou
+`result.truncated.stderr`. `WaveformPanel` ganhou uma prop `truncated`
+alimentada por `result.truncated.vcd`: o aviso que ja existia ali dependia
+so do parser (RF06) detectar um registro incompleto no fim do arquivo, o que
+nunca acontece com o corte do backend (sempre no fim de uma linha completa)
+— sem esse novo sinal explicito, um `.vcd` cortado pelo backend nao mostrava
+nenhum aviso. Verificacao ao vivo no navegador nao foi possivel nesta branch
+(MCP do chrome-devtools caiu no meio da sessao); validado por typecheck,
+build e pela mesma logica de truncamento ja confirmada ao vivo na branch de
+backend.
 
 O corte na origem (passo 5 — `head -c` dentro do container, via
 `run-simulation.sh`) ficou fora: o problema que resolveria (bytes demais

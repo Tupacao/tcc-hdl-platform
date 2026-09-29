@@ -16,6 +16,10 @@ export const WAVEFORM_UNPARSEABLE_MESSAGE =
 export const WAVEFORM_TRUNCATED_MESSAGE =
   'O arquivo .vcd foi truncado; a forma de onda pode estar incompleta.';
 
+/** RF04-I02 — result.truncated.stdout/stderr; as formas de onda não são afetadas por esse corte. */
+export const CONSOLE_TRUNCATED_MESSAGE =
+  'Parte da saída (stdout/stderr) foi descartada para não sobrecarregar o navegador. As formas de onda não foram afetadas.';
+
 export const OPEN_PROJECTS_BUTTON_LABEL = 'Meus projetos';
 export const RESET_LAYOUT_BUTTON_LABEL = 'Restaurar layout padrão';
 /** RF04-I03 — cancela a espera no navegador; o container no servidor segue até o timeout. */

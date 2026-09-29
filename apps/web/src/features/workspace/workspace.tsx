@@ -378,7 +378,10 @@ export function Workspace({
             <div className="flex h-full flex-col">
               <PanelHeading>Formas de onda</PanelHeading>
               <div className="min-h-0 flex-1">
-                <WaveformPanel vcd={result?.vcd ?? null} />
+                <WaveformPanel
+                  vcd={result?.vcd ?? null}
+                  truncated={result?.truncated.vcd ?? false}
+                />
               </div>
             </div>
           </Panel>

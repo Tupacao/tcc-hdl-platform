@@ -10,10 +10,17 @@ import {
 
 interface WaveformPanelProps {
   vcd: string | null;
+  /**
+   * RF04-I02 — `result.truncated.vcd`: o backend cortou o arquivo por teto de
+   * tamanho. Sempre no fim de uma linha completa, então o parser (RF06) não
+   * detecta sozinho esse corte (só detecta registro incompleto) — sem este
+   * sinal explícito, um `.vcd` cortado pelo backend não mostrava aviso nenhum.
+   */
+  truncated?: boolean;
 }
 
 /** RF06 — visualizador gráfico interativo de formas de onda. */
-export function WaveformPanel({ vcd }: WaveformPanelProps) {
+export function WaveformPanel({ vcd, truncated: backendTruncated = false }: WaveformPanelProps) {
   const { waveform, isLoading } = useParsedVcd(vcd);
 
   if (!vcd) {
@@ -56,7 +63,7 @@ export function WaveformPanel({ vcd }: WaveformPanelProps) {
 
   return (
     <div className="flex h-full flex-col">
-      {waveform.truncated && (
+      {(waveform.truncated || backendTruncated) && (
         <p className="border-b bg-warning/10 px-3 py-1 text-xs text-warning">
           {WAVEFORM_TRUNCATED_MESSAGE}
         </p>

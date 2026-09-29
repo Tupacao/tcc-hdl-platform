@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Parcial — I01 concluida; I02 (limites/truncamento) com o backend concluido, falta o frontend; falta I03 (estados de execucao no frontend) |
+| Status | Concluido — I01, I02 e I03 |
 | Requisitos relacionados | RF02, RF03, RF05, RF06, RNF04, RNF05, RNF07 |
 
 ## 1. Enunciado
@@ -81,9 +81,11 @@ ja limita a leitura por `MAX_VCD_BYTES`.
   `$dumpfile`/`$dumpvars` presentes — sempre `warning`, nunca bloqueia.
 - `stdout`/`stderr`/`.vcd` cortam em tetos configuraveis (`MAX_STDOUT_BYTES`/
   `MAX_STDERR_BYTES`/`MAX_VCD_BYTES`) com `SimulationResultSchema.truncated`
-  sinalizando qual artefato foi cortado (I02, backend).
-- **Falta**: a interface avisar o corte usando `truncated` (I02, frontend) e
-  dar feedback de progresso/cancelamento durante a execucao (I03).
+  sinalizando qual artefato foi cortado, e `ConsolePanel`/`WaveformPanel`
+  avisando o corte na interface (I02).
+- `useRunSimulation` tem cancelamento (`AbortController` + `cancel()`) e o
+  `ConsolePanel` distingue "na fila" de "executando" (I03).
+- **Falta**: nada — I01, I02 e I03 fecham RF04.
 
 ## 6. Escopo
 
@@ -112,8 +114,8 @@ ja limita a leitura por `MAX_VCD_BYTES`.
       `failure: 'timeout'` com explicacao acionavel.
 - [x] `topModule` incoerente com o testbench gera aviso antes de gastar
       container. _(I01)_
-- [ ] Saida muito grande e truncada com aviso, sem quebrar o console nem o
-      visualizador.
+- [x] Saida muito grande e truncada com aviso, sem quebrar o console nem o
+      visualizador. _(I02)_
 - [x] O usuario consegue cancelar a espera por uma simulacao em andamento.
       _(I03)_
 
@@ -122,7 +124,7 @@ ja limita a leitura por `MAX_VCD_BYTES`.
 | Issue | Titulo | Branch | Tamanho | Status |
 | --- | --- | --- | --- | --- |
 | [issue-01](issue-01-contrato-testbench.md) | Contrato de testbench e coerencia do modulo de topo | `feat-RF04-01-contrato-testbench-back` | M | Concluido |
-| [issue-02](issue-02-limites-saida-simulacao.md) | Limites e truncamento da saida da simulacao | `feat-RF04-02-limites-saida-simulacao-back` | P | Parcial (back) |
+| [issue-02](issue-02-limites-saida-simulacao.md) | Limites e truncamento da saida da simulacao | `feat-RF04-02-limites-saida-simulacao-back` + `-front` | P | Concluido |
 | [issue-03](issue-03-estados-execucao-frontend.md) | Estados de execucao e cancelamento no frontend | `feat-RF04-03-estados-execucao-frontend-front` | M | Concluido |
 
 ## 9. Dependencias

@@ -19,6 +19,7 @@ import {
   CONSOLE_EMPTY_STATE,
   CONSOLE_RUNNING_MESSAGE,
   CONSOLE_TABS,
+  CONSOLE_TRUNCATED_MESSAGE,
   formatConsoleQueuedMessage,
 } from '../utils/messages';
 import { formatCombo, getShortcut, isMacPlatform } from '../utils/shortcuts';
@@ -220,28 +221,35 @@ function ConsoleOutput({ result }: { result: SimulationResult | null }) {
   }
 
   return (
-    <div className="p-3 font-mono text-xs leading-relaxed">
-      {result.diagnostics.map((diagnostic, index) => (
-        <p
-          key={`${diagnostic.raw}-${index}`}
-          className={diagnostic.severity === 'error' ? 'text-destructive' : 'text-warning'}
-        >
-          {diagnostic.raw}
-        </p>
-      ))}
-
-      {result.stdout && <pre className="whitespace-pre-wrap">{result.stdout}</pre>}
-
-      {result.failure ? (
-        <p className="mt-2 font-sans text-sm font-medium text-destructive">
-          {FAILURE_LABELS[result.failure]}
-        </p>
-      ) : (
-        <p className="mt-2 text-success">
-          <span aria-hidden>✓ </span>
-          <span className="font-sans">Concluído em {result.durationMs} ms</span>
+    <div>
+      {(result.truncated.stdout || result.truncated.stderr) && (
+        <p className="border-b bg-warning/10 px-3 py-1 text-xs text-warning">
+          {CONSOLE_TRUNCATED_MESSAGE}
         </p>
       )}
+      <div className="p-3 font-mono text-xs leading-relaxed">
+        {result.diagnostics.map((diagnostic, index) => (
+          <p
+            key={`${diagnostic.raw}-${index}`}
+            className={diagnostic.severity === 'error' ? 'text-destructive' : 'text-warning'}
+          >
+            {diagnostic.raw}
+          </p>
+        ))}
+
+        {result.stdout && <pre className="whitespace-pre-wrap">{result.stdout}</pre>}
+
+        {result.failure ? (
+          <p className="mt-2 font-sans text-sm font-medium text-destructive">
+            {FAILURE_LABELS[result.failure]}
+          </p>
+        ) : (
+          <p className="mt-2 text-success">
+            <span aria-hidden>✓ </span>
+            <span className="font-sans">Concluído em {result.durationMs} ms</span>
+          </p>
+        )}
+      </div>
     </div>
   );
 }
