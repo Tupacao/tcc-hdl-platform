@@ -86,6 +86,11 @@ Acoplamentos que quebram em silencio se alterados de um lado so:
   timeout da compilacao; 137 = SIGKILL antes do limite; 153 = arquivo acima de 16 MiB); o `mapFailure` em `sandbox.ts`
   traduz para `SimulationFailure`, e **memoria so e `memory_limit` se o `OOMKilled` do
   Docker confirmar** (137 sozinho vira `internal_error`). Mudar um exige mudar o outro.
+- **Opcoes do container**: `buildSandboxContainerOptions` (`sandbox.ts`) e a politica do
+  proxy do socket do Docker (`infra/docker-proxy/policy.mjs`) precisam aceitar exatamente as
+  mesmas opcoes — o proxy recusa qualquer `create` diferente. Mudar um exige mudar o outro
+  (`docker-proxy.test.ts` reprova se divergirem). O worker nao monta o socket: fala com o
+  proxy por `DOCKER_HOST`.
 - **Estados do job**: `toJobStatus` mapeia os estados do BullMQ para o
   `JobStatusSchema` publico.
 - **Formato dos logs**: sem TTY o Docker multiplexa stdout/stderr; `demuxDockerLogs`

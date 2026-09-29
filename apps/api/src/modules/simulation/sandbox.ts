@@ -15,7 +15,20 @@ import Docker from 'dockerode';
 import type { HdlSources, SimulationFailure, TruncatedFlags } from '@tplab/shared';
 import { env } from '../../config/env.js';
 
-const docker = new Docker();
+/** `DOCKER_HOST` (`tcp://host:porta` ou `unix:///caminho`) no formato de opcoes do dockerode. */
+export function dockerConnectionOptions(host: string | undefined): Docker.DockerOptions {
+  if (!host) return {};
+  if (host.startsWith('unix://')) return { socketPath: host.slice('unix://'.length) };
+  const url = new URL(host.replace(/^tcp:/, 'http:'));
+  return { protocol: 'http', host: url.hostname, port: Number(url.port) };
+}
+
+const docker = new Docker(dockerConnectionOptions(env.DOCKER_HOST));
+
+/** Raiz dos diretorios de trabalho: `SANDBOX_WORKDIR_ROOT` (VM) ou o tmpdir do SO (desenvolvimento). */
+export function workdirRoot(): string {
+  return env.SANDBOX_WORKDIR_ROOT ?? tmpdir();
+}
 
 /** Rotulo dos containers de simulacao — permite varrer orfaos sem tocar em outros containers do host. */
 export const SANDBOX_LABEL = 'tplab.sandbox';
@@ -185,7 +198,7 @@ export async function prepareWorkdir(workdir: string): Promise<'owner' | 'open'>
 /** Igual ao de containers: diretorio temporario de um worker morto fica para tras, com os fontes do usuario. */
 export async function removeOrphanWorkdirs(
   maxAgeMs: number = env.SANDBOX_TIMEOUT_MS + 60_000,
-  root: string = tmpdir(),
+  root: string = workdirRoot(),
 ): Promise<number> {
   const entries = await readdir(root, { withFileTypes: true }).catch(() => []);
 
@@ -212,7 +225,7 @@ export async function runInSandbox(
   sources: HdlSources,
   limits: SandboxLimits = defaultSandboxLimits(),
 ): Promise<SandboxOutcome> {
-  const workdir = await mkdtemp(join(tmpdir(), WORKDIR_PREFIX));
+  const workdir = await mkdtemp(join(workdirRoot(), WORKDIR_PREFIX));
   const startedAt = Date.now();
 
   try {

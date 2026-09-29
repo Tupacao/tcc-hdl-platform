@@ -6,7 +6,7 @@
 | Categoria | Requisito Nao Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Parcial — I01 e I03 concluidas; falta I02 (socket do Docker) |
+| Status | Concluido — I01, I02 e I03 |
 | Requisitos relacionados | RF03, RF04, RNF05, RNF07 |
 
 ## 1. Enunciado
@@ -103,8 +103,8 @@ estar documentado.
 - [x] Nenhuma variavel de ambiente da API chega ao container. _(I01)_
 - [x] Container que excede memoria, CPU ou tempo e terminado. _(I01 — o desfecho reportado ao usuario e RNF05-I01)_
 - [x] Nenhum container fica orfao apos falha do worker. _(I01 — rotulo + varredura)_
-- [ ] A exposicao do socket do Docker esta reduzida ou documentada como risco
-      aceito.
+- [x] A exposicao do socket do Docker esta reduzida ou documentada como risco
+      aceito. _(I02 — proxy validador; o que continua exposto esta documentado)_
 - [x] O modelo de ameaca esta escrito. _(`docs/SEGURANCA.md`)_
 
 ## 8. Quebra em issues
@@ -112,7 +112,7 @@ estar documentado.
 | Issue | Titulo | Branch | Tamanho |
 | --- | --- | --- | --- |
 | [issue-01](issue-01-auditoria-do-sandbox.md) | Auditoria das barreiras do sandbox | `feat-RNF04-01-auditoria-sandbox-back` | M — Concluido |
-| [issue-02](issue-02-exposicao-docker-socket.md) | Reducao da exposicao do socket do Docker | `feat/rnf04-exposicao-docker-socket` | G |
+| [issue-02](issue-02-exposicao-docker-socket.md) | Reducao da exposicao do socket do Docker | `feat-RNF04-02-exposicao-docker-socket-back` | G — Concluido |
 | [issue-03](issue-03-vetores-toolchain.md) | Vetores especificos da toolchain Verilog | `feat-RNF04-03-vetores-toolchain-back` | M — Concluido |
 
 ## 9. Dependencias
