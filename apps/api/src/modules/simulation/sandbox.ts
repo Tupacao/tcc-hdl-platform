@@ -10,11 +10,15 @@ const docker = new Docker();
 /** Rotulo dos containers de simulacao — permite varrer orfaos sem tocar em outros containers do host. */
 export const SANDBOX_LABEL = 'tplab.sandbox';
 
-/** Codigos de saida definidos por `infra/sandbox/run-simulation.sh`. */
-const EXIT_COMPILE_ERROR = 2;
-const EXIT_RUNTIME_ERROR = 3;
-const EXIT_TIMEOUT = 124;
-const EXIT_KILLED = 137;
+/** Codigos de saida definidos por `infra/sandbox/run-simulation.sh` (contrato de todo script de sandbox). */
+export const EXIT_COMPILE_ERROR = 2;
+export const EXIT_RUNTIME_ERROR = 3;
+export const EXIT_COMPILE_TIMEOUT = 4;
+export const EXIT_TIMEOUT = 124;
+export const EXIT_KILLED = 137;
+
+/** Em qual etapa o limite de tempo estourou — `host` = o `killTimer` do worker, nao o script. */
+export type TimeoutPhase = 'compile' | 'simulate' | 'host';
 
 export interface SandboxOutcome {
   exitCode: number;
@@ -26,6 +30,10 @@ export interface SandboxOutcome {
   timings: SandboxTimings;
   /** RF04-I02 — quais dos tres artefatos acima vieram cortados por teto de tamanho. */
   truncated: TruncatedFlags;
+  /** RNF05-I01 — `State.OOMKilled` do container: o dado autoritativo de estouro de memoria. */
+  oomKilled: boolean;
+  /** RNF05-I01 — etapa que estourou o tempo, ou `null` quando nao houve timeout. */
+  timeoutPhase: TimeoutPhase | null;
 }
 
 /**
@@ -44,6 +52,8 @@ export interface SandboxTimings {
 export interface SandboxLimits {
   image: string;
   timeoutMs: number;
+  /** Teto da compilacao (`iverilog`), separado do da simulacao. */
+  compileTimeoutMs: number;
   memoryMb: number;
   cpus: number;
 }
@@ -56,19 +66,17 @@ export interface SandboxLimits {
  */
 export function buildSandboxContainerOptions(
   workdir: string,
-  limits: SandboxLimits = {
-    image: env.SANDBOX_IMAGE,
-    timeoutMs: env.SANDBOX_TIMEOUT_MS,
-    memoryMb: env.SANDBOX_MEMORY_MB,
-    cpus: env.SANDBOX_CPUS,
-  },
+  limits: SandboxLimits = defaultSandboxLimits(),
 ): Docker.ContainerCreateOptions {
   return {
     Image: limits.image,
     WorkingDir: '/work',
     User: 'sandbox',
-    // Unica variavel de ambiente do container: nada da API (DATABASE_URL, segredos) chega la.
-    Env: [`SIM_TIMEOUT_S=${Math.ceil(limits.timeoutMs / 1000)}`],
+    // So os dois tetos de tempo: nada da API (DATABASE_URL, segredos) chega ao container.
+    Env: [
+      `SIM_TIMEOUT_S=${Math.ceil(limits.timeoutMs / 1000)}`,
+      `SIM_COMPILE_TIMEOUT_S=${Math.ceil(limits.compileTimeoutMs / 1000)}`,
+    ],
     Labels: { [SANDBOX_LABEL]: 'true' },
     NetworkDisabled: true,
     AttachStdout: true,
@@ -149,7 +157,10 @@ export async function removeOrphanWorkdirs(
  * Executa uma submissao em um container Docker efemero, sem rede, com limites de
  * CPU/memoria e timeout (RNF04/RNF05). Nunca invocar `iverilog`/`vvp` fora daqui.
  */
-export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome> {
+export async function runInSandbox(
+  sources: HdlSources,
+  limits: SandboxLimits = defaultSandboxLimits(),
+): Promise<SandboxOutcome> {
   const workdir = await mkdtemp(join(tmpdir(), WORKDIR_PREFIX));
   const startedAt = Date.now();
 
@@ -158,7 +169,7 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
     await writeFile(join(workdir, sources.testbench.name), sources.testbench.content, 'utf8');
 
     const containerCreateStartedAt = Date.now();
-    const container = await docker.createContainer(buildSandboxContainerOptions(workdir));
+    const container = await docker.createContainer(buildSandboxContainerOptions(workdir, limits));
 
     const containerCreateMs = Date.now() - containerCreateStartedAt;
 
@@ -167,11 +178,16 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
       const executionStartedAt = Date.now();
       await container.start();
 
-      // Margem sobre o timeout interno do script, que ja mata o `vvp`.
-      const killTimer = setTimeout(() => {
-        timedOut = true;
-        void container.kill().catch(() => undefined);
-      }, env.SANDBOX_TIMEOUT_MS + 5_000);
+      // Rede de seguranca sobre os dois timeouts internos do script (compilacao +
+      // simulacao) — so dispara se o script em si travar. Quando dispara, e um
+      // sinal de que o timeout interno parou de funcionar e precisa aparecer no log.
+      const killTimer = setTimeout(
+        () => {
+          timedOut = true;
+          void container.kill().catch(() => undefined);
+        },
+        limits.compileTimeoutMs + limits.timeoutMs + 5_000,
+      );
 
       let exitCode: number;
       try {
@@ -183,16 +199,26 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
       const executionMs = Date.now() - executionStartedAt;
 
       const artifactsReadStartedAt = Date.now();
-      const logs = await container.logs({ stdout: true, stderr: true, follow: false });
+      // Container cujo PID 1 morreu por OOM pode recusar `logs` (409 "dead or marked
+      // for removal"): o desfecho ja esta decidido, so nao ha texto para mostrar.
+      const logs = await container
+        .logs({ stdout: true, stderr: true, follow: false })
+        .catch(() => Buffer.alloc(0));
       const { stdout, stderr } = demuxDockerLogs(logs as unknown as Buffer);
       const stdoutResult = truncateFromEnd(stdout, env.MAX_STDOUT_BYTES);
       const stderrResult = truncateFromEnd(stderr, env.MAX_STDERR_BYTES);
       const vcdResult = await readVcd(workdir);
       const artifactsReadMs = Date.now() - artifactsReadStartedAt;
+      const oomKilled = await container
+        .inspect()
+        .then((info) => info.State?.OOMKilled === true)
+        .catch(() => false);
 
       return {
         exitCode,
-        failure: mapFailure(timedOut ? EXIT_TIMEOUT : exitCode),
+        failure: mapFailure(timedOut ? EXIT_TIMEOUT : exitCode, { oomKilled }),
+        oomKilled,
+        timeoutPhase: timeoutPhaseOf(timedOut ? EXIT_TIMEOUT : exitCode, timedOut),
         stdout: stdoutResult.text,
         stderr: stderrResult.text,
         vcd: vcdResult.text,
@@ -212,7 +238,28 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
   }
 }
 
-function mapFailure(exitCode: number): SimulationFailure | null {
+export function defaultSandboxLimits(): SandboxLimits {
+  return {
+    image: env.SANDBOX_IMAGE,
+    timeoutMs: env.SANDBOX_TIMEOUT_MS,
+    compileTimeoutMs: env.SANDBOX_COMPILE_TIMEOUT_MS,
+    memoryMb: env.SANDBOX_MEMORY_MB,
+    cpus: env.SANDBOX_CPUS,
+  };
+}
+
+/**
+ * Traduz o desfecho do container em `SimulationFailure` (RNF05-I01). Memoria e
+ * decidida pelo `OOMKilled` do Docker — o dado autoritativo — e nao pelo codigo
+ * de saida: 137 e o de qualquer SIGKILL, inclusive o do proprio `timeout`. Um 137
+ * sem `OOMKilled` e um processo morto por outra causa, nao estouro de memoria,
+ * e vira `internal_error` em vez de acusar o usuario de algo que ele nao fez.
+ */
+export function mapFailure(
+  exitCode: number,
+  { oomKilled }: { oomKilled: boolean },
+): SimulationFailure | null {
+  if (oomKilled) return 'memory_limit';
   switch (exitCode) {
     case 0:
       return null;
@@ -220,13 +267,21 @@ function mapFailure(exitCode: number): SimulationFailure | null {
       return 'compile_error';
     case EXIT_RUNTIME_ERROR:
       return 'runtime_error';
+    case EXIT_COMPILE_TIMEOUT:
     case EXIT_TIMEOUT:
       return 'timeout';
-    case EXIT_KILLED:
-      return 'memory_limit';
     default:
+      // Inclui 137 sem OOMKilled e qualquer codigo que o script nao define.
       return 'internal_error';
   }
+}
+
+/** Etapa do timeout: 4 = compilacao, 124 = simulacao, e `host` quando foi o `killTimer`. */
+export function timeoutPhaseOf(exitCode: number, killedByHost: boolean): TimeoutPhase | null {
+  if (killedByHost) return 'host';
+  if (exitCode === EXIT_COMPILE_TIMEOUT) return 'compile';
+  if (exitCode === EXIT_TIMEOUT) return 'simulate';
+  return null;
 }
 
 export interface TruncationResult {

@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { demuxDockerLogs, truncateAtLineBoundary, truncateFromEnd } from './sandbox.js';
+import {
+  demuxDockerLogs,
+  mapFailure,
+  timeoutPhaseOf,
+  truncateAtLineBoundary,
+  truncateFromEnd,
+} from './sandbox.js';
 
 test('truncateAtLineBoundary devolve o conteudo intacto quando cabe no limite', () => {
   const content = 'linha 1\nlinha 2\n';
@@ -65,4 +71,40 @@ test('demuxDockerLogs separa stdout e stderr dos frames multiplexados', () => {
   const { stdout, stderr } = demuxDockerLogs(frames);
   assert.equal(stdout, 'ola\n');
   assert.equal(stderr, 'falha\n');
+});
+
+// RNF05-I01 — mapFailure: cada combinacao de codigo de saida e OOMKilled, sem Docker.
+
+const NO_OOM = { oomKilled: false };
+const OOM = { oomKilled: true };
+
+test('mapFailure: codigos do script sem OOM', () => {
+  assert.equal(mapFailure(0, NO_OOM), null);
+  assert.equal(mapFailure(2, NO_OOM), 'compile_error');
+  assert.equal(mapFailure(3, NO_OOM), 'runtime_error');
+  assert.equal(mapFailure(4, NO_OOM), 'timeout');
+  assert.equal(mapFailure(124, NO_OOM), 'timeout');
+});
+
+test('mapFailure: OOMKilled e o dado autoritativo de memoria, qualquer que seja o codigo de saida', () => {
+  for (const exitCode of [0, 2, 3, 4, 124, 137, 1]) {
+    assert.equal(mapFailure(exitCode, OOM), 'memory_limit', `exit ${exitCode}`);
+  }
+});
+
+test('mapFailure: 137 sem OOMKilled (SIGKILL de outra causa) NAO e memory_limit', () => {
+  assert.equal(mapFailure(137, NO_OOM), 'internal_error');
+});
+
+test('mapFailure: codigo desconhecido e erro interno, nunca culpa o usuario', () => {
+  assert.equal(mapFailure(1, NO_OOM), 'internal_error');
+  assert.equal(mapFailure(255, NO_OOM), 'internal_error');
+});
+
+test('timeoutPhaseOf distingue compilacao, simulacao e o killTimer do host', () => {
+  assert.equal(timeoutPhaseOf(4, false), 'compile');
+  assert.equal(timeoutPhaseOf(124, false), 'simulate');
+  assert.equal(timeoutPhaseOf(124, true), 'host');
+  assert.equal(timeoutPhaseOf(2, false), null);
+  assert.equal(timeoutPhaseOf(0, false), null);
 });

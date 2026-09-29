@@ -24,6 +24,8 @@ function outcome(overrides: Partial<SandboxOutcome> = {}): SandboxOutcome {
     durationMs: 500,
     timings: { containerCreateMs: 100, executionMs: 300, artifactsReadMs: 50 },
     truncated: { stdout: false, stderr: false, vcd: false },
+    oomKilled: false,
+    timeoutPhase: null,
     ...overrides,
   };
 }
@@ -103,4 +105,16 @@ test('buildJobLogRecord repassa exitCode, failure e os tempos parciais do sandbo
     executionMs: 10_000,
     artifactsReadMs: 5,
   });
+});
+
+test('buildJobLogRecord registra OOMKilled e a etapa do timeout (RNF05-I01)', () => {
+  const record = buildJobLogRecord({
+    jobId: '9',
+    sources: sources(1, 1),
+    outcome: outcome({ failure: 'memory_limit', oomKilled: true, timeoutPhase: 'host' }),
+    queuedAt: 0,
+    processedAt: 0,
+  });
+  assert.equal(record.oomKilled, true);
+  assert.equal(record.timeoutPhase, 'host');
 });

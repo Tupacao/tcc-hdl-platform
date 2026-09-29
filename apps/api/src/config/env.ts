@@ -24,6 +24,8 @@ const EnvSchema = z
     SANDBOX_IMAGE: z.string().default('tplab-sandbox:latest'),
     /** Timeout duro do processo de simulacao (RNF05). */
     SANDBOX_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
+    /** Teto da compilacao (`iverilog`), separado do da simulacao: bem mais curto (RNF05-I01). */
+    SANDBOX_COMPILE_TIMEOUT_MS: z.coerce.number().int().positive().default(5_000),
     SANDBOX_MEMORY_MB: z.coerce.number().int().positive().default(128),
     SANDBOX_CPUS: z.coerce.number().positive().default(0.5),
     /**

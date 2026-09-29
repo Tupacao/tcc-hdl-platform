@@ -82,8 +82,10 @@ Compilacao/simulacao nunca roda no processo da API:
 
 Acoplamentos que quebram em silencio se alterados de um lado so:
 
-- **Codigos de saida**: `infra/sandbox/run-simulation.sh` define 0/2/3/124; o
-  `mapFailure` em `sandbox.ts` traduz para `SimulationFailure`. Mudar um exige mudar o outro.
+- **Codigos de saida**: `infra/sandbox/run-simulation.sh` define 0/2/3/4/124/137 (4 =
+  timeout da compilacao; 137 = SIGKILL antes do limite); o `mapFailure` em `sandbox.ts`
+  traduz para `SimulationFailure`, e **memoria so e `memory_limit` se o `OOMKilled` do
+  Docker confirmar** (137 sozinho vira `internal_error`). Mudar um exige mudar o outro.
 - **Estados do job**: `toJobStatus` mapeia os estados do BullMQ para o
   `JobStatusSchema` publico.
 - **Formato dos logs**: sem TTY o Docker multiplexa stdout/stderr; `demuxDockerLogs`

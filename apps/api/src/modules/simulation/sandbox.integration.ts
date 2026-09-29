@@ -12,7 +12,14 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import Docker from 'dockerode';
 import type { HdlSources } from '@tplab/shared';
-import { buildSandboxContainerOptions, runInSandbox } from './sandbox.js';
+import { execFileSync } from 'node:child_process';
+import {
+  buildSandboxContainerOptions,
+  defaultSandboxLimits,
+  mapFailure,
+  runInSandbox,
+  type SandboxLimits,
+} from './sandbox.js';
 
 const docker = new Docker();
 
@@ -170,6 +177,83 @@ endmodule`),
   assert.equal(outcome.failure, null);
   assert.match(outcome.stdout, /b=1/);
   assert.ok(outcome.vcd && outcome.vcd.includes('$var'));
+});
+
+// RNF05-I01 — cada limite dispara e produz o desfecho correto.
+
+const FAST: SandboxLimits = {
+  ...defaultSandboxLimits(),
+  timeoutMs: 3_000,
+  compileTimeoutMs: 2_000,
+};
+
+test('tempo: simulacao sem $finish termina no limite e reporta timeout da simulacao', async () => {
+  const outcome = await runInSandbox(
+    sources('module tb; reg a; initial a = 0; always #1 a = ~a; endmodule'),
+    FAST,
+  );
+  assert.equal(outcome.failure, 'timeout');
+  assert.equal(outcome.timeoutPhase, 'simulate');
+  assert.equal(outcome.exitCode, 124);
+  assert.equal(outcome.oomKilled, false);
+});
+
+test('tempo: compilacao que nao termina e interrompida e distinguivel (fase compile)', async () => {
+  const started = Date.now();
+  const outcome = await runInSandbox(
+    sources('`include "tb.v"\nmodule tb; initial $finish; endmodule'),
+    FAST,
+  );
+  assert.equal(outcome.failure, 'timeout');
+  assert.equal(outcome.timeoutPhase, 'compile');
+  assert.equal(outcome.exitCode, 4);
+  // Antes de RNF05-I01 ficava preso ate o killTimer do host (limites + 5 s).
+  assert.ok(
+    Date.now() - started < 3_000 + 2_000 + 5_000,
+    'o iverilog nao foi coberto pelo timeout',
+  );
+});
+
+test('memoria: estouro reporta memory_limit confirmado pelo OOMKilled (nao timeout)', async () => {
+  const outcome = await runInSandbox(
+    sources(
+      'module tb; reg [31:0] mem [0:100000000]; integer i; initial begin for (i = 0; i < 100000000; i = i + 1) mem[i] = i; $finish; end endmodule',
+    ),
+    { ...FAST, timeoutMs: 20_000, memoryMb: 32 },
+  );
+  assert.equal(outcome.failure, 'memory_limit');
+  assert.equal(outcome.oomKilled, true);
+});
+
+test('SIGKILL sem OOM (processo filho morto por kill -9) NAO vira memory_limit', async () => {
+  // kill -9 no PID 1 e ignorado pelo kernel dentro do proprio namespace: mata-se um filho.
+  const { exitCode, oomKilled } = await shell(
+    'sleep 30 & pid=$!; kill -9 $pid; wait $pid; exit $?',
+  );
+  assert.equal(exitCode, 137);
+  assert.equal(oomKilled, false);
+  assert.equal(mapFailure(exitCode, { oomKilled }), 'internal_error');
+});
+
+test('variaveis SANDBOX_* mudam o comportamento efetivo (entram nos limites e no container)', () => {
+  const script =
+    'import("./src/modules/simulation/sandbox.ts").then((m) => { const l = m.defaultSandboxLimits(); const o = m.buildSandboxContainerOptions("/w", l); console.log(JSON.stringify({ l, env: o.Env, mem: o.HostConfig.Memory, cpu: o.HostConfig.NanoCpus })); })';
+  const out = execFileSync(process.execPath, ['--import', 'tsx', '-e', script], {
+    env: {
+      ...process.env,
+      SANDBOX_TIMEOUT_MS: '4000',
+      SANDBOX_COMPILE_TIMEOUT_MS: '2000',
+      SANDBOX_MEMORY_MB: '48',
+      SANDBOX_CPUS: '0.25',
+    },
+    cwd: new URL('../../../', import.meta.url),
+  }).toString();
+  const parsed = JSON.parse(out) as { l: SandboxLimits; env: string[]; mem: number; cpu: number };
+  assert.equal(parsed.l.timeoutMs, 4000);
+  assert.equal(parsed.l.compileTimeoutMs, 2000);
+  assert.deepEqual(parsed.env, ['SIM_TIMEOUT_S=4', 'SIM_COMPILE_TIMEOUT_S=2']);
+  assert.equal(parsed.mem, 48 * 1024 * 1024);
+  assert.equal(parsed.cpu, 0.25e9);
 });
 
 test('limpeza: nenhum container do sandbox fica para tras', async () => {

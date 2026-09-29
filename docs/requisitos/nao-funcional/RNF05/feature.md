@@ -6,7 +6,7 @@
 | Categoria | Requisito Nao Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Implementado (falta verificar os desfechos e dimensionar os valores) |
+| Status | Parcial — I01 concluida (verificacao dos limites); falta I02 (dimensionamento) |
 | Requisitos relacionados | RF03, RF04, RNF04, RNF07 |
 
 ## 1. Enunciado
@@ -76,8 +76,9 @@ Falta o dado que justifique cada numero no texto do TCC.
 - `mapFailure` mapeia 0, 2, 3, 124 e 137 para os valores de
   `SimulationFailureSchema`.
 - O `iverilog` **nao** esta coberto por timeout no script - so o `vvp`.
-- **Falta**: verificar que cada limite produz o desfecho correto, cobrir a
-  compilacao, e dimensionar os valores com medicao.
+- `iverilog` coberto por `SANDBOX_COMPILE_TIMEOUT_MS` (5 s, exit 4); memoria decidida por
+  `State.OOMKilled`; mensagens de limite em `limits.ts` (I01).
+- **Falta**: dimensionar os valores com medicao (I02).
 
 ## 6. Escopo
 
@@ -97,19 +98,19 @@ Falta o dado que justifique cada numero no texto do TCC.
 
 ## 7. Criterios de aceite da feature
 
-- [ ] Simulacao sem `$finish` termina no limite e reporta `timeout`.
-- [ ] Alocacao acima do limite reporta `memory_limit`, nao `timeout`.
-- [ ] Compilacao que nao termina tambem e interrompida.
-- [ ] Um job nunca ocupa o worker alem do limite mais a margem.
-- [ ] As mensagens ao usuario explicam a causa provavel e o que fazer.
+- [x] Simulacao sem `$finish` termina no limite e reporta `timeout`. _(I01)_
+- [x] Alocacao acima do limite reporta `memory_limit`, nao `timeout`. _(I01 — `OOMKilled`)_
+- [x] Compilacao que nao termina tambem e interrompida. _(I01 — exit 4)_
+- [x] Um job nunca ocupa o worker alem do limite mais a margem. _(I01 — `killTimer` = compilacao + simulacao + 5 s, e loga quando dispara)_
+- [x] As mensagens ao usuario explicam a causa provavel e o que fazer. _(I01 — `limits.ts`)_
 - [ ] Os valores estao justificados por medicao, no `README.md`.
-- [ ] Alterar as variaveis de ambiente muda o comportamento efetivo.
+- [x] Alterar as variaveis de ambiente muda o comportamento efetivo. _(I01 — verificado por processo filho)_
 
 ## 8. Quebra em issues
 
 | Issue | Titulo | Branch | Tamanho |
 | --- | --- | --- | --- |
-| [issue-01](issue-01-verificacao-dos-limites.md) | Verificacao dos limites e fidelidade do desfecho | `chore/rnf05-verificacao-dos-limites` | M |
+| [issue-01](issue-01-verificacao-dos-limites.md) | Verificacao dos limites e fidelidade do desfecho | `feat-RNF05-01-verificacao-limites-back` | M — Concluido |
 | [issue-02](issue-02-dimensionamento-dos-valores.md) | Dimensionamento dos valores com medicao | `chore/rnf05-dimensionamento-dos-valores` | M |
 
 ## 9. Dependencias
