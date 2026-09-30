@@ -40,6 +40,22 @@ export const TruncatedFlagsSchema = z.object({
   vcd: z.boolean(),
 });
 
+/**
+ * Tempo de cada etapa do servidor, em ms (RNF07-I01) — o cliente soma o que o servidor mediu e
+ * atribui o resto (rede, polling, renderizacao) a si mesmo. `null` quando a etapa nao existiu
+ * ou nao terminou (ex.: sem compilacao concluida).
+ */
+export const SimulationTimingsSchema = z.object({
+  /** Espera na fila: `processedOn - timestamp` do BullMQ. */
+  queueWaitMs: z.number().int().nonnegative().nullable(),
+  containerCreateMs: z.number().int().nonnegative(),
+  compileMs: z.number().int().nonnegative().nullable(),
+  simulateMs: z.number().int().nonnegative().nullable(),
+  /** Do `start` do container ate a saida — inclui o overhead de iniciar. */
+  executionMs: z.number().int().nonnegative(),
+  artifactsReadMs: z.number().int().nonnegative(),
+});
+
 /** Motivo da falha, para o frontend diferenciar erro do usuario de erro da plataforma. */
 export const SimulationFailureSchema = z.enum([
   'compile_error',
@@ -79,11 +95,14 @@ export const SimulationResultSchema = z.object({
   /** Posicao (1-based) na fila de espera; `null` fora do status `queued`. */
   queuePosition: z.number().int().nonnegative().nullable(),
   truncated: TruncatedFlagsSchema,
+  /** RNF07-I01 — ausente enquanto o job nao terminou. */
+  timings: SimulationTimingsSchema.nullable().optional(),
 });
 
 export type Diagnostic = z.infer<typeof DiagnosticSchema>;
 export type JobStatus = z.infer<typeof JobStatusSchema>;
 export type TruncatedFlags = z.infer<typeof TruncatedFlagsSchema>;
+export type SimulationTimings = z.infer<typeof SimulationTimingsSchema>;
 export type SimulationFailure = z.infer<typeof SimulationFailureSchema>;
 export type CompileRequest = z.infer<typeof CompileRequestSchema>;
 export type SimulationJob = z.infer<typeof SimulationJobSchema>;

@@ -110,6 +110,14 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
       // O job terminou de processar — por definicao nao esta mais na fila (RF03-I02).
       queuePosition: null,
       truncated: outcome.truncated,
+      timings: {
+        queueWaitMs: job.processedOn !== undefined ? job.processedOn - job.timestamp : null,
+        containerCreateMs: outcome.timings.containerCreateMs,
+        compileMs: outcome.timings.compileMs,
+        simulateMs: outcome.timings.simulateMs,
+        executionMs: outcome.timings.executionMs,
+        artifactsReadMs: outcome.timings.artifactsReadMs,
+      },
     } satisfies Omit<SimulationResult, 'jobId' | 'status'>;
   },
   {

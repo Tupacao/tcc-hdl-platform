@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   demuxDockerLogs,
+  extractStageTimings,
   mapFailure,
   readContainerLogs,
   timeoutPhaseOf,
@@ -138,4 +139,42 @@ test('readContainerLogs desiste com null apos esgotar as tentativas', async () =
   );
   assert.equal(result, null);
   assert.equal(calls, 3);
+});
+
+// RNF07-I01 — a linha de tempos que o script emite e removida de stderr antes do usuario ver.
+
+test('extractStageTimings le as duas etapas e remove a linha de stderr', () => {
+  const result = extractStageTimings(
+    'aviso do compilador\n@@tplab-timing compile_ms=20 simulate_ms=1390\n',
+  );
+  assert.deepEqual(result, { stderr: 'aviso do compilador\n', compileMs: 20, simulateMs: 1390 });
+});
+
+test('extractStageTimings: etapa que nao terminou fica null (erro de compilacao)', () => {
+  const result = extractStageTimings('/work/tb.v:1: syntax error\n@@tplab-timing compile_ms=10\n');
+  assert.equal(result.compileMs, 10);
+  assert.equal(result.simulateMs, null);
+  assert.equal(result.stderr, '/work/tb.v:1: syntax error\n');
+});
+
+test('extractStageTimings: sem marca (container morto) devolve stderr intacto e nulls', () => {
+  assert.deepEqual(extractStageTimings('Killed\n'), {
+    stderr: 'Killed\n',
+    compileMs: null,
+    simulateMs: null,
+  });
+});
+
+test('extractStageTimings vale a ultima marca e nunca deixa uma linha forjada aparecer', () => {
+  const forged = '@@tplab-timing compile_ms=1 simulate_ms=1\n';
+  const real = '@@tplab-timing compile_ms=30 simulate_ms=40\n';
+  const result = extractStageTimings(`${forged}texto\n${real}`);
+  assert.equal(result.compileMs, 30);
+  assert.equal(result.simulateMs, 40);
+  assert.equal(result.stderr, 'texto\n');
+});
+
+test('extractStageTimings so remove linhas inteiras no formato da marca', () => {
+  const text = 'x @@tplab-timing compile_ms=5\n@@tplab-timing lixo\n';
+  assert.equal(extractStageTimings(text).stderr, text);
 });

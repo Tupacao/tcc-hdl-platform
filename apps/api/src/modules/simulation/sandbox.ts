@@ -74,6 +74,33 @@ export interface SandboxTimings {
   containerCreateMs: number;
   executionMs: number;
   artifactsReadMs: number;
+  /** RNF07-I01 — `iverilog` e `vvp` separados (marca `@@tplab-timing` do script); `null` se a etapa nao terminou. */
+  compileMs: number | null;
+  simulateMs: number | null;
+}
+
+const TIMING_LINE = /^@@tplab-timing((?: (?:compile|simulate)_ms=\d+)*)[ \t]*\r?$\n?/gm;
+
+/**
+ * Tira de stderr as linhas `@@tplab-timing` que o script emite (RNF07-I01) e devolve os tempos.
+ * Vale a ULTIMA marca: o codigo do usuario alcanca stderr (`$fdisplay(2, ...)`) e poderia forjar
+ * uma — o que so distorceria as metricas do proprio job, e nunca aparece ao usuario.
+ */
+export function extractStageTimings(stderr: string): {
+  stderr: string;
+  compileMs: number | null;
+  simulateMs: number | null;
+} {
+  let compileMs: number | null = null;
+  let simulateMs: number | null = null;
+  const cleaned = stderr.replace(TIMING_LINE, (_line, fields: string) => {
+    const compile = /compile_ms=(\d+)/.exec(fields);
+    const simulate = /simulate_ms=(\d+)/.exec(fields);
+    compileMs = compile ? Number(compile[1]) : null;
+    simulateMs = simulate ? Number(simulate[1]) : null;
+    return '';
+  });
+  return { stderr: cleaned, compileMs, simulateMs };
 }
 
 export interface SandboxLimits {
@@ -280,7 +307,8 @@ export async function runInSandbox(
       );
       const { stdout, stderr } = demuxDockerLogs(logs ?? Buffer.alloc(0));
       const stdoutResult = truncateFromEnd(stdout, env.MAX_STDOUT_BYTES);
-      const stderrResult = truncateFromEnd(stderr, env.MAX_STDERR_BYTES);
+      const stages = extractStageTimings(stderr);
+      const stderrResult = truncateFromEnd(stages.stderr, env.MAX_STDERR_BYTES);
       const vcdResult = await readVcd(workdir);
       const artifactsReadMs = Date.now() - artifactsReadStartedAt;
       const oomKilled = await container
@@ -302,7 +330,13 @@ export async function runInSandbox(
         stderr: stderrResult.text,
         vcd: vcdResult.text,
         durationMs: Date.now() - startedAt,
-        timings: { containerCreateMs, executionMs, artifactsReadMs },
+        timings: {
+          containerCreateMs,
+          executionMs,
+          artifactsReadMs,
+          compileMs: stages.compileMs,
+          simulateMs: stages.simulateMs,
+        },
         truncated: {
           stdout: stdoutResult.truncated,
           stderr: stderrResult.truncated,

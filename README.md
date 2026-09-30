@@ -88,6 +88,7 @@ O Vite faz proxy de `/api` para a API, entao nao ha CORS no desenvolvimento.
 | `pnpm sandbox:build`                                  | Constroi a imagem `tplab-sandbox:latest`                  |
 | `pnpm --filter @tplab/api test:sandbox`               | Auditoria do sandbox contra o Docker real (RNF04/RNF05)   |
 | `pnpm --filter @tplab/api measure:sandbox`            | Mede limites e desempenho do sandbox (RNF05-I02)          |
+| `pnpm --filter @tplab/api measure:e2e`                | Mede o tempo ponta a ponta por etapa (RNF07-I01)          |
 | `pnpm test:infra`                                     | Testes da política do proxy do socket do Docker (RNF04)   |
 | `pnpm --filter @tplab/api exec prisma migrate dev`    | Cria/aplica migracao a partir do schema (dev)             |
 | `pnpm --filter @tplab/api exec prisma migrate deploy` | Aplica migracoes pendentes (producao/CI)                  |

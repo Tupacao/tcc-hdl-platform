@@ -22,7 +22,13 @@ function outcome(overrides: Partial<SandboxOutcome> = {}): SandboxOutcome {
     stderr: '',
     vcd: null,
     durationMs: 500,
-    timings: { containerCreateMs: 100, executionMs: 300, artifactsReadMs: 50 },
+    timings: {
+      containerCreateMs: 100,
+      executionMs: 300,
+      artifactsReadMs: 50,
+      compileMs: 20,
+      simulateMs: 40,
+    },
     truncated: { stdout: false, stderr: false, vcd: false },
     oomKilled: false,
     timeoutPhase: null,
@@ -93,7 +99,13 @@ test('buildJobLogRecord repassa exitCode, failure e os tempos parciais do sandbo
     outcome: outcome({
       exitCode: 124,
       failure: 'timeout',
-      timings: { containerCreateMs: 40, executionMs: 10_000, artifactsReadMs: 5 },
+      timings: {
+        containerCreateMs: 40,
+        executionMs: 10_000,
+        artifactsReadMs: 5,
+        compileMs: 12,
+        simulateMs: 10_000,
+      },
     }),
     queuedAt: 0,
     processedAt: 0,
@@ -105,6 +117,8 @@ test('buildJobLogRecord repassa exitCode, failure e os tempos parciais do sandbo
     containerCreateMs: 40,
     executionMs: 10_000,
     artifactsReadMs: 5,
+    compileMs: 12,
+    simulateMs: 10_000,
   });
 });
 
