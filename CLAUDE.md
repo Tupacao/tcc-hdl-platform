@@ -37,9 +37,9 @@ Testes (`node:test` + tsx, apenas em `apps/api`):
 ```bash
 pnpm --filter @tplab/api test
 # arquivo unico
-pnpm --filter @tplab/api exec node --import tsx --test src/modules/simulation/diagnostics.test.ts
+pnpm --filter @tplab/api exec node --import tsx --test src/tests/simulation/diagnostics-icarus.test.ts
 # um teste pelo nome
-pnpm --filter @tplab/api exec node --import tsx --test --test-name-pattern="warnings" src/modules/simulation/diagnostics.test.ts
+pnpm --filter @tplab/api exec node --import tsx --test --test-name-pattern="warnings" src/tests/simulation/diagnostics-icarus.test.ts
 ```
 
 Para trabalhar de verdade e preciso: Redis no ar (sem ele `POST /api/simulations`
@@ -67,18 +67,22 @@ mantem o `tsc --watch`), senao api e web continuam vendo o contrato antigo.
 
 Compilacao/simulacao nunca roda no processo da API:
 
-1. `POST /api/simulations` (`modules/simulation/routes.ts`) valida com
-   `CompileRequestSchema`, enfileira no BullMQ e responde `202` com o `jobId`.
-2. `apps/api/src/worker.ts` (processo separado, `concurrency: 2`) consome a fila e
+1. `POST /api/simulations` (`application/simulation/controller/simulation.controller.ts`)
+   valida com `CompileRequestSchema`; o `DefaultSimulationService`
+   (`application/simulation/service/simulation.service.ts`) checa a profundidade da fila,
+   enfileira pelo `BullMqSimulationJobRepository` e a rota responde `202` com o `jobId`.
+2. `apps/api/src/worker.ts` (processo separado, `concurrency: 2`) so consome a fila: o
+   pipeline do job vive em `application/simulation/service/simulation-run.service.ts`, que
    chama `runInSandbox`.
-3. `modules/simulation/sandbox.ts` grava os fontes num tmpdir, cria um container
+3. `infra/sandbox/sandbox.ts` grava os fontes num tmpdir, cria um container
    efemero (`NetworkMode: none`, rootfs somente leitura, `CapDrop: ALL`,
    `no-new-privileges`, memoria/CPU/PIDs limitados, timeout duro) e le stdout,
    stderr e o `.vcd` do workdir (RNF04/RNF05).
-4. `modules/simulation/diagnostics.ts` converte o stderr do `iverilog` em
+4. `application/simulation/service/diagnostics-icarus.ts` converte o stderr do `iverilog` em
    diagnosticos com arquivo/linha/coluna (RF05).
 5. O tipo do job (`kind`, default `simulate-verilog`) escolhe a toolchain no registro
-   `modules/simulation/toolchains.ts` (imagem, parser de diagnosticos, artefatos); o worker e
+   `application/simulation/service/toolchains.ts` (imagem, parser de diagnosticos,
+   artefatos; o contrato `Toolchain` fica em `domain/simulation/entities/`); o worker e
    `runInSandbox` nao conhecem a ferramenta. Artefatos voltam em `artifacts` (por nome) e `vcd`
    e derivado de `artifacts.vcd`. Convencao dos scripts: `infra/sandbox/README.md`.
 6. O frontend faz polling em `GET /api/simulations/:jobId` (`runSimulation` em
@@ -87,16 +91,18 @@ Compilacao/simulacao nunca roda no processo da API:
 Acoplamentos que quebram em silencio se alterados de um lado so:
 
 - **Codigos de saida**: `infra/sandbox/run-simulation.sh` define 0/2/3/4/124/137/153 (4 =
-  timeout da compilacao; 137 = SIGKILL antes do limite; 153 = arquivo acima de 16 MiB); o `mapFailure` em `sandbox.ts`
+  timeout da compilacao; 137 = SIGKILL antes do limite; 153 = arquivo acima de 16 MiB); o `mapFailure` em `infra/sandbox/sandbox.ts` (os valores em
+  `domain/simulation/enums/exit-code.ts`)
   traduz para `SimulationFailure`, e **memoria so e `memory_limit` se o `OOMKilled` do
   Docker confirmar** (137 sozinho vira `internal_error`). Mudar um exige mudar o outro.
-- **Opcoes do container**: `buildSandboxContainerOptions` (`sandbox.ts`) e a politica do
+- **Opcoes do container**: `buildSandboxContainerOptions` (`infra/sandbox/sandbox.ts`) e a politica do
   proxy do socket do Docker (`infra/docker-proxy/policy.mjs`) precisam aceitar exatamente as
   mesmas opcoes — o proxy recusa qualquer `create` diferente. Mudar um exige mudar o outro
   (`docker-proxy.test.ts` reprova se divergirem). O worker nao monta o socket: fala com o
   proxy por `DOCKER_HOST`.
-- **Estados do job**: `toJobStatus` mapeia os estados do BullMQ para o
-  `JobStatusSchema` publico.
+- **Estados do job**: `toJobStatus` (`application/simulation/repository/bullmq-simulation-job.repository.ts`)
+  mapeia os estados do BullMQ para o `JobStatusSchema` publico. Unico ponto da API que
+  conhece BullMQ — acima dele o job e um `SimulationJobSnapshot` de `domain/`.
 - **Formato dos logs**: sem TTY o Docker multiplexa stdout/stderr; `demuxDockerLogs`
   desfaz os frames de 8 bytes.
 - O `run-simulation.sh` roda `iverilog` **sem** `-s`, deixando a toolchain eleger o
@@ -116,9 +122,11 @@ implementacoes — `InMemoryProjectRepository` (dev sem Postgres) e
 `ProjectService` (`application/projects/service/`), que o controller
 (`application/projects/controller/project.controller.ts`) usa — nunca o
 repository diretamente. Schema e migracoes do Prisma ficam em
-`apps/api/prisma/`. `projects` e o primeiro modulo migrado para o layout
-`application/domain/infra` de `ARCHITECTURE.md`; `health` e `simulation` ainda
-sao `modules/*` antigo, a migrar quando forem tocados.
+`apps/api/prisma/`. `projects` foi o primeiro modulo migrado para o layout
+`application/domain/infra` de `ARCHITECTURE.md`, e `simulation` seguiu o mesmo
+caminho (contratos em `domain/simulation/`, regra em `application/simulation/`,
+Docker e fila em `infra/`); `health` ja nasceu em `application/` sem `domain/`
+completo. A pasta `modules/*` nao existe mais.
 
 ### Frontend
 

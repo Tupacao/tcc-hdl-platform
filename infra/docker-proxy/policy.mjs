@@ -6,7 +6,7 @@
  * filtram so por rota: liberar `POST /containers/create` libera **qualquer corpo**,
  * inclusive `Privileged: true` e `Binds: ["/:/host"]` — ganho nulo. Aqui a politica
  * confere o **corpo** do `create` contra exatamente as opcoes que `runInSandbox`
- * monta (`buildSandboxContainerOptions`, em `apps/api/src/modules/simulation/sandbox.ts`):
+ * monta (`buildSandboxContainerOptions`, em `apps/api/src/infra/sandbox/sandbox.ts`):
  * qualquer campo fora da lista, ou com valor diferente, e recusado.
  *
  * Mudar as opcoes do container em `sandbox.ts` exige mudar esta politica — o

@@ -83,11 +83,11 @@ apps/api/src/
   recursos externos (DB, fila, containers).
 - **`tests/`** espelha `application/` 1:1 (mesmo caminho relativo), porque e onde
   vive toda a logica executavel. `domain/` (so tipos) e `infra/` (so
-  conectividade) nao precisam de espelho de teste dedicado.
-- Isso convive com o padrao ja existente do projeto descrito em `CLAUDE.md`
-  (ex.: `ProjectRepository` em `modules/projects/repository.ts`) — ao tocar um
-  modulo antigo, migrar sua pasta para o padrao acima faz parte da tarefa, nao
-  um efeito colateral a evitar.
+  conectividade) nao precisam de espelho de teste dedicado — a excecao sao os
+  testes de `infra/sandbox` (opcoes do container, truncamento, demux dos logs),
+  que sustentam RNF04/RNF05 e ficam na pasta da feature, em `tests/simulation/`.
+- Ao tocar um modulo que ainda nao segue este layout, migrar sua pasta faz parte
+  da tarefa, nao um efeito colateral a evitar.
 
 ---
 
@@ -146,7 +146,18 @@ merge. Ver os arquivos em `.github/workflows/` para o detalhe de cada job.
 ## 5. Divergencias conhecidas
 
 Este documento e a fonte da verdade para codigo novo. Codigo existente que ainda
-nao segue o padrao (ex.: rotas atuais de `apps/api/src/modules/*` fora do layout
-`application/domain/infra`) deve ser migrado a medida que for tocado — nao exige
-uma migracao em massa antecipada. Ver `docs/WORKFLOW.md` sobre quando migrar
-versus quando so adicionar por cima.
+nao segue o padrao deve ser migrado a medida que for tocado — nao exige uma
+migracao em massa antecipada. Ver `docs/WORKFLOW.md` sobre quando migrar versus
+quando so adicionar por cima.
+
+Estado da migracao no backend:
+
+| Feature | Situacao |
+| --- | --- |
+| `projects` | migrada (RF07-I01) — `domain` + `application` completos |
+| `simulation` | migrada — contratos em `domain/simulation/`, regra em `application/simulation/`, Docker e fila em `infra/` |
+| `health` | em `application/health/`, com `domain/health/services`; sem repositorio (nao tem dado proprio) |
+
+A pasta `apps/api/src/modules/` nao existe mais. As pastas `docs/requisitos/**`
+citam caminhos antigos no texto de issues ja fechadas: sao registro historico do
+que foi feito, nao o estado atual do codigo.

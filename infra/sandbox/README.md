@@ -3,7 +3,7 @@
 Cada toolchain (Icarus Verilog hoje; GHDL, Yosys etc. depois) é uma imagem Docker com um
 script de entrada que lê os fontes em `/work`, roda a ferramenta e deixa os artefatos também
 em `/work`. A plataforma não conhece a ferramenta: só o registro
-`apps/api/src/modules/simulation/toolchains.ts` (imagem, parser de diagnósticos, artefatos
+`apps/api/src/application/simulation/service/toolchains.ts` (imagem, parser de diagnósticos, artefatos
 esperados) e esta convenção.
 
 ## Códigos de saída — contrato de todo script
