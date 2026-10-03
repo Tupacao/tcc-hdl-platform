@@ -196,3 +196,6 @@ Preparar a arquitetura para acomodar futuramente, mas **não implementar agora**
   processo do backend.
 - Ao gerar componentes de UI, seguir o padrão shadcn/ui + Tailwind já definido, não
   introduzir MUI ou outra lib de componentes concorrente.
+
+> **RNF03 — escopo do MVP:** validado/projetado apenas para Full HD (1920x1080); larguras abaixo de
+> 1024px não são verificadas nem adaptadas (limitação conhecida, decisão de 2026-10-03).
