@@ -12,7 +12,11 @@ import {
 import { parseIcarusDiagnostics } from './modules/simulation/diagnostics.js';
 import { attachHints } from './modules/simulation/hints.js';
 import { buildJobLogRecord } from './modules/simulation/job-log.js';
-import { runInSandbox } from './modules/simulation/sandbox.js';
+import {
+  removeOrphanSandboxContainers,
+  removeOrphanWorkdirs,
+  runInSandbox,
+} from './modules/simulation/sandbox.js';
 import { analyzePostExecution, analyzeTestbenchContract } from './modules/simulation/testbench.js';
 
 /** Conexao separada da do BullMQ (RF03-I04) — so para os contadores em `lib/metrics.ts`. */
@@ -97,6 +101,26 @@ worker.on('failed', (job, error) => {
 worker.on('error', (error) => {
   logger.error({ err: error }, 'erro de conexao com o Redis');
 });
+
+/**
+ * RNF04-I01 — o `finally` de `runInSandbox` nao roda se o worker for morto a
+ * forca (OOM do host, `kill -9`, queda da VM): sobram um container e o diretorio
+ * com os fontes do usuario. Varre no start e de tempos em tempos.
+ */
+async function sweepOrphans(): Promise<void> {
+  const containers = await removeOrphanSandboxContainers().catch((cause: unknown) => {
+    logger.warn({ err: cause }, 'falha ao varrer containers orfaos do sandbox');
+    return 0;
+  });
+  const workdirs = await removeOrphanWorkdirs().catch(() => 0);
+  if (containers > 0 || workdirs > 0) {
+    logger.warn({ containers, workdirs }, 'orfaos de um worker anterior removidos');
+  }
+}
+
+const ORPHAN_SWEEP_INTERVAL_MS = 5 * 60_000;
+void sweepOrphans();
+setInterval(() => void sweepOrphans(), ORPHAN_SWEEP_INTERVAL_MS).unref();
 
 logger.info({ image: env.SANDBOX_IMAGE }, `escutando a fila "${SIMULATION_QUEUE}"`);
 

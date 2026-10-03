@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Docker from 'dockerode';
@@ -6,6 +6,9 @@ import type { HdlSources, SimulationFailure, TruncatedFlags } from '@tplab/share
 import { env } from '../../config/env.js';
 
 const docker = new Docker();
+
+/** Rotulo dos containers de simulacao — permite varrer orfaos sem tocar em outros containers do host. */
+export const SANDBOX_LABEL = 'tplab.sandbox';
 
 /** Codigos de saida definidos por `infra/sandbox/run-simulation.sh`. */
 const EXIT_COMPILE_ERROR = 2;
@@ -38,12 +41,116 @@ export interface SandboxTimings {
   artifactsReadMs: number;
 }
 
+export interface SandboxLimits {
+  image: string;
+  timeoutMs: number;
+  memoryMb: number;
+  cpus: number;
+}
+
+/**
+ * Todas as barreiras de RNF04/RNF05 num lugar so, sem tocar no Docker: e o que
+ * `sandbox.security.test.ts` confere chave a chave, para que remover ou errar o
+ * nome de uma opcao (o Docker ignora chave desconhecida em silencio) reprove o
+ * teste em vez de desligar uma protecao sem ninguem perceber.
+ */
+export function buildSandboxContainerOptions(
+  workdir: string,
+  limits: SandboxLimits = {
+    image: env.SANDBOX_IMAGE,
+    timeoutMs: env.SANDBOX_TIMEOUT_MS,
+    memoryMb: env.SANDBOX_MEMORY_MB,
+    cpus: env.SANDBOX_CPUS,
+  },
+): Docker.ContainerCreateOptions {
+  return {
+    Image: limits.image,
+    WorkingDir: '/work',
+    User: 'sandbox',
+    // Unica variavel de ambiente do container: nada da API (DATABASE_URL, segredos) chega la.
+    Env: [`SIM_TIMEOUT_S=${Math.ceil(limits.timeoutMs / 1000)}`],
+    Labels: { [SANDBOX_LABEL]: 'true' },
+    NetworkDisabled: true,
+    AttachStdout: true,
+    AttachStderr: true,
+    Tty: false,
+    HostConfig: {
+      AutoRemove: false, // removido explicitamente apos a leitura dos logs
+      NetworkMode: 'none',
+      Binds: [`${workdir}:/work:rw`],
+      ReadonlyRootfs: true,
+      Tmpfs: { '/tmp': 'rw,noexec,nosuid,size=32m' },
+      Memory: limits.memoryMb * 1024 * 1024,
+      MemorySwap: limits.memoryMb * 1024 * 1024, // sem swap
+      NanoCpus: Math.round(limits.cpus * 1e9),
+      PidsLimit: 128,
+      CapDrop: ['ALL'],
+      SecurityOpt: ['no-new-privileges'],
+    },
+  };
+}
+
+/**
+ * Remove containers de simulacao que sobraram de um worker morto no meio de uma
+ * execucao (o `finally` de `runInSandbox` nao roda se o processo for encerrado
+ * a forca). So mexe em containers com o rotulo do sandbox: parados (qualquer
+ * idade) ou em execucao ha mais que o teto do job, que ja nao tem dono vivo.
+ * Devolve quantos removeu.
+ */
+export async function removeOrphanSandboxContainers(): Promise<number> {
+  const maxAgeSeconds = Math.ceil((env.SANDBOX_TIMEOUT_MS + 5_000) / 1000) + 10;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+
+  const containers = await docker.listContainers({
+    all: true,
+    filters: { label: [`${SANDBOX_LABEL}=true`] },
+  });
+
+  let removed = 0;
+  for (const info of containers) {
+    const stale = info.State !== 'running' || nowSeconds - info.Created > maxAgeSeconds;
+    if (!stale) continue;
+    await docker
+      .getContainer(info.Id)
+      .remove({ force: true })
+      .then(() => {
+        removed += 1;
+      })
+      .catch(() => undefined);
+  }
+  return removed;
+}
+
+const WORKDIR_PREFIX = 'hdl-sim-';
+
+/** Igual ao de containers: diretorio temporario de um worker morto fica para tras, com os fontes do usuario. */
+export async function removeOrphanWorkdirs(
+  maxAgeMs: number = env.SANDBOX_TIMEOUT_MS + 60_000,
+  root: string = tmpdir(),
+): Promise<number> {
+  const entries = await readdir(root, { withFileTypes: true }).catch(() => []);
+
+  let removed = 0;
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !entry.name.startsWith(WORKDIR_PREFIX)) continue;
+    const path = join(root, entry.name);
+    const info = await stat(path).catch(() => null);
+    if (!info || Date.now() - info.mtimeMs < maxAgeMs) continue;
+    await rm(path, { recursive: true, force: true })
+      .then(() => {
+        removed += 1;
+      })
+      .catch(() => undefined);
+  }
+  return removed;
+}
+
 /**
  * Executa uma submissao em um container Docker efemero, sem rede, com limites de
  * CPU/memoria e timeout (RNF04/RNF05). Nunca invocar `iverilog`/`vvp` fora daqui.
  */
 export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome> {
-  const workdir = await mkdtemp(join(tmpdir(), 'hdl-sim-'));
+  const workdir = await mkdtemp(join(tmpdir(), WORKDIR_PREFIX));
   const startedAt = Date.now();
 
   try {
@@ -51,29 +158,7 @@ export async function runInSandbox(sources: HdlSources): Promise<SandboxOutcome>
     await writeFile(join(workdir, sources.testbench.name), sources.testbench.content, 'utf8');
 
     const containerCreateStartedAt = Date.now();
-    const container = await docker.createContainer({
-      Image: env.SANDBOX_IMAGE,
-      WorkingDir: '/work',
-      User: 'sandbox',
-      Env: [`SIM_TIMEOUT_S=${Math.ceil(env.SANDBOX_TIMEOUT_MS / 1000)}`],
-      NetworkDisabled: true,
-      AttachStdout: true,
-      AttachStderr: true,
-      Tty: false,
-      HostConfig: {
-        AutoRemove: false, // removido explicitamente apos a leitura dos logs
-        NetworkMode: 'none',
-        Binds: [`${workdir}:/work:rw`],
-        ReadonlyRootfs: true,
-        Tmpfs: { '/tmp': 'rw,noexec,nosuid,size=32m' },
-        Memory: env.SANDBOX_MEMORY_MB * 1024 * 1024,
-        MemorySwap: env.SANDBOX_MEMORY_MB * 1024 * 1024, // sem swap
-        NanoCpus: Math.round(env.SANDBOX_CPUS * 1e9),
-        PidsLimit: 128,
-        CapDrop: ['ALL'],
-        SecurityOpt: ['no-new-privileges'],
-      },
-    });
+    const container = await docker.createContainer(buildSandboxContainerOptions(workdir));
 
     const containerCreateMs = Date.now() - containerCreateStartedAt;
 
