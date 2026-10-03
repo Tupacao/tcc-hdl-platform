@@ -93,7 +93,7 @@ export function formatConsoleQueuedMessage(position: number | null): string {
 }
 
 export const PROBLEMS_PANEL = {
-  LIST_LABEL: 'Diagnósticos',
+  LIST_LABEL: 'Problemas',
   COLUMN_LOCATION: 'Arquivo e posição',
   COLUMN_MESSAGE: 'Mensagem',
   EMPTY_NOT_RUN: 'Execute a simulação para ver os problemas aqui.',

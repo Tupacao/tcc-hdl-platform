@@ -227,7 +227,7 @@ endmodule`}
           <code>$display</code> imprime uma linha uma vez; <code>$monitor</code>{' '}
           imprime de novo sempre que algum dos sinais citados muda.{' '}
           <code>$dumpfile</code>/<code>$dumpvars</code> ligam a gravação da
-          forma de onda (sem eles a simulação roda normalmente, só que sem
+          forma de onda (sem eles a simulação termina normalmente, só que sem
           nada para o visualizador mostrar) e <code>$finish</code> encerra a
           simulação - sem ele, a execução para sozinha ao bater no limite de
           tempo do sandbox, sem gerar erro de compilação.

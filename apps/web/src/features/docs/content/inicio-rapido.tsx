@@ -30,18 +30,18 @@ export function InicioRapidoSection({ onOpenInEditor }: DocSectionContentProps) 
         <h2 className="text-base font-semibold">Mapa da tela</h2>
         <p>
           A tela do editor tem quatro partes. As abas em cima trocam entre o
-          arquivo de <strong>design</strong> (o circuito) e o de{' '}
+          arquivo de <strong>circuito</strong> e o de{' '}
           <strong>testbench</strong> (quem testa o circuito). Embaixo do editor
           fica o <strong>console</strong>, onde aparecem os erros de compilação e
           a saída do testbench. Do lado direito ficam as{' '}
-          <strong>formas de onda</strong> depois de rodar. O botão{' '}
+          <strong>formas de onda</strong> depois de executar. O botão{' '}
           <strong>Executar</strong>, no canto superior direito, compila os dois
-          arquivos e roda a simulação.
+          arquivos e simula o circuito.
         </p>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">O arquivo de design</h2>
+        <h2 className="text-base font-semibold">O arquivo de circuito</h2>
         <p>
           Um circuito em Verilog é um <code>module</code>: um nome, uma lista de
           portas de entrada e saída entre parênteses, e o corpo entre o
@@ -64,12 +64,12 @@ export function InicioRapidoSection({ onOpenInEditor }: DocSectionContentProps) 
         <h2 className="text-base font-semibold">O arquivo de testbench</h2>
         <p>
           O testbench é outro <code>module</code>, sem portas, que instancia o
-          design e aplica valores nas entradas dele. Duas linhas são
+          circuito e aplica valores nas entradas dele. Duas linhas são
           obrigatórias para existir forma de onda: <code>$dumpfile</code> diz o
           nome do arquivo `.vcd` gerado, e <code>$dumpvars</code> diz quais
           sinais gravar (o `0` como primeiro argumento grava todos os sinais,
           recursivamente, a partir do módulo indicado). Sem essas duas linhas a
-          simulação roda normalmente, só que o visualizador fica vazio - isso
+          simulação termina normalmente, só que o visualizador fica vazio - isso
           não é erro, é um testbench que não pediu forma de onda.
         </p>
         <p>

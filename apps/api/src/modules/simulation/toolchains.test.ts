@@ -88,3 +88,14 @@ test('a toolchain VHDL usa imagem, parser e analise proprios', () => {
   const [diagnostic] = toolchain.parseDiagnostics('/work/d.vhd:3:1: erro', ['d.vhd']);
   assert.equal(diagnostic?.file, 'd.vhd');
 });
+
+test('nome sem ponto antes da extensão não passa (regressão: ponto escapado)', () => {
+  for (const name of ['abv', 'design_sv', 'xvhd']) {
+    const request = { ...sources, design: { name, content: '' } };
+    assert.equal(CompileRequestSchema.safeParse(request).success, false, name);
+  }
+  assert.equal(
+    CompileRequestSchema.safeParse({ ...sources, design: { name: 'a.sv', content: '' } }).success,
+    true,
+  );
+});

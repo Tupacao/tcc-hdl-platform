@@ -20,10 +20,13 @@ export const HdlFileSchema = z.object({
     .string()
     .min(1)
     .max(128)
-    .regex(/^[A-Za-z0-9_.-]+\.s?v$/, 'Arquivo deve ter extensao .v ou .sv'),
+    .regex(/^[A-Za-z0-9_.-]+\.s?v$/, 'O arquivo deve ter extensão .v ou .sv'),
   content: z
     .string()
-    .max(MAX_SOURCE_BYTES, `Arquivo excede o limite de ${MAX_SOURCE_BYTES / 1024} KB`),
+    .max(
+      MAX_SOURCE_BYTES,
+      `O arquivo excede o limite de ${MAX_SOURCE_BYTES / 1024} KB. Reduza o tamanho e execute novamente.`,
+    ),
 });
 
 /** Conjunto minimo de arquivos de um projeto: fonte + testbench (RF04). */

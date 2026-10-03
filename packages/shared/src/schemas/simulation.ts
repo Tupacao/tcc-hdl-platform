@@ -77,8 +77,8 @@ export const DEFAULT_JOB_KIND: JobKind = 'simulate-verilog';
 
 /** Extensoes de fonte aceitas por cada toolchain (RNF08-I02: o VHDL e prova de conceito, so aqui). */
 const SOURCE_EXTENSIONS: Record<JobKind, RegExp> = {
-  'simulate-verilog': /.s?v$/,
-  'simulate-vhdl': /.vhdl?$/,
+  'simulate-verilog': /\.s?v$/,
+  'simulate-vhdl': /\.vhdl?$/,
 };
 
 const SimulationFileSchema = HdlFileSchema.extend({
@@ -86,7 +86,10 @@ const SimulationFileSchema = HdlFileSchema.extend({
     .string()
     .min(1)
     .max(128)
-    .regex(/^[A-Za-z0-9_.-]+.(?:s?v|vhdl?)$/, 'Arquivo deve ter extensao .v, .sv, .vhd ou .vhdl'),
+    .regex(
+      /^[A-Za-z0-9_.-]+\.(?:s?v|vhdl?)$/,
+      'O arquivo deve ter extensão .v, .sv, .vhd ou .vhdl',
+    ),
 });
 
 /** Corpo do POST /api/simulations (RF03/RF04). */
@@ -109,7 +112,7 @@ export const CompileRequestSchema = z
         ctx.addIssue({
           code: 'custom',
           path: [key, 'name'],
-          message: 'Extensao do arquivo incompativel com o tipo do job',
+          message: 'A extensão do arquivo é incompatível com o tipo do job',
         });
       }
     }

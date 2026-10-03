@@ -42,7 +42,7 @@ test('POST /api/simulations com extensao de arquivo invalida retorna 400 em port
 
   assert.equal(response.statusCode, 400);
   const payload = response.json();
-  assert.equal(payload.message, 'Arquivo deve ter extensao .v, .sv, .vhd ou .vhdl');
+  assert.equal(payload.message, 'O arquivo deve ter extensão .v, .sv, .vhd ou .vhdl');
 
   await app.close();
 });
@@ -70,7 +70,7 @@ test('POST /api/simulations com topModule vazio retorna 400 em portugues', async
 
   assert.equal(response.statusCode, 400);
   const payload = response.json();
-  assert.equal(payload.message, 'Nome do modulo de topo e obrigatorio');
+  assert.equal(payload.message, 'O nome do módulo principal é obrigatório');
 
   await app.close();
 });
@@ -91,7 +91,10 @@ test('POST /api/simulations com corpo acima do bodyLimit retorna 413 com JSON va
   assert.equal(response.statusCode, 413);
   const payload = response.json();
   assert.equal(payload.statusCode, 413);
-  assert.equal(payload.message, 'Corpo da requisicao excede o limite permitido');
+  assert.equal(
+    payload.message,
+    'O código enviado excede o limite permitido. Reduza o tamanho dos arquivos e execute novamente.',
+  );
 
   await app.close();
 });
