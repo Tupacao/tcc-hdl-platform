@@ -12,6 +12,8 @@
 #   137 processo morto por SIGKILL antes do limite de tempo — quase sempre o OOM
 #       killer; quem decide se foi memoria e o `State.OOMKilled` do Docker, nao
 #       este script (ele so nao pode rotular como timeout algo que nao foi).
+# Alem do codigo, a ultima linha de stderr e `@@tplab-timing compile_ms=N simulate_ms=N`
+# (RNF07-I01): o host le e REMOVE essa linha antes de mostrar a saida ao usuario.
 set -u
 
 BIN=/tmp/simulation.vvp
@@ -27,6 +29,34 @@ MAX_OPEN_FILES=64
 ulimit -f "$MAX_FILE_BLOCKS"
 ulimit -n "$MAX_OPEN_FILES"
 
+# Relogio em centesimos de segundo: `/proc/uptime` (o busybox nao tem `date +%N`). Serve ao
+# tempo de cada etapa (RNF07-I01) e a separar timeout de OOM com 10 ms de janela, em vez do
+# 1 s que `date +%s` deixava (RNF05-I01).
+now_cs() {
+    cut -d' ' -f1 /proc/uptime | tr -d .
+}
+
+t_compile_start=0
+t_compile_end=0
+t_sim_start=0
+t_sim_end=0
+
+# So emite a etapa que chegou a terminar.
+emit_timing() {
+    out="@@tplab-timing"
+    [ "$t_compile_end" -gt 0 ] && out="$out compile_ms=$(((t_compile_end - t_compile_start) * 10))"
+    [ "$t_sim_end" -gt 0 ] && out="$out simulate_ms=$(((t_sim_end - t_sim_start) * 10))"
+    echo "$out" >&2
+}
+trap emit_timing EXIT
+
+# `timeout -s KILL` devolve 137 tanto quando o limite estoura quanto quando outro SIGKILL
+# (OOM) mata o processo antes. O tempo decorrido separa os dois casos; o `OOMKilled` do
+# Docker, consultado pelo host, continua sendo o dado autoritativo de memoria.
+reached_limit() {
+    [ $(($2 - $1)) -ge $(($3 * 100)) ]
+}
+
 # Glob sem match expande para o proprio padrao no /bin/sh: filtra os inexistentes.
 FILES=""
 for file in /work/*.v /work/*.sv; do
@@ -38,32 +68,26 @@ if [ -z "$FILES" ]; then
     exit 2
 fi
 
-# `timeout -s KILL` devolve 137 tanto quando o limite estoura quanto quando outro
-# SIGKILL (OOM) mata o processo antes. O tempo decorrido separa os dois casos.
-# Resolucao de 1 s: um OOM a menos de 1 s do limite pode ser lido como timeout —
-# o `OOMKilled` do Docker, consultado pelo host, e quem corrige esse caso.
-elapsed_since() {
-    echo $(($(date +%s) - $1))
-}
-
 # Sem -s: o iverilog elege como topo o modulo que ninguem instancia (o testbench).
 # shellcheck disable=SC2086
-compile_started=$(date +%s)
+t_compile_start=$(now_cs)
 timeout -s KILL "$COMPILE_TIMEOUT_S" iverilog -g2012 -o "$BIN" $FILES
 status=$?
+t_compile_end=$(now_cs)
 if [ "$status" -ne 0 ]; then
     if [ "$status" -eq 137 ]; then
-        [ "$(elapsed_since "$compile_started")" -ge "$COMPILE_TIMEOUT_S" ] && exit 4
+        reached_limit "$t_compile_start" "$t_compile_end" "$COMPILE_TIMEOUT_S" && exit 4
         exit 137
     fi
     exit 2
 fi
 
-sim_started=$(date +%s)
+t_sim_start=$(now_cs)
 timeout -s KILL "$TIMEOUT_S" vvp "$BIN"
 status=$?
+t_sim_end=$(now_cs)
 if [ "$status" -eq 137 ]; then
-    [ "$(elapsed_since "$sim_started")" -ge "$TIMEOUT_S" ] && exit 124
+    reached_limit "$t_sim_start" "$t_sim_end" "$TIMEOUT_S" && exit 124
     exit 137
 fi
 [ "$status" -eq 153 ] && exit 153

@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "measure:sandbox": "tsx scripts/measure-sandbox.ts",
+    "measure:e2e": "tsx scripts/measure-e2e.ts",
     "test:sandbox": "node --import tsx --test src/modules/simulation/sandbox.integration.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",

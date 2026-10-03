@@ -58,14 +58,14 @@ na VM alvo.
 
 ## Criterios de aceite
 
-- [ ] "Baixa complexidade" e "condicoes normais" estao definidos por escrito.
-- [ ] Cada etapa tem tempo medido, no servidor e no cliente.
-- [ ] Compilacao e simulacao aparecem separadas.
-- [ ] Ha mediana, p95 e maximo, com pelo menos 20 amostras por exemplo.
-- [ ] Os tres cenarios de fila foram medidos.
-- [ ] Ha medicao na VM alvo.
-- [ ] A etapa de maior custo esta identificada.
-- [ ] `docs/DESEMPENHO.md` traz metodo, ambiente e resultados.
+- [x] "Baixa complexidade" e "condicoes normais" estao definidos por escrito. _(docs/DESEMPENHO.md, secao 1)_
+- [~] Cada etapa tem tempo medido, no servidor e no cliente. _(servidor: nesta PR; cliente: PR de front da mesma issue)_
+- [x] Compilacao e simulacao aparecem separadas. _(marca `@@tplab-timing` em run-simulation.sh)_
+- [x] Ha mediana, p95 e maximo, com pelo menos 20 amostras por exemplo. _(somador e contador4 com n=20/20/30; caso pesado a parte)_
+- [x] Os tres cenarios de fila foram medidos. _(1, 2 e 3 jobs simultaneos)_
+- [~] Ha medicao na VM alvo. _(**pendente**: a VM so existe apos RF01-I02; medido na maquina de desenvolvimento. Protocolo: `measure:e2e`)_
+- [x] A etapa de maior custo esta identificada. _(criar + iniciar o container: ~2,5 s dos 3,3 s; compilar + simular ~20 ms)_
+- [x] `docs/DESEMPENHO.md` traz metodo, ambiente e resultados.
 
 ## Verificacao
 
