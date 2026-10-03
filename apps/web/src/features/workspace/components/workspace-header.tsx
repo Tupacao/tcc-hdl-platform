@@ -3,7 +3,7 @@ import {
   CircuitBoard,
   Download,
   FolderOpen,
-  Keyboard,
+  HelpCircle,
   LayoutTemplate,
   Loader2,
   Play,
@@ -11,8 +11,16 @@ import {
 } from 'lucide-react';
 import type { LocalProject } from '@/features/projects';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { DOCS_BUTTON_LABEL } from '@/features/docs';
+import { FEEDBACK_TRIGGER_LABEL } from '@/features/feedback';
+import { TOUR_ANCHORS, TOUR_MENU, anchorAttributes } from '@/features/tour';
 import {
   CANCEL_RUN_BUTTON_LABEL,
   EXPORT_BUTTON_LABEL,
@@ -41,6 +49,10 @@ interface WorkspaceHeaderProps {
   onResetLayout: () => void;
   /** RF09-I02 - abre o diálogo de atalhos de teclado. */
   onOpenShortcuts: () => void;
+  /** RF16-I02 - refaz o tour de introdução a partir do menu de ajuda. */
+  onRestartTour: () => void;
+  /** RF17 - abre o formulário de feedback (também acessível pela barra de estado). */
+  onSendFeedback: () => void;
 }
 
 /** RF07-I03 - cabeçalho do workspace com identidade, projeto aberto e ações. */
@@ -56,6 +68,8 @@ export function WorkspaceHeader({
   onCancel,
   onResetLayout,
   onOpenShortcuts,
+  onRestartTour,
+  onSendFeedback,
 }: WorkspaceHeaderProps) {
   const isMac = isMacPlatform();
 
@@ -102,6 +116,7 @@ export function WorkspaceHeader({
           {DOCS_BUTTON_LABEL}
         </Button>
         <Button
+          {...anchorAttributes(TOUR_ANCHORS.RUN_BUTTON)}
           onClick={onRun}
           disabled={isRunning}
           aria-busy={isRunning}
@@ -116,15 +131,27 @@ export function WorkspaceHeader({
             {CANCEL_RUN_BUTTON_LABEL}
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={SHORTCUTS_DIALOG.BUTTON_LABEL}
-          title={SHORTCUTS_DIALOG.BUTTON_LABEL}
-          onClick={onOpenShortcuts}
-        >
-          <Keyboard aria-hidden />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={TOUR_MENU.TRIGGER_LABEL}
+              title={TOUR_MENU.TRIGGER_LABEL}
+            >
+              <HelpCircle aria-hidden />
+            </Button>
+          </DropdownMenuTrigger>
+          {/* Figma 7.7: é onde se procura ajuda depois que a primeira sessão passou. */}
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={onOpenDocs}>{DOCS_BUTTON_LABEL}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onOpenShortcuts}>
+              {SHORTCUTS_DIALOG.BUTTON_LABEL}
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={onRestartTour}>{TOUR_MENU.RESTART}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onSendFeedback}>{FEEDBACK_TRIGGER_LABEL}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           variant="ghost"
           size="icon"
