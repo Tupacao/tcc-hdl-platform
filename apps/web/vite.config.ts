@@ -9,6 +9,9 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   build: {
+    // RNF02-I01: piso de compatibilidade (README, "Compatibilidade"). Mudar exige mudar a lista
+    // TESTED_BROWSERS em features/browser-support/utils/messages.ts.
+    target: ['chrome120', 'firefox121', 'edge120', 'safari17'],
     // O Monaco responde por quase todo o peso do bundle. Isola-lo em um chunk
     // proprio evita invalidar o cache do navegador a cada deploy da aplicacao.
     chunkSizeWarningLimit: 4096,
