@@ -54,10 +54,10 @@ Definir o vocabulario da plataforma e alinhar todos os textos existentes a ele.
 ## Criterios de aceite
 
 - [x] `docs/GLOSSARIO.md` existe, com definicao e alternativas rejeitadas.
-- [x] Todo texto de interface usa os termos do glossario.
+- [~] Todo texto de interface usa os termos do glossario. _(auditado por busca de termos rejeitados; a leitura tela a tela do passo manual ainda nao foi feita)_
 - [x] As mensagens de erro da API seguem o mesmo vocabulario.
 - [x] Nenhuma mensagem de erro apenas descreve sem orientar.
-- [x] O tom e consistente em toda a interface.
+- [~] O tom e consistente em toda a interface. _(mesma ressalva: falta a leitura tela a tela)_
 - [x] A regra de acentuacao de `CLAUDE.md` e respeitada.
 - [x] `CLAUDE.md` aponta para o glossario.
 
