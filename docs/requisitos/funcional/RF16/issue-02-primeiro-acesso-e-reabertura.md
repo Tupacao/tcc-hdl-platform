@@ -51,12 +51,22 @@ para reabri-lo.
 
 ## Criterios de aceite
 
-- [ ] O tour inicia sozinho no primeiro acesso.
-- [ ] Concluir ou pular impede a reexibicao automatica.
-- [ ] Existe acao visivel para reabrir o tour, e ela funciona.
-- [ ] Com `localStorage` indisponivel, a aplicacao funciona normalmente.
-- [ ] O tour nao inicia sozinho ao abrir um link compartilhado.
-- [ ] A chave e versionada.
+- [x] O tour inicia sozinho no primeiro acesso.
+- [x] Concluir ou pular impede a reexibicao automatica (`tplab-tour-seen=v1`).
+- [x] Existe acao visivel para reabrir o tour, e ela funciona: "Refazer o tour de
+      introducao", no menu "?" do cabecalho.
+- [x] Com `localStorage` indisponivel, a aplicacao funciona normalmente — o tour
+      volta a aparecer, que e a degradacao aceitavel.
+- [x] O tour nao inicia sozinho quando a URL traz `search` ou `hash` (link
+      compartilhado de RF15, link direto para a documentacao).
+- [x] A chave e versionada (`TOUR_VERSION`).
+
+## Divergencia
+
+- O item tambem nao foi adicionado ao fim do guia de inicio rapido de RF11: o
+  guia e conteudo em `features/docs/content`, e o gatilho do tour vive no
+  workspace. Fica para quando RF11-I02 for tocado — o menu "?" ja cobre o
+  criterio de "acao visivel".
 
 ## Verificacao
 

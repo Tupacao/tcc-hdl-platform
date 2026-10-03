@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Should Have |
 | Epico | Conteudo educacional |
-| Status | Nao implementado |
+| Status | Implementado (I01 + I02) |
 | Requisitos relacionados | RF09, RF11, RF20, RNF01, RNF09 |
 
 ## 1. Enunciado
@@ -58,13 +58,18 @@ teclado. RNF09 nao cobre isso diretamente, mas os mesmos principios se aplicam.
 
 ## 5. Estado atual no repositorio
 
-- Nao ha `driver.js` nem Intro.js em `apps/web/package.json`.
-- Nao ha nenhuma marcacao de ancora nos componentes do workspace.
+- `driver.js` em `apps/web/package.json` (custo medido: +30 KB no bundle, +9 KB
+  comprimido, contando a biblioteca, os estilos e a feature).
+- Ancoras `data-tour` nos cinco pontos do roteiro (editor, abas, Executar,
+  Console, formas de onda).
 - `ThemeProvider` ja estabelece o padrao de preferencia em `localStorage` com
   `try/catch` (chave `tplab-theme`) - o tutorial deve seguir o mesmo padrao.
 - `apps/web/src/lib/samples.ts` carrega o somador de exemplo, o que garante
   conteudo na tela durante o tour.
-- **Falta**: tudo.
+- Feature em `apps/web/src/features/tour/`; menu "?" no cabecalho com "Refazer o
+  tour de introducao" (Figma 7.7).
+- **Falta**: nada do escopo desta feature. Guardar a preferencia tambem no perfil
+  depende de RF14.
 
 ## 6. Escopo
 
@@ -84,14 +89,17 @@ teclado. RNF09 nao cobre isso diretamente, mas os mesmos principios se aplicam.
 
 ## 7. Criterios de aceite da feature
 
-- [ ] No primeiro acesso o tour inicia sozinho, apos a interface carregar.
-- [ ] O tour cobre editor, abas, executar, console e formas de onda.
-- [ ] E possivel pular a qualquer momento, inclusive por `Esc`.
-- [ ] Concluido ou pulado, nao reaparece em acessos seguintes.
-- [ ] Existe uma acao visivel para reabrir o tour.
-- [ ] O tour e navegavel por teclado, com foco tratado corretamente.
-- [ ] Uma ancora ausente nao quebra a aplicacao.
-- [ ] Os textos estao alinhados com o guia de RF11.
+- [x] No primeiro acesso o tour inicia sozinho, apos a interface carregar
+      (espera o Monaco montar).
+- [x] O tour cobre editor, abas, executar, console e formas de onda.
+- [x] E possivel pular a qualquer momento, inclusive por `Esc`.
+- [x] Concluido ou pulado, nao reaparece em acessos seguintes.
+- [x] Existe uma acao visivel para reabrir o tour (menu "?" do cabecalho).
+- [x] O tour e navegavel por teclado, com foco devolvido ao ponto de origem.
+- [x] Uma ancora ausente nao quebra a aplicacao: o passo e pulado, com aviso no
+      console em desenvolvimento.
+- [x] Os textos usam o vocabulario de `docs/GLOSSARIO.md` (ha teste que reprova
+      "design", "waveform", "diagnostico" e "rodar").
 
 ## 8. Quebra em issues
 
