@@ -4,6 +4,7 @@ import type { HdlSources } from '@tplab/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { FEEDBACK_TRIGGER_LABEL } from '@/features/feedback';
 import { cn } from '@/lib/utils';
 import { DOC_SECTIONS, OUT_OF_SCOPE_SECTION_ID } from '../content';
 import { filterSections } from '../utils/search';
@@ -23,6 +24,8 @@ interface DocsPageProps {
   onNavigateBack: () => void;
   /** RF07-I03: quem monta a página decide se avisa sobre alterações não salvas. */
   onOpenInEditor: (sources: HdlSources) => void;
+  /** RF17: o formulário de feedback é alcançável de qualquer tela. */
+  onSendFeedback: () => void;
 }
 
 /**
@@ -32,7 +35,7 @@ interface DocsPageProps {
  * "Meus projetos" já faz - App.tsx desmonta o Workspace, o rascunho local
  * de RF07-I03 cobre o intervalo.
  */
-export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
+export function DocsPage({ onNavigateBack, onOpenInEditor, onSendFeedback }: DocsPageProps) {
   const [query, setQuery] = useState('');
   const [activeId, setActiveId] = useState(DOC_SECTIONS[0]?.id ?? null);
   const mainRef = useRef<HTMLElement>(null);
@@ -65,6 +68,9 @@ export function DocsPage({ onNavigateBack, onOpenInEditor }: DocsPageProps) {
         <h1 className="text-sm font-semibold">TP Lab</h1>
         <span className="text-xs text-muted-foreground">{PAGE_BREADCRUMB}</span>
         <div className="ml-auto flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onSendFeedback}>
+            {FEEDBACK_TRIGGER_LABEL}
+          </Button>
           <Button variant="ghost" size="sm" onClick={onNavigateBack}>
             {BACK_TO_EDITOR_LABEL}
           </Button>

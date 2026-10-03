@@ -9,6 +9,7 @@ import { OpenExampleDialog } from '@/features/workspace/components/open-example-
 import { ProjectsPage, useLocalProjects, type LocalProject } from '@/features/projects';
 import { DocsPage } from '@/features/docs';
 import { BrowserSupportBanner } from '@/features/browser-support';
+import { FeedbackDialog } from '@/features/feedback';
 import { queryClient } from '@/lib/query-client';
 
 type View = 'workspace' | 'projects' | 'docs';
@@ -59,6 +60,8 @@ export default function App() {
   // Exemplo escolhido na documentação aguardando a escolha "Onde abrir" -
   // só existe quando há projeto aberto (ver handleOpenExample).
   const [pendingExample, setPendingExample] = useState<HdlSources | null>(null);
+  // RF17: o formulário é alcançável de qualquer tela, então o estado mora aqui.
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Projeto lembrado de uma sessão anterior que não existe mais (excluído em
   // outra aba, por exemplo) - limpa a lembrança em vez de insistir nele.
@@ -116,12 +119,14 @@ export default function App() {
                 onOpenProject={handleOpenProject}
                 onNavigateBack={() => setView('workspace')}
                 onOpenDocs={() => setView('docs')}
+                onSendFeedback={() => setFeedbackOpen(true)}
               />
             )}
             {view === 'docs' && (
               <DocsPage
                 onNavigateBack={() => setView('workspace')}
                 onOpenInEditor={handleOpenExample}
+                onSendFeedback={() => setFeedbackOpen(true)}
               />
             )}
             {view === 'workspace' && (
@@ -133,6 +138,7 @@ export default function App() {
                 onRecordRun={localProjects.recordRun}
                 onOpenProjects={() => setView('projects')}
                 onOpenDocs={() => setView('docs')}
+                onSendFeedback={() => setFeedbackOpen(true)}
               />
             )}
           </div>
@@ -143,6 +149,8 @@ export default function App() {
           onOpenChange={(open) => !open && setPendingExample(null)}
           onConfirm={handleConfirmOpenExample}
         />
+
+        <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
 
         <ThemedToaster />
       </ThemeProvider>
