@@ -1,3 +1,4 @@
+import { EmptyState } from '@/components/empty-state';
 import {
   forwardRef,
   useEffect,
@@ -212,13 +213,12 @@ function ConsoleOutput({ result }: { result: SimulationResult | null }) {
     const isMac = isMacPlatform();
     const keys = formatCombo(getShortcut('run').combo, isMac).join(isMac ? '' : '+');
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-1 p-4 text-center">
-        <p className="text-sm font-medium">{CONSOLE_EMPTY_STATE.TITLE}</p>
-        <p className="font-mono text-xs text-muted-foreground">
+      <EmptyState title={CONSOLE_EMPTY_STATE.TITLE} reason={CONSOLE_EMPTY_STATE.REASON}>
+        <span className="font-mono text-xs">
           {CONSOLE_EMPTY_STATE.HINT_PREFIX}
           {keys}
-        </p>
-      </div>
+        </span>
+      </EmptyState>
     );
   }
 

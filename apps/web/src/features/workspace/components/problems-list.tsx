@@ -1,3 +1,4 @@
+import { EmptyState } from '@/components/empty-state';
 import { CircleX, TriangleAlert } from 'lucide-react';
 import type { Diagnostic } from '@tplab/shared';
 import { cn } from '@/lib/utils';
@@ -30,7 +31,14 @@ export function ProblemsList({
   knownFileNames,
 }: ProblemsListProps) {
   if (diagnostics === null) {
-    return <p className="p-4 text-sm text-muted-foreground">{PROBLEMS_PANEL.EMPTY_NOT_RUN}</p>;
+    return (
+      <EmptyState
+        title={PROBLEMS_PANEL.EMPTY_NOT_RUN_TITLE}
+        reason={PROBLEMS_PANEL.EMPTY_NOT_RUN_REASON}
+      >
+        {PROBLEMS_PANEL.EMPTY_NOT_RUN}
+      </EmptyState>
+    );
   }
 
   const { errors } = countDiagnostics(diagnostics);

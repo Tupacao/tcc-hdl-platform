@@ -1,5 +1,6 @@
 import { Activity, Loader2 } from 'lucide-react';
 import { WaveformCanvas } from '@/features/waveform/components/waveform-canvas';
+import { EmptyState } from '@/components/empty-state';
 import { useParsedVcd } from '@/features/waveform/hooks/use-parsed-vcd';
 import {
   WAVEFORM_EMPTY_STATE,
@@ -25,16 +26,17 @@ export function WaveformPanel({ vcd, truncated: backendTruncated = false }: Wave
 
   if (!vcd) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground">
-        <Activity aria-hidden className="size-6" />
-        <p>
-          {WAVEFORM_EMPTY_STATE.BEFORE_DUMPFILE}
-          <code>{WAVEFORM_EMPTY_STATE.DUMPFILE}</code>
-          {WAVEFORM_EMPTY_STATE.BETWEEN_DIRECTIVES}
-          <code>{WAVEFORM_EMPTY_STATE.DUMPVARS}</code>
-          {WAVEFORM_EMPTY_STATE.AFTER_DUMPVARS}
-        </p>
-      </div>
+      <EmptyState
+        icon={<Activity aria-hidden className="size-6 text-muted-foreground" />}
+        title={WAVEFORM_EMPTY_STATE.TITLE}
+        reason={WAVEFORM_EMPTY_STATE.REASON}
+      >
+        {WAVEFORM_EMPTY_STATE.BEFORE_DUMPFILE}
+        <code>{WAVEFORM_EMPTY_STATE.DUMPFILE}</code>
+        {WAVEFORM_EMPTY_STATE.BETWEEN_DIRECTIVES}
+        <code>{WAVEFORM_EMPTY_STATE.DUMPVARS}</code>
+        {WAVEFORM_EMPTY_STATE.AFTER_DUMPVARS}
+      </EmptyState>
     );
   }
 

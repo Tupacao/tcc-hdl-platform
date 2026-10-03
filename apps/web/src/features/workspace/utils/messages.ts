@@ -1,7 +1,9 @@
 /** Textos fixos de interface do workspace — não deixar string solta em componente. */
 
 export const WAVEFORM_EMPTY_STATE = {
-  BEFORE_DUMPFILE: 'Nenhuma forma de onda ainda. Use ',
+  TITLE: 'As formas de onda aparecem aqui',
+  REASON: 'Nenhuma simulação gerou formas de onda ainda.',
+  BEFORE_DUMPFILE: 'Use ',
   DUMPFILE: '$dumpfile',
   BETWEEN_DIRECTIVES: ' e ',
   DUMPVARS: '$dumpvars',
@@ -80,6 +82,7 @@ export const CONSOLE_TABS = {
 
 export const CONSOLE_EMPTY_STATE = {
   TITLE: 'A saída do compilador aparece aqui',
+  REASON: 'Nenhuma execução ainda.',
   HINT_PREFIX: 'Clique em Executar ou pressione ',
 };
 
@@ -96,7 +99,9 @@ export const PROBLEMS_PANEL = {
   LIST_LABEL: 'Problemas',
   COLUMN_LOCATION: 'Arquivo e posição',
   COLUMN_MESSAGE: 'Mensagem',
-  EMPTY_NOT_RUN: 'Execute a simulação para ver os problemas aqui.',
+  EMPTY_NOT_RUN_TITLE: 'Os erros e avisos aparecem aqui',
+  EMPTY_NOT_RUN_REASON: 'Nenhuma execução ainda.',
+  EMPTY_NOT_RUN: 'Clique em Executar para ver os problemas do seu código.',
   EMPTY_NO_PROBLEMS: 'Nenhum erro ou aviso.',
   FOOTER_HINT:
     'Clique em um item para ir direto à linha no editor · os avisos não impedem a execução',
