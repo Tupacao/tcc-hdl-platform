@@ -16,12 +16,17 @@ import { execFileSync } from 'node:child_process';
 import {
   buildSandboxContainerOptions,
   defaultSandboxLimits,
+  dockerSupportsSwapLimit,
   mapFailure,
   runInSandbox,
   type SandboxLimits,
 } from './sandbox.js';
 
 const docker = new Docker();
+
+// Sem SwapLimit o OOM nao e deterministico (o processo pagina): os testes de memoria so valem com ele.
+const swapLimit = await dockerSupportsSwapLimit();
+const SKIP_MEMORY = swapLimit ? false : 'Docker sem SwapLimit (ver dockerSupportsSwapLimit)';
 
 const DESIGN = {
   name: 'dut.v',
@@ -119,13 +124,17 @@ test('PIDs: laco de fork e contido pelo limite', async () => {
   assert.match(output, /can't fork|Resource temporarily unavailable/);
 });
 
-test('memoria: estouro mata o container e o Docker marca OOMKilled', async () => {
-  const { exitCode, oomKilled } = await shell('a=x; while true; do a="$a$a"; done', {
-    memoryMb: 64,
-  });
-  assert.equal(exitCode, 137);
-  assert.equal(oomKilled, true);
-});
+test(
+  'memoria: estouro mata o container e o Docker marca OOMKilled',
+  { skip: SKIP_MEMORY },
+  async () => {
+    const { exitCode, oomKilled } = await shell('a=x; while true; do a="$a$a"; done', {
+      memoryMb: 64,
+    });
+    assert.equal(exitCode, 137);
+    assert.equal(oomKilled, true);
+  },
+);
 
 test('Verilog: $fopen fora do workdir falha e dentro funciona', async () => {
   const outcome = await runInSandbox(
@@ -198,10 +207,12 @@ test('tempo: simulacao sem $finish termina no limite e reporta timeout da simula
   assert.equal(outcome.oomKilled, false);
 });
 
-test('tempo: compilacao que nao termina e interrompida e distinguivel (fase compile)', async () => {
+test('tempo: compilacao que nao termina (macro recursiva) e interrompida e distinguivel (fase compile)', async () => {
   const started = Date.now();
   const outcome = await runInSandbox(
-    sources('`include "tb.v"\nmodule tb; initial $finish; endmodule'),
+    sources(
+      '`define A `B\n`define B `A\nmodule tb; initial begin $display(`A); $finish; end endmodule',
+    ),
     FAST,
   );
   assert.equal(outcome.failure, 'timeout');
@@ -214,16 +225,31 @@ test('tempo: compilacao que nao termina e interrompida e distinguivel (fase comp
   );
 });
 
-test('memoria: estouro reporta memory_limit confirmado pelo OOMKilled (nao timeout)', async () => {
+test('`include circular termina rapido, sem prender o worker (o limite de descritores corta a recursao)', async () => {
+  const started = Date.now();
   const outcome = await runInSandbox(
-    sources(
-      'module tb; reg [31:0] mem [0:100000000]; integer i; initial begin for (i = 0; i < 100000000; i = i + 1) mem[i] = i; $finish; end endmodule',
-    ),
-    { ...FAST, timeoutMs: 20_000, memoryMb: 32 },
+    sources('`include "tb.v"\nmodule tb; initial $finish; endmodule'),
+    FAST,
   );
-  assert.equal(outcome.failure, 'memory_limit');
-  assert.equal(outcome.oomKilled, true);
+  assert.notEqual(outcome.timeoutPhase, 'host');
+  assert.ok(Date.now() - started < 10_000);
+  assert.match(outcome.stderr, /Include file tb\.v not found/);
 });
+
+test(
+  'memoria: estouro reporta memory_limit confirmado pelo OOMKilled (nao timeout)',
+  { skip: SKIP_MEMORY },
+  async () => {
+    const outcome = await runInSandbox(
+      sources(
+        'module tb; reg [31:0] mem [0:100000000]; integer i; initial begin for (i = 0; i < 100000000; i = i + 1) mem[i] = i; $finish; end endmodule',
+      ),
+      { ...FAST, timeoutMs: 20_000, memoryMb: 32 },
+    );
+    assert.equal(outcome.failure, 'memory_limit');
+    assert.equal(outcome.oomKilled, true);
+  },
+);
 
 test('SIGKILL sem OOM (processo filho morto por kill -9) NAO vira memory_limit', async () => {
   // kill -9 no PID 1 e ignorado pelo kernel dentro do proprio namespace: mata-se um filho.
@@ -254,6 +280,96 @@ test('variaveis SANDBOX_* mudam o comportamento efetivo (entram nos limites e no
   assert.deepEqual(parsed.env, ['SIM_TIMEOUT_S=4', 'SIM_COMPILE_TIMEOUT_S=2']);
   assert.equal(parsed.mem, 48 * 1024 * 1024);
   assert.equal(parsed.cpu, 0.25e9);
+});
+
+// RNF04-I03 — vetores especificos da toolchain Verilog.
+
+test('leitura: $fopen/$fgets le so o que ja esta na imagem; o ambiente nao tem segredos', async () => {
+  const outcome = await runInSandbox(
+    sources(`module tb;
+  integer fd, r;
+  reg [8*200-1:0] line;
+  initial begin
+    fd = $fopen("/etc/passwd", "r");
+    r = $fgets(line, fd);
+    $display("passwd=%0s", line);
+    fd = $fopen("/proc/self/environ", "r");
+    r = $fgets(line, fd);
+    $display("environ=%0s", line);
+    $finish;
+  end
+endmodule`),
+  );
+  assert.equal(outcome.failure, null);
+  assert.match(outcome.stdout, /passwd=root:x:0:0/);
+  assert.doesNotMatch(outcome.stdout, /DATABASE_URL|REDIS_URL|SECRET|TOKEN|PASSWORD/i);
+});
+
+test('disco: $fwrite em laco para em 16 MiB (RLIMIT_FSIZE) e vira runtime_error com exit 153', async () => {
+  const outcome = await runInSandbox(
+    sources(`module tb;
+  integer fd, i;
+  initial begin
+    fd = $fopen("/work/flood.txt", "w");
+    for (i = 0; i < 2000000000; i = i + 1)
+      $fwrite(fd, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\\n");
+    $finish;
+  end
+endmodule`),
+  );
+  assert.equal(outcome.exitCode, 153);
+  assert.equal(outcome.failure, 'runtime_error');
+});
+
+test('disco: $dumpvars em laco tambem para em 16 MiB, e o VCD parcial ainda chega cortado a 2 MiB', async () => {
+  const outcome = await runInSandbox(
+    sources(`module tb;
+  reg [63:0] a;
+  integer i;
+  initial begin
+    $dumpfile("wave.vcd");
+    $dumpvars(0, tb);
+    for (i = 0; i < 2000000000; i = i + 1) begin
+      a = i * 64'h9E3779B97F4A7C15;
+      #1;
+    end
+    $finish;
+  end
+endmodule`),
+  );
+  assert.equal(outcome.exitCode, 153);
+  assert.ok(outcome.vcd, 'o VCD parcial deveria chegar');
+  assert.ok(outcome.vcd.length <= 2 * 1024 * 1024);
+  assert.equal(outcome.truncated.vcd, true);
+});
+
+test('log: $display em laco nao estoura o docker-modem e as ultimas linhas chegam', async () => {
+  const outcome = await runInSandbox(
+    sources(`module tb;
+  integer i;
+  initial begin
+    for (i = 0; i < 2000000000; i = i + 1)
+      $display("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    $finish;
+  end
+endmodule`),
+    { ...FAST, timeoutMs: 5_000 },
+  );
+  assert.equal(outcome.failure, 'timeout');
+  assert.equal(outcome.truncated.stdout, true);
+  assert.ok(outcome.stdout.length <= 256 * 1024 + 100);
+});
+
+test('log: o container tem rotacao configurada (1 MiB x 2)', async () => {
+  const workdir = await mkdtemp(join(tmpdir(), 'hdl-sim-integration-'));
+  const container = await docker.createContainer(buildSandboxContainerOptions(workdir));
+  try {
+    const info = await container.inspect();
+    assert.deepEqual(info.HostConfig.LogConfig?.Config, { 'max-size': '1m', 'max-file': '2' });
+  } finally {
+    await container.remove({ force: true }).catch(() => undefined);
+    await rm(workdir, { recursive: true, force: true }).catch(() => undefined);
+  }
 });
 
 test('limpeza: nenhum container do sandbox fica para tras', async () => {
