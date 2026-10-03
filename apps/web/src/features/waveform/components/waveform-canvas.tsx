@@ -22,6 +22,7 @@ import {
   WAVEFORM_SHORTCUTS_HINT,
   ZOOM,
 } from '../utils/messages';
+import { finishRunPerf } from '@/lib/perf';
 import { draw, NAME_COLUMN_WIDTH, ROW_STEP, RULER_HEIGHT, xToTime } from '../utils/render';
 import { getSignalKey, selectDisplayRows } from '../utils/rows';
 import { readWaveformColors } from '../utils/theme-colors';
@@ -164,6 +165,8 @@ export function WaveformCanvas({ waveform }: WaveformCanvasProps) {
       height: contentHeight,
       cursorTime,
     });
+    // RNF07-I01: o primeiro quadro desta execução fecha a medida clique → forma de onda.
+    requestAnimationFrame(finishRunPerf);
     // resolvedTheme não é usado diretamente: é o gatilho para reler as cores do tema após a troca de classe .dark.
   }, [
     containerWidth,

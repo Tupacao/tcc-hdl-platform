@@ -11,7 +11,7 @@ citáveis no TCC. Reprodução: `pnpm --filter @tplab/api measure:e2e` (servidor
 | --- | --- |
 | Baixa complexidade | Os exemplos de referência (`apps/api/scripts/examples.ts`): somador, mux 4:1, contador de 4 bits, ULA e deslocamento de 8 bits. Um caso pesado deliberado (contador de 16 bits, 200 mil ciclos, `$dumpvars` completo) é medido à parte e **não** entra no alvo. |
 | Condições normais | VM B2s prevista, **um** job por vez (sem fila acumulada), imagem `tplab-sandbox` já presente no host, worker já iniciado. |
-| Resposta | Do clique em "Executar" até a forma de onda desenhada. O servidor cobre da entrada na fila até o resultado visível ao polling; o cliente (renderização) é medido na PR de front. |
+| Resposta | Do clique em "Executar" até a forma de onda desenhada. O servidor cobre da entrada na fila até o resultado visível ao polling; o cliente (parse e desenho) é medido pelas marcas `tplab:*` da User Timing API (seção 7). |
 
 ## 2. Etapas medidas no servidor
 
@@ -98,9 +98,19 @@ slots do worker, não a CPU do `vvp`.
    Linux; o bind mount de um diretório do Windows através do WSL2 é o principal suspeito. Se a
    VM (Linux nativo) já for rápida aqui, RNF07-I02 não precisa mexer no container. Só se a medição
    na VM mostrar o container acima do orçamento vale otimizar (RNF07-I02).
-5. Não medido: renderização no navegador (PR de front) e carregamento inicial da aplicação.
+5. Não medido: carregamento inicial da aplicação (Monaco incluído).
 
 ## 7. Pendências
 
 - Repetir `measure:e2e` e `measure:sandbox` na VM B2s (após RF01-I02) e acrescentar as tabelas.
-- Marcas do cliente (parse do VCD, primeiro desenho) e carregamento inicial: PR de front.
+- Carregamento inicial da aplicação (Monaco incluído): ainda não medido.
+- Valores do cliente na VM B2s: repetir após RF01-I02.
+
+## 8. Marcas do cliente (RNF07-I01, front)
+
+`apps/web/src/lib/perf.ts` grava marcas da User Timing API com prefixo `tplab:` (`run-start`,
+`enqueued`, `result`, `parse-start`, `vcd-parsed`, `first-draw`) e medidas derivadas `enqueue`,
+`wait` (fila + execução + polling), `parse`, `render` e `total` (clique → forma de onda). Para
+coletar: aba Performance do Chrome (faixa Timings) ou, no console,
+`performance.getEntriesByType("measure").filter(m => m.name.startsWith("tplab:"))`. A cada
+execução as marcas anteriores são descartadas; a coleta nunca lança exceção.
