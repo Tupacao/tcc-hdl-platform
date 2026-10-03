@@ -1,3 +1,4 @@
+import { EmptyState as EmptyStateBlock } from '@/components/empty-state';
 import { useMemo, useRef, useState } from 'react';
 import { BookOpen, CircuitBoard, Plus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -272,10 +273,12 @@ function EmptyState({
   onStartFromSample: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center gap-4 rounded-lg border p-12 text-center">
-      <h3 className="text-lg font-semibold">{EMPTY_STATE.TITLE}</h3>
-      <p className="max-w-md text-sm text-muted-foreground">{EMPTY_STATE.BODY}</p>
-      <div className="flex gap-2">
+    <EmptyStateBlock
+      className="h-auto rounded-lg border p-12"
+      title={EMPTY_STATE.TITLE}
+      reason={EMPTY_STATE.BODY}
+    >
+      <div className="flex justify-center gap-2">
         <Button onClick={onCreateBlank}>
           <Plus aria-hidden />
           {EMPTY_STATE.CREATE_BLANK}
@@ -284,7 +287,7 @@ function EmptyState({
           {EMPTY_STATE.START_FROM_SAMPLE}
         </Button>
       </div>
-      <p className="mt-4 text-xs text-muted-foreground">{EMPTY_STATE.FOOTER}</p>
-    </div>
+      <p className="mt-4 text-xs">{EMPTY_STATE.FOOTER}</p>
+    </EmptyStateBlock>
   );
 }

@@ -58,9 +58,9 @@ pessoas do publico-alvo.
 
 ## Criterios de aceite
 
-- [ ] Todos os estados vazios usam o componente comum e a mesma estrutura.
-- [ ] Nenhum estado vazio apenas informa que esta vazio.
-- [ ] O roteiro de verificacao esta escrito e e livre de instrucao embutida.
+- [~] Todos os estados vazios usam o componente comum e a mesma estrutura. _(console, problemas, formas de onda e lista de projetos usam `EmptyState`; ficaram fora as mensagens de uma linha da busca na documentacao, da lista de sinais e da leitura do cursor)_
+- [~] Nenhum estado vazio apenas informa que esta vazio. _(vale para os quatro convertidos)_
+- [x] O roteiro de verificacao esta escrito e e livre de instrucao embutida. _(docs/VERIFICACAO-USUARIOS.md; sessoes pendentes)_
 - [ ] Ao menos tres pessoas do publico-alvo executaram o roteiro.
 - [ ] As observacoes estao registradas em `docs/VERIFICACAO-USUARIOS.md`.
 - [ ] Cada dificuldade recorrente virou ajuste ou issue.
