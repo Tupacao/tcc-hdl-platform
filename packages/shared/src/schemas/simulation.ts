@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { HdlSourcesSchema } from './hdl.js';
+import { HdlFileSchema } from './hdl.js';
+import { ModuleNameSchema } from './common.js';
 import { IdSchema, IsoDateSchema } from './common.js';
 
 /**
@@ -69,18 +70,50 @@ export const SimulationFailureSchema = z.enum([
  * Tipo do job = qual toolchain o worker executa (RNF08-I01). Cada valor novo (GHDL, Yosys...)
  * entra aqui e no registro `apps/api/src/modules/simulation/toolchains.ts`.
  */
-export const JobKindSchema = z.enum(['simulate-verilog']);
+export const JobKindSchema = z.enum(['simulate-verilog', 'simulate-vhdl']);
 
 /** Tipo assumido quando o cliente nao informa `kind` — preserva os clientes anteriores a RNF08. */
 export const DEFAULT_JOB_KIND: JobKind = 'simulate-verilog';
 
-/** Corpo do POST /api/simulations (RF03/RF04). */
-export const CompileRequestSchema = HdlSourcesSchema.extend({
-  /** Toolchain do job (RNF08-I01); ausente = `simulate-verilog`. */
-  kind: JobKindSchema.optional(),
-  /** Referencia opcional ao projeto salvo que originou a submissao. */
-  projectId: IdSchema.optional(),
+/** Extensoes de fonte aceitas por cada toolchain (RNF08-I02: o VHDL e prova de conceito, so aqui). */
+const SOURCE_EXTENSIONS: Record<JobKind, RegExp> = {
+  'simulate-verilog': /.s?v$/,
+  'simulate-vhdl': /.vhdl?$/,
+};
+
+const SimulationFileSchema = HdlFileSchema.extend({
+  name: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(/^[A-Za-z0-9_.-]+.(?:s?v|vhdl?)$/, 'Arquivo deve ter extensao .v, .sv, .vhd ou .vhdl'),
 });
+
+/** Corpo do POST /api/simulations (RF03/RF04). */
+export const CompileRequestSchema = z
+  .object({
+    language: z.enum(['verilog', 'vhdl']).default('verilog'),
+    /** Modulo (Verilog) ou entidade (VHDL) de topo instanciado pelo testbench. */
+    topModule: ModuleNameSchema,
+    design: SimulationFileSchema,
+    testbench: SimulationFileSchema,
+    /** Toolchain do job (RNF08-I01); ausente = `simulate-verilog`. */
+    kind: JobKindSchema.optional(),
+    /** Referencia opcional ao projeto salvo que originou a submissao. */
+    projectId: IdSchema.optional(),
+  })
+  .superRefine((request, ctx) => {
+    const extension = SOURCE_EXTENSIONS[request.kind ?? DEFAULT_JOB_KIND];
+    for (const key of ['design', 'testbench'] as const) {
+      if (!extension.test(request[key].name)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [key, 'name'],
+          message: 'Extensao do arquivo incompativel com o tipo do job',
+        });
+      }
+    }
+  });
 
 /** Resposta imediata do enfileiramento: o cliente faz polling do job. */
 export const SimulationJobSchema = z.object({

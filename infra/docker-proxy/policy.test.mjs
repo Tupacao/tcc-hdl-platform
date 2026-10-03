@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { evaluateRequest, normalizePath, validateCreateBody } from './policy.mjs';
 
 const config = {
-  image: 'tplab-sandbox:latest',
+  images: ['tplab-sandbox:latest', 'tplab-sandbox-ghdl:latest'],
   workRoot: '/var/lib/tplab/work',
   maxMemoryMb: 512,
   maxCpus: 2,

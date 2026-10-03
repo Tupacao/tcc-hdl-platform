@@ -36,6 +36,8 @@ const EnvSchema = z.object({
   SANDBOX_WORKDIR_ROOT: z.string().startsWith('/').optional(),
   /** Imagem construida a partir de `infra/sandbox/Dockerfile` (iverilog + vvp). */
   SANDBOX_IMAGE: z.string().default('tplab-sandbox:latest'),
+  /** Imagem da toolchain GHDL (`infra/sandbox-ghdl/Dockerfile`) — prova de conceito de RNF08-I02. */
+  SANDBOX_IMAGE_GHDL: z.string().default('tplab-sandbox-ghdl:latest'),
   /** Timeout duro do processo de simulacao (RNF05). */
   SANDBOX_TIMEOUT_MS: z.coerce.number().int().positive().default(10_000),
   /** Teto da compilacao (`iverilog`), separado do da simulacao: bem mais curto (RNF05-I01). */

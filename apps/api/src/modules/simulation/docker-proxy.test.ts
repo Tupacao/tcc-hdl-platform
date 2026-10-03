@@ -19,7 +19,7 @@ const policyUrl = new URL('../../../../../infra/docker-proxy/policy.mjs', import
 const policy = (await import(policyUrl.href)) as Policy;
 
 const proxyConfig = {
-  image: 'tplab-sandbox:latest',
+  images: ['tplab-sandbox:latest', 'tplab-sandbox-ghdl:latest'],
   workRoot: '/var/lib/tplab/work',
   maxMemoryMb: 512,
   maxCpus: 2,
@@ -37,6 +37,19 @@ const LIMITS: SandboxLimits = {
 test('o proxy aceita exatamente o create que runInSandbox monta', () => {
   const options = buildSandboxContainerOptions('/var/lib/tplab/work/hdl-sim-Ab12Cd', LIMITS);
   assert.equal(policy.validateCreateBody(options, proxyConfig), null);
+});
+
+test('o proxy aceita o create da imagem GHDL e recusa imagem fora da lista', () => {
+  const ghdl = buildSandboxContainerOptions('/var/lib/tplab/work/hdl-sim-Ab12Cd', {
+    ...LIMITS,
+    image: 'tplab-sandbox-ghdl:latest',
+  });
+  assert.equal(policy.validateCreateBody(ghdl, proxyConfig), null);
+  const other = buildSandboxContainerOptions('/var/lib/tplab/work/hdl-sim-Ab12Cd', {
+    ...LIMITS,
+    image: 'alpine:latest',
+  });
+  assert.match(policy.validateCreateBody(other, proxyConfig) ?? '', /imagem/);
 });
 
 test('o proxy recusa o create de um workdir fora da raiz configurada', () => {
