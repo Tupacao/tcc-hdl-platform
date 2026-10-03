@@ -45,11 +45,29 @@ consumindo a fila normalmente.
 ## Criterios de aceite
 
 - [ ] `https://<dominio>/health` responde `200` com certificado valido.
+      *(depende de executar o roteiro numa VM)*
 - [ ] Uma simulacao submetida pela URL publica retorna diagnosticos e `.vcd`.
-- [ ] Postgres e Redis nao estao acessiveis pela internet.
-- [ ] O container da API nao tem acesso ao socket do Docker; o worker tem.
-- [ ] Nenhum segredo versionado; `.env` de producao fica fora do repositorio.
-- [ ] O procedimento de deploy esta escrito e foi executado do zero uma vez.
+      *(idem)*
+- [x] Postgres e Redis nao estao acessiveis pela internet: no compose de
+      producao so o Caddy publica porta (80/443) — conferido com
+      `docker compose config`.
+- [x] O container da API nao tem acesso ao socket do Docker; nem o worker: quem
+      fala com o daemon e o `docker-proxy` validador (RNF04-I02), e o worker o
+      alcanca por `DOCKER_HOST`.
+- [x] Nenhum segredo versionado: `infra/.env` esta no `.gitignore` e o
+      repositorio so traz `infra/.env.example`, com os comandos que geram cada
+      segredo.
+- [ ] O procedimento de deploy esta escrito **(feito: `docs/DEPLOY.md`)** e foi
+      executado do zero uma vez *(pendente)*.
+
+## Divergencia da especificacao
+
+- **Proxy reverso**: Caddy, nao nginx. Emite e renova o certificado sozinho, sem
+  cron de renovacao nem passo manual de `certbot` — um componente a menos para
+  o roteiro explicar e para alguem esquecer de renovar.
+- **Socket do Docker**: a issue pede monta-lo no worker. Depois de RNF04-I02 o
+  worker tambem nao o monta: quem o toca e o proxy validador, que recusa
+  qualquer `create` diferente do que `buildSandboxContainerOptions` monta.
 
 ## Verificacao
 

@@ -1,0 +1,146 @@
+# Stack de producao na VM (RF01-I02). Diferencas para `docker-compose.yml`, que e
+# o de desenvolvimento:
+#
+#   - Postgres e Redis NAO publicam porta no host: so a rede do compose os alcanca.
+#   - A API tambem nao publica porta; quem fala com a internet e o Caddy, que
+#     termina o TLS e encaminha /api e /health.
+#   - Senha do banco e sal do feedback vem do `.env` (ver infra/.env.example),
+#     que nunca entra no repositorio.
+#
+# Uso:
+#   docker compose -f infra/docker-compose.prod.yml --env-file infra/.env up -d
+#
+# Passo a passo completo (VM, DNS, TLS, frontend): docs/DEPLOY.md
+
+name: tplab
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?defina POSTGRES_USER no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: ${POSTGRES_DB:-tplab}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # noeviction: um job de simulacao nunca pode ser descartado em silencio por
+    # pressao de memoria — quem controla a retencao e JOB_RETENTION_* (RF03-I03).
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory-policy', 'noeviction']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3333
+      # Origem do frontend publicado (RNF02). Varias origens: separadas por virgula.
+      CORS_ORIGIN: ${CORS_ORIGIN:?defina CORS_ORIGIN no .env}
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tplab}
+      SIMULATION_MAX_QUEUE_DEPTH: ${SIMULATION_MAX_QUEUE_DEPTH:-50}
+      JOB_RETENTION_SECONDS: ${JOB_RETENTION_SECONDS:-1800}
+      JOB_RETENTION_COUNT: ${JOB_RETENTION_COUNT:-100}
+      # RF17: sem sal fixo os hashes de IP e o limite diario de feedback zeram a cada reinicio.
+      FEEDBACK_IP_SALT: ${FEEDBACK_IP_SALT:?defina FEEDBACK_IP_SALT no .env}
+      FEEDBACK_MAX_PER_DAY: ${FEEDBACK_MAX_PER_DAY:-5}
+    # Sem `ports`: a API so e alcancavel pela rede do compose e pelo Caddy.
+    expose:
+      - '3333'
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  # Unico servico com acesso ao socket do Docker (RNF04-I02). So encaminha ao daemon
+  # o que infra/docker-proxy/policy.mjs permite: criar/iniciar/aguardar/ler logs/matar/
+  # remover containers COM O ROTULO do sandbox e com exatamente as opcoes de sandbox.ts.
+  docker-proxy:
+    image: node:22-alpine
+    restart: unless-stopped
+    command: ['node', '/proxy/proxy.mjs']
+    environment:
+      PROXY_ALLOWED_IMAGES: ${SANDBOX_IMAGE:-tplab-sandbox:latest},${SANDBOX_IMAGE_GHDL:-tplab-sandbox-ghdl:latest}
+      PROXY_WORK_ROOT: ${SANDBOX_WORKDIR_ROOT:-/var/lib/tplab/work}
+    volumes:
+      - ./docker-proxy:/proxy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+
+  worker:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    # Nao roda migracao: quem migra e o servico `api`, uma vez so.
+    command: ['node', 'dist/worker.js']
+    environment:
+      NODE_ENV: production
+      REDIS_URL: redis://redis:6379
+      # O worker NAO monta o socket do Docker: fala com o proxy validador (RNF04-I02).
+      DOCKER_HOST: tcp://docker-proxy:2375
+      SANDBOX_WORKDIR_ROOT: ${SANDBOX_WORKDIR_ROOT:-/var/lib/tplab/work}
+      SANDBOX_IMAGE: ${SANDBOX_IMAGE:-tplab-sandbox:latest}
+      SANDBOX_IMAGE_GHDL: ${SANDBOX_IMAGE_GHDL:-tplab-sandbox-ghdl:latest}
+      SANDBOX_TIMEOUT_MS: ${SANDBOX_TIMEOUT_MS:-10000}
+      SANDBOX_COMPILE_TIMEOUT_MS: ${SANDBOX_COMPILE_TIMEOUT_MS:-5000}
+      SANDBOX_MEMORY_MB: ${SANDBOX_MEMORY_MB:-128}
+      SANDBOX_CPUS: ${SANDBOX_CPUS:-0.5}
+    volumes:
+      # Diretorio dos fontes de cada job, montado no MESMO caminho no host e no worker: o
+      # bind do container de simulacao e resolvido pelo daemon, no host. E o unico caminho
+      # que o proxy aceita em Binds.
+      - ${SANDBOX_WORKDIR_ROOT:-/var/lib/tplab/work}:${SANDBOX_WORKDIR_ROOT:-/var/lib/tplab/work}
+    depends_on:
+      redis: { condition: service_healthy }
+      docker-proxy: { condition: service_started }
+
+  # Termina o TLS (certificado automatico via Let's Encrypt) e encaminha /api e
+  # /health para a API. Tambem serve o frontend estatico quando ele estiver na VM,
+  # em vez de no Azure Static Web Apps — ver docs/DEPLOY.md.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      TPLAB_DOMAIN: ${TPLAB_DOMAIN:?defina TPLAB_DOMAIN no .env}
+      TPLAB_ACME_EMAIL: ${TPLAB_ACME_EMAIL:?defina TPLAB_ACME_EMAIL no .env}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # `dist` do frontend, quando servido pela propria VM. Vazio nao atrapalha:
+      # o Caddy responde 404 nas rotas estaticas e segue servindo /api.
+      - ${FRONTEND_DIST:-./caddy/empty}:/srv:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+
+volumes:
+  postgres-data:
+  redis-data:
+  caddy-data:
+  caddy-config:
