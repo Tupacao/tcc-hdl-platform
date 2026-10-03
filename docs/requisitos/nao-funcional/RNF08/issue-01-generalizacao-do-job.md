@@ -62,15 +62,15 @@ nem quebrar o fluxo Verilog.
 
 ## Criterios de aceite
 
-- [ ] `JobKind` faz parte do contrato, com default compativel.
-- [ ] O registro de toolchains e o unico lugar com detalhe especifico de
+- [x] `JobKind` faz parte do contrato, com default compativel.
+- [x] O registro de toolchains e o unico lugar com detalhe especifico de
       ferramenta.
-- [ ] `runInSandbox` nao le a imagem do ambiente diretamente.
-- [ ] Artefatos sao colecao nomeada, com limites de tamanho aplicados.
-- [ ] O parser e selecionado pelo tipo de job.
-- [ ] A convencao de codigos de saida esta documentada em `infra/sandbox/`.
-- [ ] O fluxo Verilog funciona identicamente, com o mesmo resultado.
-- [ ] `CLAUDE.md` reflete o pipeline atualizado.
+- [x] `runInSandbox` nao le a imagem do ambiente diretamente.
+- [x] Artefatos sao colecao nomeada, com limites de tamanho aplicados.
+- [x] O parser e selecionado pelo tipo de job.
+- [x] A convencao de codigos de saida esta documentada em `infra/sandbox/`.
+- [x] O fluxo Verilog funciona identicamente, com o mesmo resultado.
+- [x] `CLAUDE.md` reflete o pipeline atualizado.
 
 ## Verificacao
 
