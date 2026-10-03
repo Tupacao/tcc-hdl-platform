@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Distribuicao e acesso |
-| Status | Parcial (roda em dev; falta publicacao) |
+| Status | Parcial (infraestrutura e roteiro prontos; falta executar na VM) |
 | Requisitos relacionados | RF09, RNF02, RNF03, RNF07 |
 
 ## 1. Enunciado
@@ -65,9 +65,16 @@ repositorio em produto.
 - API Fastify em `localhost:3333`, com proxy `/api` configurado em
   `apps/web/vite.config.ts`, portanto sem CORS em desenvolvimento.
 - `infra/docker-compose.yml` sobe postgres, redis, api e worker.
-- **Falta**: build de producao publicado, dominio com TLS, CORS de producao,
-  configuracao da URL da API por ambiente e verificacao de que a aplicacao abre
-  em uma maquina limpa.
+- `VITE_API_URL` (frontend) e `CORS_ORIGIN` (API) ja parametrizam a origem por
+  ambiente — RF01-I01 esta coberto.
+- `infra/docker-compose.prod.yml`: postgres e redis sem porta publicada, API sem
+  porta publicada, Caddy terminando TLS em 80/443 e encaminhando `/api` e
+  `/health`; segredos em `infra/.env` (modelo em `infra/.env.example`).
+- `docs/DEPLOY.md`: roteiro executavel do zero (criar a VM, DNS, Docker, imagens
+  do sandbox, segredos, subir a stack, publicar o frontend, verificar, operar e
+  diagnosticar).
+- **Falta**: executar o roteiro numa VM de verdade, registrar a URL publica no
+  `README.md` e fazer a verificacao em maquina limpa (RF01-I03).
 
 ## 6. Escopo
 
