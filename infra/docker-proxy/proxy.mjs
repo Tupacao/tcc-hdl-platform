@@ -10,7 +10,10 @@ import http from 'node:http';
 import { SANDBOX_LABEL, evaluateRequest, validateCreateBody } from './policy.mjs';
 
 const config = {
-  image: process.env.PROXY_ALLOWED_IMAGE ?? 'tplab-sandbox:latest',
+  // Uma imagem por toolchain (RNF08-I02), separadas por virgula.
+  images: (
+    process.env.PROXY_ALLOWED_IMAGES ?? 'tplab-sandbox:latest,tplab-sandbox-ghdl:latest'
+  ).split(','),
   workRoot: (process.env.PROXY_WORK_ROOT ?? '/var/lib/tplab/work').replace(/\/+$/, ''),
   maxMemoryMb: Number(process.env.PROXY_MAX_MEMORY_MB ?? 512),
   maxCpus: Number(process.env.PROXY_MAX_CPUS ?? 2),
@@ -168,6 +171,6 @@ daemonRequest('GET', '/info')
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(
-    `[docker-proxy] escutando em :${PORT} -> ${SOCKET_PATH} (imagem ${config.image}, workdir ${config.workRoot})`,
+    `[docker-proxy] escutando em :${PORT} -> ${SOCKET_PATH} (imagens ${config.images.join(', ')}, workdir ${config.workRoot})`,
   );
 });

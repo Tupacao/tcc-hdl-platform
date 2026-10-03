@@ -39,19 +39,21 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
     // RF04-I01: contrato do testbench (topModule coerente, $dumpfile/$dumpvars
     // presentes) — heuristica, nunca bloqueia; vira `warning` no mesmo console
     // dos diagnosticos do iverilog, sem componente novo no frontend.
-    const contract = analyzeTestbenchContract(
-      job.data.design,
-      job.data.testbench,
-      job.data.topModule,
-    );
-    const postExecutionWarnings = analyzePostExecution({
-      testbenchName: job.data.testbench.name,
-      topModule: job.data.topModule,
-      failure: outcome.failure,
-      stdout: outcome.stdout,
-      vcd: outcome.vcd,
-      alreadyWarnedMissingDump: contract.missingDumpDirectives,
-    });
+    // Essas analises conhecem a sintaxe Verilog (RNF08-I02): outras toolchains nao as recebem.
+    const verilogAnalysis = toolchain.sourceAnalysis === 'verilog';
+    const contract = verilogAnalysis
+      ? analyzeTestbenchContract(job.data.design, job.data.testbench, job.data.topModule)
+      : { diagnostics: [], missingDumpDirectives: false };
+    const postExecutionWarnings = !verilogAnalysis
+      ? []
+      : analyzePostExecution({
+          testbenchName: job.data.testbench.name,
+          topModule: job.data.topModule,
+          failure: outcome.failure,
+          stdout: outcome.stdout,
+          vcd: outcome.vcd,
+          alreadyWarnedMissingDump: contract.missingDumpDirectives,
+        });
 
     // RNF05: limite atingido vira erro com causa provavel e proximo passo.
     const limitDiagnostics = analyzeLimitFailure({
@@ -76,10 +78,10 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
     const diagnostics = [
       ...contract.diagnostics,
       // RNF04-I03: construcoes que tocam o sistema de arquivos/SO — aviso, nunca bloqueio.
-      ...analyzeToolchainVectors([job.data.design, job.data.testbench]),
+      ...(verilogAnalysis ? analyzeToolchainVectors([job.data.design, job.data.testbench]) : []),
       ...limitDiagnostics,
       ...dropShellNoise(
-        attachHints(
+        ((diagnostics) => (verilogAnalysis ? attachHints(diagnostics) : diagnostics))(
           toolchain.parseDiagnostics(outcome.stderr, [
             job.data.design.name,
             job.data.testbench.name,

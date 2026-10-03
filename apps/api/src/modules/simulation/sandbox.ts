@@ -255,7 +255,7 @@ export async function removeOrphanWorkdirs(
  * CPU/memoria e timeout (RNF04/RNF05). Nunca invocar `iverilog`/`vvp` fora daqui.
  */
 export async function runInSandbox(
-  sources: HdlSources,
+  sources: Pick<HdlSources, 'design' | 'testbench'>,
   limits: SandboxLimits = defaultSandboxLimits(),
   toolchain: Toolchain = VERILOG_TOOLCHAIN,
 ): Promise<SandboxOutcome> {

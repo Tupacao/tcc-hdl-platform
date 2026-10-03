@@ -15,6 +15,7 @@
     "measure:sandbox": "tsx scripts/measure-sandbox.ts",
     "measure:e2e": "tsx scripts/measure-e2e.ts",
     "test:sandbox": "node --import tsx --test src/modules/simulation/sandbox.integration.ts",
+    "test:sandbox:ghdl": "node --import tsx --test src/modules/simulation/sandbox-ghdl.integration.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy"

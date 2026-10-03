@@ -61,3 +61,30 @@ test('readArtifacts le por padrao, aplica o teto de cada artefato e ignora link 
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('kind simulate-vhdl exige arquivos VHDL, e simulate-verilog recusa VHDL', () => {
+  const vhdl = {
+    ...sources,
+    kind: 'simulate-vhdl',
+    design: { name: 'd.vhd', content: '' },
+    testbench: { name: 'tb.vhdl', content: '' },
+  };
+  assert.equal(CompileRequestSchema.safeParse(vhdl).success, true);
+  assert.equal(
+    CompileRequestSchema.safeParse({ ...vhdl, kind: 'simulate-verilog' }).success,
+    false,
+  );
+  assert.equal(CompileRequestSchema.safeParse({ ...vhdl, kind: undefined }).success, false);
+  assert.equal(
+    CompileRequestSchema.safeParse({ ...sources, kind: 'simulate-vhdl' }).success,
+    false,
+  );
+});
+
+test('a toolchain VHDL usa imagem, parser e analise proprios', () => {
+  const toolchain = toolchainFor('simulate-vhdl');
+  assert.notEqual(toolchain.image(), VERILOG_TOOLCHAIN.image());
+  assert.equal(toolchain.sourceAnalysis, 'none');
+  const [diagnostic] = toolchain.parseDiagnostics('/work/d.vhd:3:1: erro', ['d.vhd']);
+  assert.equal(diagnostic?.file, 'd.vhd');
+});

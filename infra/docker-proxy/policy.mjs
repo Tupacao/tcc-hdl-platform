@@ -69,7 +69,9 @@ export function validateCreateBody(body, config) {
     if (!ALLOWED_TOP_LEVEL.has(key)) return `campo nao permitido no create: ${key}`;
   }
 
-  if (body.Image !== config.image) return `imagem nao permitida (so ${config.image})`;
+  if (!config.images.includes(body.Image)) {
+    return `imagem nao permitida (so ${config.images.join(', ')})`;
+  }
   if (body.WorkingDir !== '/work') return 'WorkingDir precisa ser /work';
   if (body.User !== 'sandbox') return 'User precisa ser sandbox';
   if (body.NetworkDisabled !== true) return 'NetworkDisabled precisa ser true';
