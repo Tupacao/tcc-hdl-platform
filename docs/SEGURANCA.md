@@ -120,12 +120,58 @@ docker ps -a --filter label=tplab.sandbox   # não deve listar nada depois
 Qualquer alteração em `sandbox.ts`, `infra/sandbox/Dockerfile` ou
 `run-simulation.sh` exige repetir.
 
-## 4. Achados que alimentam as outras issues
+## 4. Limites e fidelidade do desfecho (RNF05-I01)
 
-- **Fidelidade do desfecho de memória (RNF05-I01).** O estouro de memória do
-  `vvp` chegou ao cliente como `timeout` (o script converte todo `137` do `vvp`
-  em `124`), e o do `iverilog` como `compile_error` (`|| exit 2`). O desfecho
-  `memory_limit` nunca aparece pelo caminho normal.
-- **`iverilog` fora do `timeout` (RNF05-I01, RNF04-I03).** Um
-  `` `include `` circular prendeu o worker por ~23,8 s (teto interno de 10 s +
-  `killTimer` de 5 s + criação/logs), e só saiu pelo `killTimer` do host.
+Os limites configurados existiam, mas o desfecho reportado ao usuário não
+correspondia à causa em dois casos e um limite estava descoberto. Estado
+antes → depois, reproduzido com o fluxo real (`runInSandbox`):
+
+| Caso | Antes | Depois |
+| --- | --- | --- |
+| Simulação sem `$finish` | `timeout` (exit 124), ~12,9 s | `timeout`, fase `simulate`, exit 124 |
+| Estouro de memória no `vvp` | **`timeout`** (o script convertia todo 137 em 124) | `memory_limit`, `OOMKilled = true` |
+| Estouro de memória no `iverilog` (macro recursiva) | **`compile_error`** (`\|\| exit 2`) | `memory_limit` se o Docker marcou `OOMKilled`; senão `internal_error` |
+| `` `include `` circular / compilação infinita | **preso até o `killTimer` do host** (~23,8 s), reportado `timeout` | interrompido pelo `timeout` próprio (`SANDBOX_COMPILE_TIMEOUT_MS`, 5 s), exit **4**, fase `compile` |
+| `kill -9` de um processo, sem OOM | `memory_limit` (137) | `internal_error` — não acusa o usuário |
+
+Mudanças (script e `mapFailure` no mesmo commit, como o acoplamento exige):
+
+- `run-simulation.sh`: `iverilog` passa a rodar sob `timeout -s KILL` com teto
+  próprio; **4** = timeout da compilação; o script deixa de rotular como `124` um
+  SIGKILL que aconteceu _antes_ do limite (mede o tempo decorrido) e devolve
+  **137** nesses casos. Códigos: 0 / 2 / 3 / 4 / 124 / 137.
+- `sandbox.ts`: memória é decidida por `State.OOMKilled` (`docker inspect`), o
+  dado autoritativo — vale mesmo se o script devolveu 124 ou 2. 137 sem OOM vira
+  `internal_error`. A leitura de logs tolera container morto (`409` "dead or
+  marked for removal", visto quando o PID 1 morre por OOM). O `killTimer` agora
+  cobre compilação + simulação + margem e, quando dispara, o worker registra
+  `killTimer do host encerrou o job` (o timeout interno falhou).
+- `limits.ts`: limite atingido vira **erro no console com causa provável e
+  próximo passo** (contrato `DiagnosticSchema` que RF05 já renderiza): timeout da
+  simulação (`$finish` / laço sem `#`), da compilação (`` `define `` recursivo /
+  `` `include `` circular) e memória (vetor grande demais). Erro interno não
+  acusa o código do usuário.
+
+Ressalva conhecida: o tempo decorrido tem resolução de 1 s, então um OOM a menos
+de 1 s do limite de tempo pode sair do script como 124 — o `OOMKilled` do Docker,
+consultado pelo host, corrige esse caso (foi o que aconteceu no teste de
+memória do Verilog: exit 124 com `oomKilled = true` → `memory_limit`).
+
+### PIDs e CPU
+
+- **PIDs**: coberto na seção 2 (`can't fork` no limite de 128).
+- **CPU**: `NanoCpus` limita por cota do cgroup (o processo atrasa, não trava o
+  host); o efeito aparece no tempo de execução e é medido em RNF05-I02.
+
+### As variáveis surtem efeito
+
+`sandbox.integration.ts` sobe um processo filho com `SANDBOX_TIMEOUT_MS=4000`,
+`SANDBOX_COMPILE_TIMEOUT_MS=2000`, `SANDBOX_MEMORY_MB=48`, `SANDBOX_CPUS=0.25` e
+confere que chegam aos limites e às opções do container (`SIM_TIMEOUT_S=4`,
+`SIM_COMPILE_TIMEOUT_S=2`, `Memory` = 48 MiB, `NanoCpus` = 0,25e9); os testes de
+tempo e de memória passam limites reduzidos a `runInSandbox` e conferem o
+comportamento efetivo (timeout em 3 s, OOM a 32 MB).
+
+## 5. Achados que alimentam as outras issues
+
+- **Permissão do workdir e `/tmp` compartilhado** — RNF04-I03 e RNF04-I02.

@@ -110,8 +110,8 @@ ja limita a leitura por `MAX_VCD_BYTES`.
       `stdout` com o texto dos `$display`.
 - [ ] Um testbench sem `$dumpvars` conclui com sucesso e a interface explica por
       que nao ha forma de onda, em vez de mostrar painel vazio sem contexto.
-- [ ] Um testbench sem `$finish` termina por timeout e o usuario recebe
-      `failure: 'timeout'` com explicacao acionavel.
+- [x] Um testbench sem `$finish` termina por timeout e o usuario recebe
+      `failure: 'timeout'` com explicacao acionavel. _(RNF05-I01 — `limits.ts`)_
 - [x] `topModule` incoerente com o testbench gera aviso antes de gastar
       container. _(I01)_
 - [x] Saida muito grande e truncada com aviso, sem quebrar o console nem o

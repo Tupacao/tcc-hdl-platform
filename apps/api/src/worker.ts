@@ -12,6 +12,7 @@ import {
 import { parseIcarusDiagnostics } from './modules/simulation/diagnostics.js';
 import { attachHints } from './modules/simulation/hints.js';
 import { buildJobLogRecord } from './modules/simulation/job-log.js';
+import { analyzeLimitFailure, dropKilledNoise } from './modules/simulation/limits.js';
 import {
   removeOrphanSandboxContainers,
   removeOrphanWorkdirs,
@@ -48,10 +49,32 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
       alreadyWarnedMissingDump: contract.missingDumpDirectives,
     });
 
+    // RNF05: limite atingido vira erro com causa provavel e proximo passo.
+    const limitDiagnostics = analyzeLimitFailure({
+      failure: outcome.failure,
+      timeoutPhase: outcome.timeoutPhase,
+      testbenchName: job.data.testbench.name,
+      timeoutMs: env.SANDBOX_TIMEOUT_MS,
+      compileTimeoutMs: env.SANDBOX_COMPILE_TIMEOUT_MS,
+      memoryMb: env.SANDBOX_MEMORY_MB,
+    });
+    if (outcome.timeoutPhase === 'host') {
+      // O timeout interno do script deveria ter agido antes: se o `killTimer` do host
+      // foi quem matou, o limite de dentro do container parou de funcionar.
+      logger.warn(
+        { jobId: String(job.id) },
+        'killTimer do host encerrou o job — timeout interno falhou',
+      );
+    }
+
     const diagnostics = [
       ...contract.diagnostics,
-      ...attachHints(
-        parseIcarusDiagnostics(outcome.stderr, [job.data.design.name, job.data.testbench.name]),
+      ...limitDiagnostics,
+      ...dropKilledNoise(
+        attachHints(
+          parseIcarusDiagnostics(outcome.stderr, [job.data.design.name, job.data.testbench.name]),
+        ),
+        limitDiagnostics,
       ),
       ...postExecutionWarnings,
     ];

@@ -13,6 +13,7 @@ import {
 const LIMITS: SandboxLimits = {
   image: 'tplab-sandbox:test',
   timeoutMs: 7_500,
+  compileTimeoutMs: 2_100,
   memoryMb: 96,
   cpus: 0.25,
 };
@@ -55,8 +56,8 @@ test('recursos: memoria sem swap, CPU e PIDs limitados vindos dos limites inform
   assert.equal(host.PidsLimit, 128);
 });
 
-test('ambiente: a unica variavel e SIM_TIMEOUT_S — nada da API chega ao container', () => {
-  assert.deepEqual(options.Env, ['SIM_TIMEOUT_S=8']);
+test('ambiente: so os dois tetos de tempo — nada da API chega ao container', () => {
+  assert.deepEqual(options.Env, ['SIM_TIMEOUT_S=8', 'SIM_COMPILE_TIMEOUT_S=3']);
 });
 
 test('rotulo: todo container de simulacao e rotulado para a varredura de orfaos', () => {
