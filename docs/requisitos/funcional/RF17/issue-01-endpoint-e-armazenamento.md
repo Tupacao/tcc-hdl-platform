@@ -59,14 +59,38 @@ chega.
 
 ## Criterios de aceite
 
-- [ ] `POST /api/feedback` aceita envio valido e persiste.
-- [ ] Mensagem fora dos limites retorna `400` com mensagem em portugues.
-- [ ] O quarto envio na mesma hora retorna `429`.
-- [ ] O IP e armazenado apenas como hash.
-- [ ] O feedback e armazenado sem sessao, e associado ao usuario quando houver.
-- [ ] Nenhuma rota publica le feedback.
-- [ ] O procedimento de leitura esta documentado.
-- [ ] Ha teste para cada caso de validacao e para o limite.
+- [x] `POST /api/feedback` aceita envio valido e persiste.
+- [x] Mensagem fora dos limites retorna `400` com mensagem em portugues.
+- [x] Envio acima do limite retorna `429`. **Divergencia proposital**: o limite
+      entregue e de 5 relatos por dia **por sessao anonima**, nao 3 por hora por
+      origem — e o que o Figma 10.5 fechou ("Voce ja enviou 5 mensagens hoje",
+      zera no dia seguinte, e explicitamente "por sessao anonima, nao por
+      pessoa": um laboratorio atras do mesmo endereco nao divide a cota). O
+      limite por hora continua existindo como guarda de rajada (20/hora, por IP),
+      em cima de requisicoes e nao de relatos gravados.
+- [x] O IP e armazenado apenas como hash (com sal, `FEEDBACK_IP_SALT`).
+- [x] O feedback e armazenado sem sessao, e associado ao usuario quando houver
+      (`userId`, pronto para RF14).
+- [x] Nenhuma rota publica le feedback.
+- [x] O procedimento de leitura esta documentado (`README.md`).
+- [x] Ha teste para cada caso de validacao e para o limite.
+
+## Divergencias da especificacao original
+
+- **Minimo da mensagem**: 20 caracteres, nao 10. O Figma 10.5 so acende o botao
+  de enviar a partir de 20 ("Conte um pouco mais…"), e o schema e a fonte unica
+  dessa regra para os dois lados.
+- **Camadas**: o escopo tecnico citava `apps/api/src/modules/feedback/routes.ts`,
+  caminho do layout antigo. A feature nasceu em
+  `application/feedback/{controller,service,repository}` + `domain/feedback/`,
+  como manda `docs/ARCHITECTURE.md` para codigo novo.
+- **Contexto tecnico**: inclui tambem `compilerOutput` e `sessionId`, que o
+  Figma 10.5 lista item a item na lista mostrada ao usuario. O `sessionId` e
+  tambem a chave do limite diario (coluna `limitKey`, com sal); sem ele a cota
+  cai para o IP.
+- **Contador da mensagem**: o Figma mostra "12 / 1000", mas o teto do schema e o
+  da issue (2000). Mantido 2000 — o contador da interface usa o maximo do schema,
+  para nao existirem dois numeros.
 
 ## Verificacao
 

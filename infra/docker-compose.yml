@@ -50,6 +50,9 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
       REDIS_URL: redis://redis:6379
       DATABASE_URL: postgresql://${POSTGRES_USER:-tplab}:${POSTGRES_PASSWORD:-tplab}@postgres:5432/${POSTGRES_DB:-tplab}
+      # RF17: sem sal fixo os hashes de IP do feedback mudam a cada reinicio do container.
+      FEEDBACK_IP_SALT: ${FEEDBACK_IP_SALT:-}
+      FEEDBACK_MAX_PER_DAY: ${FEEDBACK_MAX_PER_DAY:-5}
     ports:
       - '3333:3333'
     depends_on:
