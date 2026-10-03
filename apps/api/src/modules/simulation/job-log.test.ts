@@ -26,6 +26,7 @@ function outcome(overrides: Partial<SandboxOutcome> = {}): SandboxOutcome {
     truncated: { stdout: false, stderr: false, vcd: false },
     oomKilled: false,
     timeoutPhase: null,
+    logsUnavailable: false,
     ...overrides,
   };
 }

@@ -5,6 +5,8 @@ export interface LimitFailureInput {
   failure: SimulationFailure | null;
   timeoutPhase: TimeoutPhase | null;
   exitCode: number;
+  /** `SandboxOutcome.logsUnavailable`: a saida da execucao nao pode ser lida. */
+  logsUnavailable?: boolean;
   /** Arquivo a que o diagnostico se associa na lista de Problemas (o testbench). */
   testbenchName: string;
   timeoutMs: number;
@@ -69,6 +71,17 @@ export function analyzeLimitFailure(input: LimitFailureInput): Diagnostic[] {
         'Arquivo grande demais',
         'O testbench gravou mais de 16 MB em um único arquivo e a simulação foi interrompida.',
         'Costuma ser um $fwrite/$fdisplay ou um $dumpvars dentro de um laço muito longo. Reduza o tempo simulado, os sinais em $dumpvars ou o que é gravado a cada ciclo.',
+      ),
+    ];
+  }
+
+  if (input.failure === 'internal_error' && input.logsUnavailable) {
+    return [
+      limitError(
+        file,
+        'Saída da execução indisponível',
+        'A execução terminou, mas a plataforma não conseguiu ler a saída dela.',
+        'Execute de novo. Se acontecer outra vez, o problema é da plataforma e não do circuito.',
       ),
     ];
   }

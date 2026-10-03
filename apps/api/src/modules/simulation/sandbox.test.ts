@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import {
   demuxDockerLogs,
   mapFailure,
+  readContainerLogs,
   timeoutPhaseOf,
   truncateAtLineBoundary,
   truncateFromEnd,
@@ -108,4 +109,33 @@ test('timeoutPhaseOf distingue compilacao, simulacao e o killTimer do host', () 
   assert.equal(timeoutPhaseOf(124, true), 'host');
   assert.equal(timeoutPhaseOf(2, false), null);
   assert.equal(timeoutPhaseOf(0, false), null);
+});
+
+test('readContainerLogs repete apos falha transitoria e devolve o buffer', async () => {
+  let calls = 0;
+  const result = await readContainerLogs(
+    async () => {
+      calls += 1;
+      if (calls < 3) throw new Error('409 dead or marked for removal');
+      return Buffer.from('ok');
+    },
+    4,
+    1,
+  );
+  assert.equal(result?.toString(), 'ok');
+  assert.equal(calls, 3);
+});
+
+test('readContainerLogs desiste com null apos esgotar as tentativas', async () => {
+  let calls = 0;
+  const result = await readContainerLogs(
+    async () => {
+      calls += 1;
+      throw new Error('409');
+    },
+    3,
+    1,
+  );
+  assert.equal(result, null);
+  assert.equal(calls, 3);
 });

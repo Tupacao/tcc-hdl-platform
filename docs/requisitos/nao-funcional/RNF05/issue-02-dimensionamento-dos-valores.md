@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RNF05](feature.md) |
-| Branch | `chore/rnf05-dimensionamento-dos-valores` |
+| Branch | `feat-RNF05-02-dimensionamento-valores-back` |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | RNF05-I01, RF03-I04 |
 
@@ -63,13 +63,13 @@ nos dados, deixando cada valor justificado.
 
 ## Criterios de aceite
 
-- [ ] Ha medicao registrada para cada simulacao do conjunto representativo.
-- [ ] Mediana e p95 estao registrados, na VM alvo.
-- [ ] Cada limite tem justificativa escrita, com a folga explicita.
-- [ ] Nenhum exemplo de RF20 chega perto de qualquer limite.
-- [ ] Dois jobs simultaneos no limite cabem na VM com folga.
-- [ ] `MAX_VCD_BYTES`, a retencao de RF03-I03 e o teto de RF04-I02 sao coerentes.
-- [ ] Os valores estao no `README.md` com a data da medicao.
+- [x] Ha medicao registrada para cada simulacao do conjunto representativo. _(sete casos, README)_
+- [~] Mediana e p95 estao registrados, na VM alvo. _(mediana, p95 e maximo registrados com 20 amostras; **na maquina de desenvolvimento** — a VM B2s so existe apos RF01-I02. O protocolo esta em `measure:sandbox`)_
+- [x] Cada limite tem justificativa escrita, com a folga explicita.
+- [x] Nenhum exemplo de RF20 chega perto de qualquer limite. _(o maior exemplo usa 20 MB e 1,4 s de simulacao; o caso pesado deliberado, 4 MB e 2,7 s)_
+- [x] Dois jobs simultaneos no limite cabem na VM com folga. _(pior caso somado ~1,9 GB dos 4 GiB — calculo com pecas medidas em repouso; nao medido na VM)_
+- [x] `MAX_VCD_BYTES`, a retencao de RF03-I03 e o teto de RF04-I02 sao coerentes.
+- [x] Os valores estao no `README.md` com a data da medicao.
 
 ## Verificacao
 
@@ -79,6 +79,29 @@ pnpm dev:worker
 curl -s http://localhost:3333/health/metrics
 docker stats --no-stream
 ```
+
+## Nota de implementacao
+
+Medicao completa, tabelas e o raciocinio de cada limite estao no `README.md`, secao
+"Dimensionamento dos limites" (2026-09-29). Achados que mudaram decisoes:
+
+- **O container domina o tempo**: compilar + simular um exemplo leva ~20 ms; criar
+  (~1,5 s) e iniciar/aguardar (~1 s) o container e todo o resto. O timeout de
+  simulacao (10 s) cobre so o `vvp`, entao nao tem de acompanhar esse overhead — que
+  e problema de RNF07-I02.
+- **`MAX_SOURCE_BYTES` era o unico limite que nao fechava a conta**: o par de arquivos
+  que o contrato aceitava (2 × 256 KB) nao cabia nos tetos de compilacao nem de
+  memoria. Passou a **64 KB por arquivo** (compila em 0,66 s / 40 MB, folga de 7,6× e
+  3,2×). E mudanca de contrato em `packages/shared`; o texto de ajuda que cita o
+  numero (`inicio-rapido.tsx`) segue em PR de front separada (front e back nao
+  compartilham branch).
+- Nao ha valor que precisasse subir: 10 s, 5 s, 128 MB e 0,5 CPU se sustentam. O caso
+  limitado por CPU (RAM de 1 M palavras) dobra o tempo com 0,5 em vez de 1 CPU — aceito
+  porque 2 jobs × 0,5 = 1 dos 2 vCPU da B2s.
+- Achado colateral, do mesmo protocolo: o Docker de desenvolvimento respondeu `409` a
+  `logs` **ate em execucao normal** (1 vez em ~140) — a leitura agora repete e, se
+  ainda assim falhar, o resultado deixa de ser "sucesso com saida vazia" e vira `internal_error`
+  com mensagem propria.
 
 ## Riscos
 

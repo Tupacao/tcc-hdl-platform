@@ -56,6 +56,7 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
       failure: outcome.failure,
       timeoutPhase: outcome.timeoutPhase,
       exitCode: outcome.exitCode,
+      logsUnavailable: outcome.logsUnavailable,
       testbenchName: job.data.testbench.name,
       timeoutMs: env.SANDBOX_TIMEOUT_MS,
       compileTimeoutMs: env.SANDBOX_COMPILE_TIMEOUT_MS,

@@ -59,6 +59,8 @@ export interface SandboxOutcome {
   oomKilled: boolean;
   /** RNF05-I01 — etapa que estourou o tempo, ou `null` quando nao houve timeout. */
   timeoutPhase: TimeoutPhase | null;
+  /** RNF05-I02 — o Docker recusou `logs` mesmo apos novas tentativas: stdout/stderr vieram vazios por falha, nao por silencio do codigo. */
+  logsUnavailable: boolean;
 }
 
 /**
@@ -264,12 +266,19 @@ export async function runInSandbox(
       const executionMs = Date.now() - executionStartedAt;
 
       const artifactsReadStartedAt = Date.now();
-      // Container cujo PID 1 morreu por OOM pode recusar `logs` (409 "dead or marked
-      // for removal"): o desfecho ja esta decidido, so nao ha texto para mostrar.
-      const logs = await container
-        .logs({ stdout: true, stderr: true, follow: false })
-        .catch(() => Buffer.alloc(0));
-      const { stdout, stderr } = demuxDockerLogs(logs as unknown as Buffer);
+      // O Docker responde 409 "dead or marked for removal" a `logs` as vezes logo apos o
+      // container sair (visto com o PID 1 morto por OOM e, na maquina de desenvolvimento, ate em
+      // execucao normal — 1 vez em ~140). Repete algumas vezes antes de desistir; se nao vier,
+      // o resultado nao pode ser dado como sucesso silencioso com saida vazia.
+      const logs = await readContainerLogs(
+        () =>
+          container.logs({
+            stdout: true,
+            stderr: true,
+            follow: false,
+          }) as unknown as Promise<Buffer>,
+      );
+      const { stdout, stderr } = demuxDockerLogs(logs ?? Buffer.alloc(0));
       const stdoutResult = truncateFromEnd(stdout, env.MAX_STDOUT_BYTES);
       const stderrResult = truncateFromEnd(stderr, env.MAX_STDERR_BYTES);
       const vcdResult = await readVcd(workdir);
@@ -279,10 +288,15 @@ export async function runInSandbox(
         .then((info) => info.State?.OOMKilled === true)
         .catch(() => false);
 
+      const logsUnavailable = logs === null;
+      const mapped = mapFailure(timedOut ? EXIT_TIMEOUT : exitCode, { oomKilled });
+
       return {
         exitCode,
-        failure: mapFailure(timedOut ? EXIT_TIMEOUT : exitCode, { oomKilled }),
+        // Sem logs nao ha como saber se a saida estava correta: nunca sucesso silencioso.
+        failure: mapped === null && logsUnavailable ? 'internal_error' : mapped,
         oomKilled,
+        logsUnavailable,
         timeoutPhase: timeoutPhaseOf(timedOut ? EXIT_TIMEOUT : exitCode, timedOut),
         stdout: stdoutResult.text,
         stderr: stderrResult.text,
@@ -301,6 +315,22 @@ export async function runInSandbox(
   } finally {
     await rm(workdir, { recursive: true, force: true }).catch(() => undefined);
   }
+}
+
+/** Le os logs do container com algumas tentativas; `null` quando o Docker segue recusando. */
+export async function readContainerLogs(
+  read: () => Promise<Buffer>,
+  attempts = 4,
+  delayMs = 250,
+): Promise<Buffer | null> {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await read();
+    } catch {
+      if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  return null;
 }
 
 export function defaultSandboxLimits(): SandboxLimits {

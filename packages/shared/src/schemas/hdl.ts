@@ -4,8 +4,15 @@ import { ModuleNameSchema } from './common.js';
 /** Linguagens de descricao de hardware. MVP: apenas Verilog (RF02). */
 export const HdlLanguageSchema = z.enum(['verilog']);
 
-/** Limites de tamanho do codigo submetido — protege o sandbox (RNF04/RNF05). */
-export const MAX_SOURCE_BYTES = 256 * 1024;
+/**
+ * Limite de tamanho do codigo submetido — protege o sandbox (RNF04/RNF05). 64 KB por arquivo:
+ * medido em RNF05-I02, dois arquivos de 64 KB compilam em ~0,66 s e ~40 MB (folga de 7,6x e
+ * 3,2x sobre os tetos de 5 s e 128 MB); com 128 KB o par ja leva 2 s e 77 MB (2,5x e 1,7x) e
+ * com 256 KB estoura ambos. O maior exemplo real tem poucos KB. Mudar este valor exige
+ * remedir e revisar `SANDBOX_COMPILE_TIMEOUT_MS`/`SANDBOX_MEMORY_MB` (README.md, secao
+ * "Dimensionamento dos limites").
+ */
+export const MAX_SOURCE_BYTES = 64 * 1024;
 
 export const HdlFileSchema = z.object({
   /** Nome do arquivo dentro do sandbox, ex: `counter.v`. */

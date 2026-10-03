@@ -65,6 +65,15 @@ test('arquivo acima de 16 MB (exit 153) vira mensagem propria, nao um runtime_er
   assert.deepEqual(analyzeLimitFailure({ ...base, failure: 'runtime_error', exitCode: 3 }), []);
 });
 
+test('logs indisponiveis tem mensagem propria, sem acusar o codigo', () => {
+  const [diagnostic] = analyzeLimitFailure({
+    ...base,
+    failure: 'internal_error',
+    logsUnavailable: true,
+  });
+  assert.match(diagnostic?.title ?? '', /Saída da execução indisponível/);
+});
+
 test('erro interno nao acusa o codigo do usuario', () => {
   const [diagnostic] = analyzeLimitFailure({ ...base, failure: 'internal_error' });
   assert.match(diagnostic?.message ?? '', /não vem do seu código/);
