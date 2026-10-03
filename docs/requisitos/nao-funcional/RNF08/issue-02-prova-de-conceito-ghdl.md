@@ -63,14 +63,14 @@ imagem, e registrar a evidencia.
 
 ## Criterios de aceite
 
-- [ ] A imagem da segunda toolchain constroi e roda isolada.
-- [ ] Um exemplo VHDL completa o fluxo e produz `.vcd`.
-- [ ] Os diagnosticos do GHDL aparecem no mesmo formato, com arquivo e linha.
-- [ ] `routes.ts` nao foi alterado.
-- [ ] Toda alteracao fora do registro e da imagem esta registrada como achado.
-- [ ] Os limites e o isolamento valem para a nova toolchain.
-- [ ] O fluxo Verilog nao regrediu.
-- [ ] `docs/EXTENSIBILIDADE.md` documenta o procedimento.
+- [x] A imagem da segunda toolchain constroi e roda isolada.
+- [x] Um exemplo VHDL completa o fluxo e produz `.vcd`.
+- [x] Os diagnosticos do GHDL aparecem no mesmo formato, com arquivo e linha.
+- [x] `routes.ts` nao foi alterado.
+- [x] Toda alteracao fora do registro e da imagem esta registrada como achado.
+- [x] Os limites e o isolamento valem para a nova toolchain.
+- [x] O fluxo Verilog nao regrediu.
+- [x] `docs/EXTENSIBILIDADE.md` documenta o procedimento.
 
 ## Verificacao
 

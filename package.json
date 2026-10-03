@@ -19,7 +19,9 @@
     "format:check": "prettier --check .",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
-    "sandbox:build": "docker build -t tplab-sandbox:latest infra/sandbox"
+    "sandbox:build": "docker build -t tplab-sandbox:latest infra/sandbox",
+    "sandbox:build:ghdl": "docker build -t tplab-sandbox-ghdl:latest infra/sandbox-ghdl",
+    "test:infra": "node --test infra/docker-proxy/policy.test.mjs"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

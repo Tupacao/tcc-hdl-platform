@@ -86,6 +86,10 @@ O Vite faz proxy de `/api` para a API, entao nao ha CORS no desenvolvimento.
 | `pnpm --filter @tplab/api test`                       | Testes (parser de diagnosticos e repositorio de projetos) |
 | `pnpm infra:up` / `pnpm infra:down`                   | Stack Docker completa                                     |
 | `pnpm sandbox:build`                                  | Constroi a imagem `tplab-sandbox:latest`                  |
+| `pnpm --filter @tplab/api test:sandbox`               | Auditoria do sandbox contra o Docker real (RNF04/RNF05)   |
+| `pnpm --filter @tplab/api measure:sandbox`            | Mede limites e desempenho do sandbox (RNF05-I02)          |
+| `pnpm --filter @tplab/api measure:e2e`                | Mede o tempo ponta a ponta por etapa (RNF07-I01)          |
+| `pnpm test:infra`                                     | Testes da política do proxy do socket do Docker (RNF04)   |
 | `pnpm --filter @tplab/api exec prisma migrate dev`    | Cria/aplica migracao a partir do schema (dev)             |
 | `pnpm --filter @tplab/api exec prisma migrate deploy` | Aplica migracoes pendentes (producao/CI)                  |
 
@@ -95,7 +99,8 @@ O Vite faz proxy de `/api` para a API, entao nao ha CORS no desenvolvimento.
    pelo `CompileRequestSchema` de `packages/shared`.
 2. A API enfileira o job no BullMQ e responde `202` com o `jobId`.
 3. O worker cria um container efemero (`--network=none`, 128 MB, 0.5 CPU, rootfs
-   somente leitura, timeout de 10 s) que roda `iverilog` e `vvp` (RNF04/RNF05).
+   somente leitura, 5 s de compilação e 10 s de simulação) que roda `iverilog` e `vvp`
+   (RNF04/RNF05; valores e medições em "Dimensionamento dos limites").
 4. A saida do `iverilog` e convertida em diagnosticos com numero de linha (RF05) e
    o `.vcd` gerado volta para o visualizador de formas de onda (RF06).
 5. O frontend acompanha o job por polling em `GET /api/simulations/:jobId`.
@@ -187,6 +192,92 @@ costumam ser as informativas quando algo deu errado (ex.: a linha de
 casos o corte vem com um aviso explicito no proprio texto, mais uma flag
 estruturada em `SimulationResultSchema.truncated` (`{ stdout, stderr, vcd }`),
 para a interface nao ter que adivinhar pelo conteudo.
+
+## Dimensionamento dos limites (RNF05-I02)
+
+Cada limite abaixo tem uma medição por trás. A regra adotada: o valor é o **pior caso
+legítimo medido (p95) com folga de pelo menos 3×**, arredondado para cima; o limite é o
+teto de segurança, não a meta de desempenho (a meta de RNF07, 5 s, é o tempo ponta a
+ponta e fica abaixo dele).
+
+- **Data**: 2026-09-29. **Ambiente**: máquina de desenvolvimento (Windows 11, Rancher
+  Desktop/WSL2, Docker 29.5.3, cgroup v2, Icarus Verilog 12.0). **A medição na VM alvo
+  (Azure B2s) está pendente** — a VM só existe depois de RF01-I02; o protocolo está pronto
+  e roda igual lá (ver abaixo). Os números da máquina de desenvolvimento são otimistas
+  para CPU e pessimistas para o I/O de disco (o bind passa por 9p).
+- **Método**: `pnpm --filter @tplab/api measure:sandbox` — 20 amostras por caso, a
+  primeira descartada (cache do Docker), mediana / p95 / máximo, no container com as
+  mesmas opções de `runInSandbox`; compilação e simulação separadas; pico de memória do
+  cgroup (`memory.peak`).
+
+### Exemplos de referência (ms; memória em MB)
+
+| Caso                                                                  | criação do container | compilação | simulação   | start→saída | pico de memória | VCD     |
+| --------------------------------------------------------------------- | -------------------- | ---------- | ----------- | ----------- | --------------- | ------- |
+| Somador de 1 bit                                                      | 1523 / 1798 / 1841   | 10         | 10          | 1076 / 1436 | 4 / 5           | 700 B   |
+| Mux 4:1                                                               | 1563 / 1805 / 1819   | 10         | 10          | 1053 / 1168 | 4 / 5           | 563 B   |
+| Contador de 4 bits                                                    | 1535 / 1731 / 1855   | 10         | 10          | 1062 / 1334 | 4 / 5           | 1,5 KB  |
+| ULA de 8 bits                                                         | 1449 / 1666 / 1735   | 10         | 10          | 1039 / 1167 | 4 / 5           | 1 KB    |
+| Registrador de deslocamento de 8 bits                                 | 1445 / 1861 / 2465   | 10         | 10          | 944 / 1117  | 4 / 5           | 4,5 KB  |
+| RAM de 1 M palavras × 32 bit (4 MiB de dados)                         | 1252 / 1414 / 1530   | 10         | 1390 / 1450 | 2031 / 2141 | 19 / 20         | —       |
+| **Pesado**: contador de 16 bits, 200 mil ciclos, `$dumpvars` completo | 1484 / 1655 / 1669   | 10         | 2610 / 2710 | 3278 / 3418 | 4 / 5           | 13,3 MB |
+
+(colunas com três números: mediana / p95 / máximo; com dois: mediana / p95. Resolução do
+tempo de compilação e simulação: 10 ms.)
+
+**O que os números dizem.** Compilar e simular um exemplo de aula leva ~20 ms; **todo o
+resto do tempo é o container** — criar (~1,5 s) e iniciar/aguardar (~1 s). O limite de
+tempo cobre só o `vvp`, então não tem de crescer com esse overhead (que é do RNF07).
+
+### Cada limite, com a folga
+
+| Limite                                   | Valor                              | Medição que o sustenta                                                                                                                                                                                                                                | Folga                                                                                                                        |
+| ---------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `SANDBOX_TIMEOUT_MS` (simulação)         | **10 s**                           | pior caso legítimo: 200 mil ciclos com `$dumpvars` completo, p95 = 2,7 s; RAM de 4 M palavras: 5,7 s                                                                                                                                                  | 3,7× sobre o pesado (3× → 8,1 s, arredondado para 10 s); 2× a meta de 5 s de RNF07                                           |
+| `SANDBOX_COMPILE_TIMEOUT_MS`             | **5 s**                            | dois arquivos de 64 KB (o teto de `MAX_SOURCE_BYTES`): 0,66 s                                                                                                                                                                                         | 7,6×                                                                                                                         |
+| `SANDBOX_MEMORY_MB`                      | **128 MB**                         | RAM de 1 M palavras: 20 MB; dois arquivos de 64 KB compilando: 40 MB; RAM de 4 M palavras (16 MiB de dados): 67 MB                                                                                                                                    | 6,4× sobre a RAM de 1 M; 3,2× sobre o pior fonte aceito; **uma RAM de 4 M palavras cabe (1,9×), acima disso `memory_limit`** |
+| `SANDBOX_CPUS`                           | **0,5**                            | 0,5 → 1 CPU não muda o caso limitado por I/O (200 mil ciclos: 2,64 → 2,61 s) e dobra o limitado por CPU (RAM de 1 M: 1,41 → 0,71 s); 0,25 → 2×–4× mais lento                                                                                          | 2 jobs × 0,5 = 1 CPU dos 2 vCPU da B2s: sobra 1 CPU para API, worker, Postgres e Redis                                       |
+| `PidsLimit`                              | **128**                            | uma simulação usa `sh` + `timeout` + `vvp` (~3 processos); contido em 128 (RNF04-I01)                                                                                                                                                                 | ~40×                                                                                                                         |
+| `MAX_SOURCE_BYTES`                       | **64 KB por arquivo** (era 256 KB) | dois arquivos de **64 KB** compilam em 0,66 s / 40 MB; de **128 KB**, 2,0 s / 77 MB (2,5× e 1,7× — abaixo da folga de 3×); de **256 KB**, 2,5 s / 75 MB **por arquivo** (o par, extrapolado, passaria dos 128 MB). O maior exemplo real tem poucos KB | com 64 KB, 7,6× no tempo e 3,2× na memória do pior fonte aceito; ~30× o maior exemplo real                                   |
+| `MAX_VCD_BYTES` (leitura)                | **2 MiB**                          | o pesado gera 13,3 MB de VCD — o visualizador recebe os primeiros 2 MiB, com aviso (RF04-I02)                                                                                                                                                         | —                                                                                                                            |
+| Arquivo gravado (`ulimit -f`, RNF04-I03) | **16 MiB**                         | cobre o VCD do pesado (13,3 MB); acima disso o container termina com exit 153 e a mensagem "Arquivo grande demais"                                                                                                                                    | 1,2× sobre o pesado; ≥ `MAX_VCD_BYTES` (escrever menos do que se lê seria incoerente)                                        |
+| `MAX_STDOUT_BYTES` / `MAX_STDERR_BYTES`  | 256 KB / 64 KB                     | exemplos: < 1 KB de saída                                                                                                                                                                                                                             | > 250×                                                                                                                       |
+
+**Por que `MAX_SOURCE_BYTES` caiu de 256 KB para 64 KB.** Era o único limite que não
+fechava a conta: o par de arquivos que o contrato aceitava (2 × 256 KB) não cabia nos
+tetos de compilação (5 s) nem de memória (128 MB) — uma submissão válida falharia com
+"limite de memória" ou "tempo de compilação" sem o usuário ter feito nada de errado.
+Reduzir o fonte é melhor que inflar os limites da VM para acomodar entrada que nenhum
+exercício produz. O texto de ajuda que cita "256 KB" (`inicio-rapido.tsx`) é atualizado
+na PR de front correspondente.
+
+### Coerência entre `MAX_VCD_BYTES`, retenção e o teto de RF04-I02
+
+Os três números foram decididos juntos. Pior caso por resultado guardado no Redis:
+2 MiB (VCD) + 256 KB (stdout) + 64 KB (stderr) ≈ **2,3 MiB**; com `JOB_RETENTION_COUNT = 100`,
+**≈ 230 MiB no pior caso** (hoje, com uso real, o Redis ocupa 11,6 MB). O tamanho de escrita
+(16 MiB) é ≥ o de leitura (2 MiB) ≥ o que a retenção comporta por job.
+
+### Dois jobs simultâneos no limite cabem na VM
+
+Medido em repouso: worker 32 MiB, Postgres 37 MiB, Redis 18 MiB; API estimada em ~100 MB
+(não medida). Pior caso somado, com tudo no limite: 2 × 128 MB (sandboxes) + 32 (worker)
+
+- ~100 (API) + ~150 (Postgres sob carga) + 230 (Redis, retenção cheia) + ~30 (proxy do
+  socket) + ~1 GB (Docker, kernel e SO) ≈ **1,9 GB dos 4 GiB da B2s** — folga de ~2×.
+
+### Repetir na VM alvo
+
+```bash
+pnpm sandbox:build
+pnpm --filter @tplab/api measure:sandbox        # exemplos, 20 amostras
+pnpm --filter @tplab/api measure:sandbox cap    # compilação no teto de MAX_SOURCE_BYTES
+pnpm --filter @tplab/api measure:sandbox cpu    # efeito de SANDBOX_CPUS
+docker info --format '{{.SwapLimit}}'           # deve ser true (ver docs/SEGURANCA.md)
+```
+
+Se o p95 do caso pesado passar de ~3 s na VM, revisar `SANDBOX_TIMEOUT_MS` e a folga de
+3× (a regra é a mesma, o número muda).
 
 ## Estado atual
 

@@ -42,7 +42,7 @@ test('POST /api/simulations com extensao de arquivo invalida retorna 400 em port
 
   assert.equal(response.statusCode, 400);
   const payload = response.json();
-  assert.equal(payload.message, 'O arquivo deve ter extensão .v ou .sv');
+  assert.equal(payload.message, 'O arquivo deve ter extensão .v, .sv, .vhd ou .vhdl');
 
   await app.close();
 });

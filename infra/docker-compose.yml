@@ -56,6 +56,27 @@ services:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
 
+  # Unico servico com acesso ao socket do Docker (RNF04-I02). Pequeno, sem dependencias, e so
+  # encaminha ao daemon o que infra/docker-proxy/policy.mjs permite: criar/iniciar/aguardar/
+  # ler logs/matar/remover containers COM O ROTULO do sandbox e com exatamente as opcoes de
+  # sandbox.ts (nada de Privileged, Binds arbitrarios, exec, imagens, volumes, redes).
+  # Nao publica porta: so o worker, pela rede do compose, alcanca o :2375.
+  docker-proxy:
+    image: node:22-alpine
+    restart: unless-stopped
+    command: ['node', '/proxy/proxy.mjs']
+    environment:
+      PROXY_ALLOWED_IMAGES: ${SANDBOX_IMAGE:-tplab-sandbox:latest},${SANDBOX_IMAGE_GHDL:-tplab-sandbox-ghdl:latest}
+      PROXY_WORK_ROOT: ${SANDBOX_WORKDIR_ROOT:-/var/lib/tplab/work}
+    volumes:
+      - ./docker-proxy:/proxy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+
   worker:
     build:
       context: ..
@@ -65,17 +86,24 @@ services:
     environment:
       NODE_ENV: production
       REDIS_URL: redis://redis:6379
+      # O worker NAO monta o socket do Docker: fala com o proxy validador (RNF04-I02).
+      DOCKER_HOST: tcp://docker-proxy:2375
+      SANDBOX_WORKDIR_ROOT: ${SANDBOX_WORKDIR_ROOT:-/var/lib/tplab/work}
       SANDBOX_IMAGE: ${SANDBOX_IMAGE:-tplab-sandbox:latest}
+      SANDBOX_IMAGE_GHDL: ${SANDBOX_IMAGE_GHDL:-tplab-sandbox-ghdl:latest}
       SANDBOX_TIMEOUT_MS: ${SANDBOX_TIMEOUT_MS:-10000}
+      SANDBOX_COMPILE_TIMEOUT_MS: ${SANDBOX_COMPILE_TIMEOUT_MS:-5000}
       SANDBOX_MEMORY_MB: ${SANDBOX_MEMORY_MB:-128}
       SANDBOX_CPUS: ${SANDBOX_CPUS:-0.5}
     volumes:
-      # O worker cria containers efemeros de simulacao no proprio host.
-      - /var/run/docker.sock:/var/run/docker.sock
-      # Diretorio de trabalho compartilhado: o bind do sandbox e resolvido pelo host.
-      - /tmp:/tmp
+      # Diretorio dedicado dos fontes de cada job, montado no MESMO caminho no host e no worker: o
+      # bind do container de simulacao e resolvido pelo daemon, no host. Substitui o /tmp
+      # compartilhado — os fontes do usuario passam so por aqui, e e o unico caminho que o
+      # proxy aceita em Binds.
+      - ${SANDBOX_WORKDIR_ROOT:-/var/lib/tplab/work}:${SANDBOX_WORKDIR_ROOT:-/var/lib/tplab/work}
     depends_on:
       redis: { condition: service_healthy }
+      docker-proxy: { condition: service_started }
 
 volumes:
   postgres-data:

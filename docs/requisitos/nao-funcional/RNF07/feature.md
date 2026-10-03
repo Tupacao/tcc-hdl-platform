@@ -6,7 +6,7 @@
 | Categoria | Requisito Nao Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Nao medido |
+| Status | Em andamento - I01 medido na maquina de desenvolvimento (VM alvo pendente); I02 aguarda a medicao na VM |
 | Requisitos relacionados | RF03, RF04, RF06, RNF04, RNF05 |
 
 ## 1. Enunciado
@@ -74,7 +74,7 @@ bundle. Vale medir junto.
 
 ## 5. Estado atual no repositorio
 
-- Nao ha medicao de desempenho em lugar nenhum.
+- Medicao ponta a ponta no servidor em `docs/DESEMPENHO.md` (`measure:e2e`); o resultado carrega `timings` por etapa.
 - `SimulationResultSchema` carrega `durationMs`, com o comentario
   "RNF07: alvo < 5000" - mede apenas o tempo dentro do sandbox, nao o ponta a
   ponta.

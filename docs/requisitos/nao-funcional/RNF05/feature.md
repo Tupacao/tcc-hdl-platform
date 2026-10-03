@@ -6,7 +6,7 @@
 | Categoria | Requisito Nao Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Implementado (falta verificar os desfechos e dimensionar os valores) |
+| Status | Concluido — I01 e I02 (medicao na VM alvo pendente, ver I02) |
 | Requisitos relacionados | RF03, RF04, RNF04, RNF07 |
 
 ## 1. Enunciado
@@ -26,8 +26,8 @@ consuma recurso indefinidamente. Os valores ja existem e sao parametrizaveis por
 | Memoria | `SANDBOX_MEMORY_MB` | 128 MB |
 | CPU | `SANDBOX_CPUS` | 0,5 |
 | Processos | fixo em `sandbox.ts` | `PidsLimit: 128` |
-| Tamanho do fonte | `MAX_SOURCE_BYTES` | 256 KB por arquivo |
-| Tamanho do VCD lido | `MAX_VCD_BYTES` | 8 MB |
+| Tamanho do fonte | `MAX_SOURCE_BYTES` | 64 KB por arquivo (era 256 KB — RNF05-I02) |
+| Tamanho do VCD lido | `MAX_VCD_BYTES` | 2 MiB (RF04-I02) |
 
 A aplicacao acontece em duas camadas, e isso e proposital: o
 `run-simulation.sh` aplica `timeout -s KILL` sobre o `vvp`, e `sandbox.ts` mantem
@@ -76,8 +76,10 @@ Falta o dado que justifique cada numero no texto do TCC.
 - `mapFailure` mapeia 0, 2, 3, 124 e 137 para os valores de
   `SimulationFailureSchema`.
 - O `iverilog` **nao** esta coberto por timeout no script - so o `vvp`.
-- **Falta**: verificar que cada limite produz o desfecho correto, cobrir a
-  compilacao, e dimensionar os valores com medicao.
+- `iverilog` coberto por `SANDBOX_COMPILE_TIMEOUT_MS` (5 s, exit 4); memoria decidida por
+  `State.OOMKilled`; mensagens de limite em `limits.ts` (I01).
+- Valores medidos e justificados em `README.md` (I02); protocolo repetivel por `pnpm --filter @tplab/api measure:sandbox`.
+- **Falta**: repetir a medicao na VM B2s quando RF01-I02 existir.
 
 ## 6. Escopo
 
@@ -97,20 +99,20 @@ Falta o dado que justifique cada numero no texto do TCC.
 
 ## 7. Criterios de aceite da feature
 
-- [ ] Simulacao sem `$finish` termina no limite e reporta `timeout`.
-- [ ] Alocacao acima do limite reporta `memory_limit`, nao `timeout`.
-- [ ] Compilacao que nao termina tambem e interrompida.
-- [ ] Um job nunca ocupa o worker alem do limite mais a margem.
-- [ ] As mensagens ao usuario explicam a causa provavel e o que fazer.
-- [ ] Os valores estao justificados por medicao, no `README.md`.
-- [ ] Alterar as variaveis de ambiente muda o comportamento efetivo.
+- [x] Simulacao sem `$finish` termina no limite e reporta `timeout`. _(I01)_
+- [x] Alocacao acima do limite reporta `memory_limit`, nao `timeout`. _(I01 — `OOMKilled`)_
+- [x] Compilacao que nao termina tambem e interrompida. _(I01 — exit 4)_
+- [x] Um job nunca ocupa o worker alem do limite mais a margem. _(I01 — `killTimer` = compilacao + simulacao + 5 s, e loga quando dispara)_
+- [x] As mensagens ao usuario explicam a causa provavel e o que fazer. _(I01 — `limits.ts`)_
+- [x] Os valores estao justificados por medicao, no `README.md`. _(I02 — na maquina de desenvolvimento; a VM alvo ainda nao existe)_
+- [x] Alterar as variaveis de ambiente muda o comportamento efetivo. _(I01 — verificado por processo filho)_
 
 ## 8. Quebra em issues
 
 | Issue | Titulo | Branch | Tamanho |
 | --- | --- | --- | --- |
-| [issue-01](issue-01-verificacao-dos-limites.md) | Verificacao dos limites e fidelidade do desfecho | `chore/rnf05-verificacao-dos-limites` | M |
-| [issue-02](issue-02-dimensionamento-dos-valores.md) | Dimensionamento dos valores com medicao | `chore/rnf05-dimensionamento-dos-valores` | M |
+| [issue-01](issue-01-verificacao-dos-limites.md) | Verificacao dos limites e fidelidade do desfecho | `feat-RNF05-01-verificacao-limites-back` | M — Concluido |
+| [issue-02](issue-02-dimensionamento-dos-valores.md) | Dimensionamento dos valores com medicao | `feat-RNF05-02-dimensionamento-valores-back` | M — Concluido |
 
 ## 9. Dependencias
 

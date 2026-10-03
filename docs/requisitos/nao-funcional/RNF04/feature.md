@@ -6,7 +6,7 @@
 | Categoria | Requisito Nao Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Implementado (falta auditoria e reducao da exposicao do socket) |
+| Status | Concluido — I01, I02 e I03 |
 | Requisitos relacionados | RF03, RF04, RNF05, RNF07 |
 
 ## 1. Enunciado
@@ -97,23 +97,23 @@ estar documentado.
 
 ## 7. Criterios de aceite da feature
 
-- [ ] Codigo do usuario nao alcanca a rede a partir do container.
-- [ ] Codigo do usuario nao escreve fora do workdir e do `/tmp` do container.
-- [ ] Codigo do usuario nao le arquivo do host fora do workdir.
-- [ ] Nenhuma variavel de ambiente da API chega ao container.
-- [ ] Container que excede memoria, CPU ou tempo e terminado.
-- [ ] Nenhum container fica orfao apos falha do worker.
-- [ ] A exposicao do socket do Docker esta reduzida ou documentada como risco
-      aceito.
-- [ ] O modelo de ameaca esta escrito.
+- [x] Codigo do usuario nao alcanca a rede a partir do container. _(I01)_
+- [x] Codigo do usuario nao escreve fora do workdir e do `/tmp` do container. _(I01)_
+- [x] Codigo do usuario nao le arquivo do host fora do workdir. _(I01: o rootfs e a imagem, nao o host; vetores de Verilog em I03)_
+- [x] Nenhuma variavel de ambiente da API chega ao container. _(I01)_
+- [x] Container que excede memoria, CPU ou tempo e terminado. _(I01 — o desfecho reportado ao usuario e RNF05-I01)_
+- [x] Nenhum container fica orfao apos falha do worker. _(I01 — rotulo + varredura)_
+- [x] A exposicao do socket do Docker esta reduzida ou documentada como risco
+      aceito. _(I02 — proxy validador; o que continua exposto esta documentado)_
+- [x] O modelo de ameaca esta escrito. _(`docs/SEGURANCA.md`)_
 
 ## 8. Quebra em issues
 
 | Issue | Titulo | Branch | Tamanho |
 | --- | --- | --- | --- |
-| [issue-01](issue-01-auditoria-do-sandbox.md) | Auditoria das barreiras do sandbox | `chore/rnf04-auditoria-do-sandbox` | M |
-| [issue-02](issue-02-exposicao-docker-socket.md) | Reducao da exposicao do socket do Docker | `feat/rnf04-exposicao-docker-socket` | G |
-| [issue-03](issue-03-vetores-toolchain.md) | Vetores especificos da toolchain Verilog | `chore/rnf04-vetores-toolchain` | M |
+| [issue-01](issue-01-auditoria-do-sandbox.md) | Auditoria das barreiras do sandbox | `feat-RNF04-01-auditoria-sandbox-back` | M — Concluido |
+| [issue-02](issue-02-exposicao-docker-socket.md) | Reducao da exposicao do socket do Docker | `feat-RNF04-02-exposicao-docker-socket-back` | G — Concluido |
+| [issue-03](issue-03-vetores-toolchain.md) | Vetores especificos da toolchain Verilog | `feat-RNF04-03-vetores-toolchain-back` | M — Concluido |
 
 ## 9. Dependencias
 

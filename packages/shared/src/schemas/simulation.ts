@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { HdlSourcesSchema } from './hdl.js';
+import { HdlFileSchema } from './hdl.js';
+import { ModuleNameSchema } from './common.js';
 import { IdSchema, IsoDateSchema } from './common.js';
 
 /**
@@ -40,6 +41,22 @@ export const TruncatedFlagsSchema = z.object({
   vcd: z.boolean(),
 });
 
+/**
+ * Tempo de cada etapa do servidor, em ms (RNF07-I01) — o cliente soma o que o servidor mediu e
+ * atribui o resto (rede, polling, renderizacao) a si mesmo. `null` quando a etapa nao existiu
+ * ou nao terminou (ex.: sem compilacao concluida).
+ */
+export const SimulationTimingsSchema = z.object({
+  /** Espera na fila: `processedOn - timestamp` do BullMQ. */
+  queueWaitMs: z.number().int().nonnegative().nullable(),
+  containerCreateMs: z.number().int().nonnegative(),
+  compileMs: z.number().int().nonnegative().nullable(),
+  simulateMs: z.number().int().nonnegative().nullable(),
+  /** Do `start` do container ate a saida — inclui o overhead de iniciar. */
+  executionMs: z.number().int().nonnegative(),
+  artifactsReadMs: z.number().int().nonnegative(),
+});
+
 /** Motivo da falha, para o frontend diferenciar erro do usuario de erro da plataforma. */
 export const SimulationFailureSchema = z.enum([
   'compile_error',
@@ -49,11 +66,57 @@ export const SimulationFailureSchema = z.enum([
   'internal_error',
 ]);
 
-/** Corpo do POST /api/simulations (RF03/RF04). */
-export const CompileRequestSchema = HdlSourcesSchema.extend({
-  /** Referencia opcional ao projeto salvo que originou a submissao. */
-  projectId: IdSchema.optional(),
+/**
+ * Tipo do job = qual toolchain o worker executa (RNF08-I01). Cada valor novo (GHDL, Yosys...)
+ * entra aqui e no registro `apps/api/src/modules/simulation/toolchains.ts`.
+ */
+export const JobKindSchema = z.enum(['simulate-verilog', 'simulate-vhdl']);
+
+/** Tipo assumido quando o cliente nao informa `kind` — preserva os clientes anteriores a RNF08. */
+export const DEFAULT_JOB_KIND: JobKind = 'simulate-verilog';
+
+/** Extensoes de fonte aceitas por cada toolchain (RNF08-I02: o VHDL e prova de conceito, so aqui). */
+const SOURCE_EXTENSIONS: Record<JobKind, RegExp> = {
+  'simulate-verilog': /\.s?v$/,
+  'simulate-vhdl': /\.vhdl?$/,
+};
+
+const SimulationFileSchema = HdlFileSchema.extend({
+  name: z
+    .string()
+    .min(1)
+    .max(128)
+    .regex(
+      /^[A-Za-z0-9_.-]+\.(?:s?v|vhdl?)$/,
+      'O arquivo deve ter extensão .v, .sv, .vhd ou .vhdl',
+    ),
 });
+
+/** Corpo do POST /api/simulations (RF03/RF04). */
+export const CompileRequestSchema = z
+  .object({
+    language: z.enum(['verilog', 'vhdl']).default('verilog'),
+    /** Modulo (Verilog) ou entidade (VHDL) de topo instanciado pelo testbench. */
+    topModule: ModuleNameSchema,
+    design: SimulationFileSchema,
+    testbench: SimulationFileSchema,
+    /** Toolchain do job (RNF08-I01); ausente = `simulate-verilog`. */
+    kind: JobKindSchema.optional(),
+    /** Referencia opcional ao projeto salvo que originou a submissao. */
+    projectId: IdSchema.optional(),
+  })
+  .superRefine((request, ctx) => {
+    const extension = SOURCE_EXTENSIONS[request.kind ?? DEFAULT_JOB_KIND];
+    for (const key of ['design', 'testbench'] as const) {
+      if (!extension.test(request[key].name)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [key, 'name'],
+          message: 'A extensão do arquivo é incompatível com o tipo do job',
+        });
+      }
+    }
+  });
 
 /** Resposta imediata do enfileiramento: o cliente faz polling do job. */
 export const SimulationJobSchema = z.object({
@@ -73,17 +136,27 @@ export const SimulationResultSchema = z.object({
   stderr: z.string(),
   /** Conteudo do arquivo .vcd gerado, para o visualizador de ondas (RF06). */
   vcd: z.string().nullable(),
+  /**
+   * Artefatos nomeados que a toolchain produziu (RNF08-I01), ex.: `{ vcd: "..." }`. `vcd` acima
+   * e o campo derivado de `artifacts.vcd`, mantido para os clientes atuais. Ausente em
+   * resultados gerados antes de RNF08.
+   */
+  artifacts: z.record(z.string(), z.string()).optional(),
   /** Tempo total de execucao no sandbox, em ms (RNF07: alvo < 5000). */
   durationMs: z.number().int().nonnegative(),
   finishedAt: IsoDateSchema.nullable(),
   /** Posicao (1-based) na fila de espera; `null` fora do status `queued`. */
   queuePosition: z.number().int().nonnegative().nullable(),
   truncated: TruncatedFlagsSchema,
+  /** RNF07-I01 — ausente enquanto o job nao terminou. */
+  timings: SimulationTimingsSchema.nullable().optional(),
 });
 
+export type JobKind = z.infer<typeof JobKindSchema>;
 export type Diagnostic = z.infer<typeof DiagnosticSchema>;
 export type JobStatus = z.infer<typeof JobStatusSchema>;
 export type TruncatedFlags = z.infer<typeof TruncatedFlagsSchema>;
+export type SimulationTimings = z.infer<typeof SimulationTimingsSchema>;
 export type SimulationFailure = z.infer<typeof SimulationFailureSchema>;
 export type CompileRequest = z.infer<typeof CompileRequestSchema>;
 export type SimulationJob = z.infer<typeof SimulationJobSchema>;
