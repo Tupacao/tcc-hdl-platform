@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RNF04](feature.md) |
-| Branch | `feat/rnf04-exposicao-docker-socket` |
+| Branch | `feat-RNF04-02-exposicao-docker-socket-back` |
 | Tamanho | G (aprox. 2 dias) |
 | Depende de | RNF04-I01 |
 
@@ -70,15 +70,14 @@ formalmente o risco aceito com as compensacoes adotadas.
 
 ## Criterios de aceite
 
-- [ ] O worker nao tem mais acesso direto ao socket do Docker, ou o risco esta
-      formalmente registrado com compensacoes.
-- [ ] Se houver proxy, ele permite apenas as operacoes levantadas.
-- [ ] Tentar criar container privilegiado pelo proxy falha.
-- [ ] Tentar montar volume arbitrario pelo proxy falha.
-- [ ] O endereco do daemon e configuravel por variavel de ambiente.
-- [ ] O volume `/tmp` foi revisto ou justificado.
-- [ ] O fluxo completo de simulacao continua funcionando.
-- [ ] A decisao esta documentada em `docs/SEGURANCA.md`.
+- [x] O worker nao tem mais acesso direto ao socket do Docker. _(so o `docker-proxy`; o worker nao monta socket nem `/tmp`)_
+- [x] Se houver proxy, ele permite apenas as operacoes levantadas.
+- [x] Tentar criar container privilegiado pelo proxy falha. _(403, verificado de dentro da rede do compose)_
+- [x] Tentar montar volume arbitrario pelo proxy falha. _(403)_
+- [x] O endereco do daemon e configuravel por variavel de ambiente. _(`DOCKER_HOST`, validado em `env.ts`)_
+- [x] O volume `/tmp` foi revisto ou justificado. _(substituido por `SANDBOX_WORKDIR_ROOT`)_
+- [x] O fluxo completo de simulacao continua funcionando. _(worker containerizado de ponta a ponta)_
+- [x] A decisao esta documentada em `docs/SEGURANCA.md`. _(secao 7)_
 
 ## Verificacao
 
@@ -89,6 +88,24 @@ pnpm --filter @tplab/api test
 
 Manual: executar uma simulacao completa pela interface; tentar, de dentro do
 worker, uma operacao que o proxy deve recusar.
+
+## Nota de implementacao
+
+**A recomendacao da issue (`tecnativa/docker-socket-proxy`) foi descartada por um
+motivo que o proprio risco #2 antecipava:** ele filtra por rota, entao liberar
+`POST /containers/create` libera qualquer corpo — `Privileged: true`, `Binds: ["/:/host"]` —
+e nao ha configuracao que valide o corpo. Foi escrito um proxy validador proprio
+(`infra/docker-proxy/`, so `node:http`), cuja politica confere o corpo do `create`
+contra exatamente as opcoes de `buildSandboxContainerOptions` e so aceita
+rotulo `tplab.sandbox=true` nas operacoes por id. Detalhes, tabela de tentativas
+recusadas e o que continua exposto: `docs/SEGURANCA.md` secao 7.
+
+Achados que so apareceram ao subir o worker containerizado pela primeira vez:
+(1) o compose **nunca subia o worker** (`DATABASE_URL` exigida em producao por todo
+processo — a checagem foi para a API); (2) o `dockerode` repete o corpo do
+`create` na query string, e o primeiro proxy recusava por isso — o `create` passou
+a ser encaminhado sem query; (3) `GET /info` nao e visivel ao worker, entao o aviso
+de `SwapLimit` migrou para o proxy.
 
 ## Riscos
 

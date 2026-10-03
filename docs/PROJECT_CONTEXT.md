@@ -50,7 +50,9 @@ Students, crédito de $100).
 
 - **Compilador/simulador**: Icarus Verilog (`iverilog` + `vvp`)
 - **Sandbox**: um container Docker efêmero por submissão, disparado do Fastify via
-  **dockerode** (acesso ao `/var/run/docker.sock`)
+  **dockerode**. Em produção o worker **não** monta o `/var/run/docker.sock`: fala
+  com um proxy validador (`infra/docker-proxy`, RNF04-I02) que só encaminha a
+  criação de containers com exatamente as opções do sandbox — ver `docs/SEGURANCA.md`
   - Limites de recurso: `--memory=128m`, `--cpus=0.5`
   - Sem rede: `--network=none`
   - Filesystem somente leitura exceto diretório temporário

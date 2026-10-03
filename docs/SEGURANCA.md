@@ -197,7 +197,7 @@ comportamento efetivo (timeout em 3 s, OOM a 32 MB).
 
 ## 5. Pendências entre issues
 
-- **`/tmp` compartilhado com o host e o socket do Docker** — RNF04-I02.
+- Nenhuma: o socket do Docker e o `/tmp` compartilhado foram tratados na seção 7.
 
 ## 6. Vetores específicos da toolchain Verilog (RNF04-I03)
 
@@ -254,3 +254,97 @@ em RNF04-I02 (worker containerizado). `readVcd` passou a ler só arquivo regular
 (`lstat`), para que um link simbólico no workdir nunca faça o worker ler um
 arquivo do host no lugar do VCD (o Verilog não cria links — sem `$system` —, mas
 custa uma linha garantir).
+
+## 7. Exposição do socket do Docker (RNF04-I02)
+
+**O problema.** O worker montava `/var/run/docker.sock` para criar os containers de
+simulação. Acesso ao socket equivale a `root` no host: uma vulnerabilidade em
+qualquer dependência do processo Node do worker viraria comprometimento total da VM.
+O isolamento das seções anteriores protege contra o **código do usuário**, não contra
+uma falha no próprio worker. O compose também montava o `/tmp` do host no worker.
+
+**Alternativas avaliadas** (critério: o worker comprometido não pode virar `root` no host):
+
+| Alternativa | Avaliação |
+| --- | --- |
+| Proxy genérico de socket (`tecnativa/docker-socket-proxy`) | **Ganho nulo aqui.** Filtra por *rota*: liberar `POST /containers/create` libera qualquer *corpo* — `Privileged: true`, `Binds: ["/:/host"]`. É o risco #2 da própria issue ("proxy mal configurado dá falsa sensação de segurança"), e não há como configurá-lo para validar o corpo |
+| Daemon _rootless_ | Elimina o `root` do host, mas complica o bind de volumes e o desempenho; troca de plataforma de execução inteira para um requisito de M/G |
+| Manter o socket e documentar | Risco aceito sem compensação — a maior dívida de segurança do projeto continuaria aberta |
+| **Proxy validador próprio** (escolhido) | `infra/docker-proxy/` — ~250 linhas, só `node:http`, sem dependências. Valida rota **e** corpo |
+
+**A decisão.** O único serviço com acesso ao socket passa a ser o `docker-proxy`
+(imagem `node:22-alpine` com o código montado somente leitura, `read_only`,
+`cap_drop: ALL`, `no-new-privileges`, **sem porta publicada** — só o worker, pela rede
+do compose, alcança `:2375`). O worker fala com ele por `DOCKER_HOST=tcp://docker-proxy:2375`
+(configurável em `env.ts`, validado) e **não monta mais o socket nem o `/tmp`**.
+
+O que o proxy permite (levantado do que `runInSandbox` e a varredura de órfãos
+realmente chamam) e o que recusa:
+
+| Permitido | Condição |
+| --- | --- |
+| `POST /containers/create` | corpo **idêntico** às opções de `buildSandboxContainerOptions`: imagem única, `User: sandbox`, rede desligada, `Binds` = exatamente um `hdl-sim-*` dentro de `SANDBOX_WORKDIR_ROOT` montado em `/work:rw`, `ReadonlyRootfs`, `Tmpfs` fixo, `CapDrop: [ALL]`, `no-new-privileges`, `LogConfig` rotacionado, `Memory`/`NanoCpus`/`PidsLimit` dentro de tetos e `MemorySwap = Memory`; **qualquer campo fora da lista é recusado** |
+| `start`, `wait`, `kill` (só `KILL`), `logs`, `json`, `DELETE` (`force`/`v`) | só por **id hexadecimal** e só de container **com o rótulo `tplab.sandbox=true`** (o proxy inspeciona o rótulo no daemon) |
+| `GET /containers/json` | só com `filters={"label":["tplab.sandbox=true"]}` |
+| **Tudo o mais** — `exec`, `attach`, `update`, `commit`, `archive`, imagens, volumes, redes, `build`, `info`, `swarm`, `prune` | **recusado com 403** |
+
+O `create` é encaminhado **sem query string** (o `dockerode` repete os campos do corpo
+na query; o daemon só honra `name`/`platform` ali, ambos recusados): só o corpo
+validado vale.
+
+**Verificação** — de dentro da rede do compose, como o worker faria:
+
+| Tentativa | Resultado |
+| --- | --- |
+| criar container privilegiado com bind da raiz do host | 403 (`campo nao permitido em HostConfig: Privileged`) |
+| `create` com `Image: alpine` + `Cmd` + bind da raiz | 403 |
+| mesmo corpo válido com `Binds: ["/etc:/work:rw"]` | 403 (`Binds so aceita um diretorio hdl-sim-*…`) |
+| `NetworkMode: host`; `Entrypoint` sobrescrito | 403 / 403 |
+| `start`, `kill`, `DELETE --force`, `logs`, `inspect`, `exec` no **postgres** | 403 nos cinco (`sem o rotulo tplab.sandbox=true`; `exec` nem é rota) |
+| listar todos os containers; `GET /images/json`; `GET /info`; criar volume; `prune` | 403 nos cinco |
+| ciclo legítimo: `create` → `start` → `wait` (exit 0) → `inspect` → `logs` → listar por rótulo → `DELETE` | 201 / 204 / 200 / 200 / 200 / 200 / 204 |
+| **worker containerizado de ponta a ponta** (root, sem socket, falando com o proxy) rodando uma simulação real | `failure: null`, stdout e VCD corretos, container removido; `postgres` e `redis` intactos |
+
+Testes automatizados (repetíveis, sem Docker): `pnpm test:infra` (90 casos: 40+
+corpos de `create` que **devem** ser recusados, rotas permitidas e recusadas,
+travessia de caminho) e `docker-proxy.test.ts` em `pnpm --filter @tplab/api test`, que
+confere que a política aceita **exatamente** o que `buildSandboxContainerOptions`
+monta — mudar as opções do container sem mudar a política falharia só depois do
+deploy, e este teste antecipa isso. Os casos de shell da seção 2 não são refeitos
+_pelo proxy_: a política proíbe `Entrypoint`/`Cmd` justamente para que ninguém rode
+um shell por ele; o fluxo Verilog real foi refeito de ponta a ponta pelo worker
+containerizado.
+
+**Volume `/tmp`.** Substituído por um diretório dedicado (`SANDBOX_WORKDIR_ROOT`,
+padrão `/var/lib/tplab/work`) montado no **mesmo caminho** no host e no worker (o
+bind do container de simulação é resolvido pelo daemon, no host). O `/tmp` do host
+deixa de ser visível ao worker; os fontes do usuário passam só por esse diretório, e
+é o único caminho que o proxy aceita em `Binds`. `prepareWorkdir` (RNF04-I03) foi
+verificado aqui num worker Linux de verdade: como `root`, troca o dono do diretório
+para o uid 10001 (0755) e o sandbox lê os fontes e grava o VCD.
+
+**O que ficou protegido e o que continua exposto.**
+
+- Protegido: um worker comprometido **não** cria container privilegiado, não monta
+  volume do host, não executa comando em outro container, não lê imagens, volumes ou
+  redes, e não toca no `postgres`/`redis`. O que ele alcança é o que o sandbox já
+  contém (container efêmero, sem rede, com limites).
+- **Continua exposto**: (1) o próprio `docker-proxy` monta o socket — é o ponto que
+  agora precisa ser correto, por isso é pequeno, sem dependências e coberto por 90
+  casos; um bug em `policy.mjs`/`proxy.mjs` reabre o risco. (2) O worker comprometido
+  ainda pode criar containers de simulação (dentro dos tetos: até 512 MiB, 2 CPUs) e
+  esgotar recurso da VM — o mesmo que qualquer usuário anônimo já pode fazer pela API.
+  (3) O worker roda como `root` **dentro do container dele** (precisa do `chown` do
+  workdir), sem socket. (4) Vulnerabilidades do daemon/kernel estão fora do escopo do
+  modelo de ameaça. Registrar como limitação conhecida no texto do TCC.
+
+### Achados colaterais desta verificação
+
+- **O compose nunca subia o worker.** `env.ts` exigia `DATABASE_URL` em produção para
+  todo processo, e o worker do compose (`NODE_ENV=production`) não a recebe: morria no
+  start com `Configuracao de ambiente invalida`. A checagem passou para o processo da
+  API (`createProjectService`), onde o banco é usado; o worker não deve receber
+  credenciais que não usa. Só apareceu porque esta issue subiu o worker containerizado
+  pela primeira vez.
+- **`docker info` sem `SwapLimit` não é visível ao worker** (o proxy recusa `GET /info`):
+  o aviso da seção 4 passa a ser emitido **pelo proxy** no start, que é quem tem o socket.
