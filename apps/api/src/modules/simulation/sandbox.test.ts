@@ -82,7 +82,6 @@ test('mapFailure: codigos do script sem OOM', () => {
   assert.equal(mapFailure(0, NO_OOM), null);
   assert.equal(mapFailure(2, NO_OOM), 'compile_error');
   assert.equal(mapFailure(3, NO_OOM), 'runtime_error');
-  assert.equal(mapFailure(153, NO_OOM), 'runtime_error');
   assert.equal(mapFailure(4, NO_OOM), 'timeout');
   assert.equal(mapFailure(124, NO_OOM), 'timeout');
 });

@@ -6,7 +6,7 @@
 | Categoria | Requisito Nao Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Pipeline de compilacao e simulacao |
-| Status | Parcial — I01 e I03 concluidas; falta I02 (socket do Docker) |
+| Status | Parcial — I01 concluida (auditoria); faltam I02 e I03 |
 | Requisitos relacionados | RF03, RF04, RNF05, RNF07 |
 
 ## 1. Enunciado
@@ -113,7 +113,7 @@ estar documentado.
 | --- | --- | --- | --- |
 | [issue-01](issue-01-auditoria-do-sandbox.md) | Auditoria das barreiras do sandbox | `feat-RNF04-01-auditoria-sandbox-back` | M — Concluido |
 | [issue-02](issue-02-exposicao-docker-socket.md) | Reducao da exposicao do socket do Docker | `feat/rnf04-exposicao-docker-socket` | G |
-| [issue-03](issue-03-vetores-toolchain.md) | Vetores especificos da toolchain Verilog | `feat-RNF04-03-vetores-toolchain-back` | M — Concluido |
+| [issue-03](issue-03-vetores-toolchain.md) | Vetores especificos da toolchain Verilog | `chore/rnf04-vetores-toolchain` | M |
 
 ## 9. Dependencias
 

@@ -7,8 +7,6 @@
 #   3   erro em tempo de execucao (vvp)
 #   4   timeout da compilacao (iverilog passou de SIM_COMPILE_TIMEOUT_S)
 #   124 timeout da simulacao (vvp passou de SIM_TIMEOUT_S)
-#   153 arquivo gravado passou de MAX_FILE_BLOCKS (128 + SIGXFSZ) — $fwrite/$dumpvars
-#       em laco; a inundacao de disco do workdir (bind no host) e o que isto limita
 #   137 processo morto por SIGKILL antes do limite de tempo — quase sempre o OOM
 #       killer; quem decide se foi memoria e o `State.OOMKilled` do Docker, nao
 #       este script (ele so nao pode rotular como timeout algo que nao foi).
@@ -17,15 +15,6 @@ set -u
 BIN=/tmp/simulation.vvp
 TIMEOUT_S="${SIM_TIMEOUT_S:-10}"
 COMPILE_TIMEOUT_S="${SIM_COMPILE_TIMEOUT_S:-5}"
-
-# RNF04-I03 — `/work` e um bind no disco do host e nao tem cota: sem teto, um $fwrite em
-# laco grava centenas de MB por segundo ate o timeout. RLIMIT_FSIZE (em blocos de 512 B)
-# corta o arquivo em 16 MiB (o VCD lido pela plataforma ja e cortado em 2 MiB) e o limite de
-# descritores limita quantos arquivos um testbench abre ao mesmo tempo.
-MAX_FILE_BLOCKS=32768
-MAX_OPEN_FILES=64
-ulimit -f "$MAX_FILE_BLOCKS"
-ulimit -n "$MAX_OPEN_FILES"
 
 # Glob sem match expande para o proprio padrao no /bin/sh: filtra os inexistentes.
 FILES=""
@@ -66,6 +55,5 @@ if [ "$status" -eq 137 ]; then
     [ "$(elapsed_since "$sim_started")" -ge "$TIMEOUT_S" ] && exit 124
     exit 137
 fi
-[ "$status" -eq 153 ] && exit 153
 [ "$status" -ne 0 ] && exit 3
 exit 0

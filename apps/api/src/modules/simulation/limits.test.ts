@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Diagnostic } from '@tplab/shared';
-import { analyzeLimitFailure, dropShellNoise, type LimitFailureInput } from './limits.js';
+import { analyzeLimitFailure, dropKilledNoise, type LimitFailureInput } from './limits.js';
 
 const base: LimitFailureInput = {
   failure: null,
   timeoutPhase: null,
-  exitCode: 0,
   testbenchName: 'tb.v',
   timeoutMs: 10_000,
   compileTimeoutMs: 5_000,
@@ -57,14 +56,6 @@ test('limite de memoria cita o valor configurado', () => {
   assert.match(diagnostic?.hint ?? '', /mem/);
 });
 
-test('arquivo acima de 16 MB (exit 153) vira mensagem propria, nao um runtime_error generico', () => {
-  const [diagnostic] = analyzeLimitFailure({ ...base, failure: 'runtime_error', exitCode: 153 });
-  assert.match(diagnostic?.title ?? '', /Arquivo grande demais/);
-  assert.match(diagnostic?.hint ?? '', /dumpvars/);
-  // Outro runtime_error nao ganha essa mensagem.
-  assert.deepEqual(analyzeLimitFailure({ ...base, failure: 'runtime_error', exitCode: 3 }), []);
-});
-
 test('erro interno nao acusa o codigo do usuario', () => {
   const [diagnostic] = analyzeLimitFailure({ ...base, failure: 'internal_error' });
   assert.match(diagnostic?.message ?? '', /não vem do seu código/);
@@ -81,10 +72,8 @@ const killed: Diagnostic = {
   hint: null,
 };
 
-test('dropShellNoise remove o "Killed" do shell so quando ha diagnostico de limite', () => {
+test('dropKilledNoise remove o "Killed" do shell so quando ha diagnostico de limite', () => {
   const limit = analyzeLimitFailure({ ...base, failure: 'timeout', timeoutPhase: 'simulate' });
-  assert.deepEqual(dropShellNoise([killed], limit), []);
-  assert.deepEqual(dropShellNoise([killed], []), [killed]);
-  const fsize = { ...killed, raw: 'File size limit exceeded (core dumped)' };
-  assert.deepEqual(dropShellNoise([fsize], limit), []);
+  assert.deepEqual(dropKilledNoise([killed], limit), []);
+  assert.deepEqual(dropKilledNoise([killed], []), [killed]);
 });

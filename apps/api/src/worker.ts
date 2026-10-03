@@ -12,15 +12,13 @@ import {
 import { parseIcarusDiagnostics } from './modules/simulation/diagnostics.js';
 import { attachHints } from './modules/simulation/hints.js';
 import { buildJobLogRecord } from './modules/simulation/job-log.js';
-import { analyzeLimitFailure, dropShellNoise } from './modules/simulation/limits.js';
+import { analyzeLimitFailure, dropKilledNoise } from './modules/simulation/limits.js';
 import {
   removeOrphanSandboxContainers,
-  dockerSupportsSwapLimit,
   removeOrphanWorkdirs,
   runInSandbox,
 } from './modules/simulation/sandbox.js';
 import { analyzePostExecution, analyzeTestbenchContract } from './modules/simulation/testbench.js';
-import { analyzeToolchainVectors } from './modules/simulation/vectors.js';
 
 /** Conexao separada da do BullMQ (RF03-I04) — so para os contadores em `lib/metrics.ts`. */
 const metricsConnection = createRedisConnection();
@@ -55,7 +53,6 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
     const limitDiagnostics = analyzeLimitFailure({
       failure: outcome.failure,
       timeoutPhase: outcome.timeoutPhase,
-      exitCode: outcome.exitCode,
       testbenchName: job.data.testbench.name,
       timeoutMs: env.SANDBOX_TIMEOUT_MS,
       compileTimeoutMs: env.SANDBOX_COMPILE_TIMEOUT_MS,
@@ -72,10 +69,8 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
 
     const diagnostics = [
       ...contract.diagnostics,
-      // RNF04-I03: construcoes que tocam o sistema de arquivos/SO — aviso, nunca bloqueio.
-      ...analyzeToolchainVectors([job.data.design, job.data.testbench]),
       ...limitDiagnostics,
-      ...dropShellNoise(
+      ...dropKilledNoise(
         attachHints(
           parseIcarusDiagnostics(outcome.stderr, [job.data.design.name, job.data.testbench.name]),
         ),
@@ -145,16 +140,6 @@ async function sweepOrphans(): Promise<void> {
     logger.warn({ containers, workdirs }, 'orfaos de um worker anterior removidos');
   }
 }
-
-void dockerSupportsSwapLimit()
-  .then((supported) => {
-    if (!supported) {
-      logger.warn(
-        'Docker sem limite de swap (SwapLimit=false): MemorySwap nao e aplicado e um estouro de memoria pagina em vez de ser morto — o limite de memoria (RNF05) nao protege a maquina',
-      );
-    }
-  })
-  .catch(() => undefined);
 
 const ORPHAN_SWEEP_INTERVAL_MS = 5 * 60_000;
 void sweepOrphans();
