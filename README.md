@@ -193,6 +193,52 @@ casos o corte vem com um aviso explicito no proprio texto, mais uma flag
 estruturada em `SimulationResultSchema.truncated` (`{ stdout, stderr, vcd }`),
 para a interface nao ter que adivinhar pelo conteudo.
 
+## Feedback dos usuários (RF17-I01)
+
+`POST /api/feedback` recebe relato de qualquer pessoa, sem conta: tipo
+(`problema`, `sugestao`, `elogio`, `outro`), mensagem entre 20 e 2000
+caracteres, contato opcional e um contexto técnico opcional (navegador, tela,
+projeto aberto, desfecho da última execução, saída do compilador, identificador
+anônimo de sessão). **O código do circuito nunca é enviado**, e campo
+desconhecido no contexto é descartado pelo schema em vez de recusar o envio.
+
+Dois limites protegem a rota, e eles são diferentes de propósito:
+
+| Limite                                        | Onde                              | Conta o quê                         | Resposta                               |
+| --------------------------------------------- | --------------------------------- | ----------------------------------- | -------------------------------------- |
+| Rajada: 20/hora por origem                    | `@fastify/rate-limit` na rota     | requisições, inclusive as inválidas | 429 "Muitas mensagens em sequência."   |
+| Diário: `FEEDBACK_MAX_PER_DAY` (5) por origem | service, sobre o que está gravado | relatos aceitos                     | 429 "Você já enviou 5 mensagens hoje." |
+
+O limite que o usuário lê é o diário, e ele conta só envios aceitos: o plugin de
+rate limit roda antes da validação, então sozinho ele deixaria cinco tentativas
+recusadas por e-mail inválido consumirem a cota do dia.
+
+O IP de quem envia **nunca** é gravado em claro — só `SHA-256(FEEDBACK_IP_SALT + IP)`,
+o suficiente para agrupar abuso e aplicar o limite diário. Sem `FEEDBACK_IP_SALT`
+definida, a API sorteia um sal por processo e avisa no log: segue anônimo, mas os
+hashes mudam a cada reinício e o limite diário zera com ele. Em produção, definir
+a variável (gerar com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
+
+### Como ler os relatos
+
+Não existe rota de leitura: feedback não pode ser público, e autorização só
+chega com RF14. A consulta é direta no Postgres:
+
+```bash
+# Na VM, com o compose no ar
+docker compose -f infra/docker-compose.yml exec postgres   psql -U tplab -d tplab -c 'SELECT "createdAt", kind, message, contact FROM "Feedback" ORDER BY "createdAt" DESC LIMIT 50;'
+
+# Com contexto técnico, para reproduzir um problema relatado
+docker compose -f infra/docker-compose.yml exec postgres   psql -U tplab -d tplab -c 'SELECT "createdAt", kind, message, context FROM "Feedback" WHERE kind = '"'"'problema'"'"' ORDER BY "createdAt" DESC LIMIT 20;'
+
+# Exportar para anexar ao TCC
+docker compose -f infra/docker-compose.yml exec postgres   psql -U tplab -d tplab --csv -c 'SELECT "createdAt", kind, message, contact, context FROM "Feedback" ORDER BY "createdAt";' > feedback.csv
+```
+
+O texto é dado de usuário: ao citar no trabalho ou abrir em planilha, tratar como
+não confiável (nada de colar em terminal sem conferir, nada de renderizar como
+HTML).
+
 ## Compatibilidade de navegadores (RNF02-I01)
 
 Alvo declarado em 2026-10-03, com o piso em `build.target` (`apps/web/vite.config.ts`) e a

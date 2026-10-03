@@ -128,6 +128,14 @@ caminho (contratos em `domain/simulation/`, regra em `application/simulation/`,
 Docker e fila em `infra/`); `health` ja nasceu em `application/` sem `domain/`
 completo. A pasta `modules/*` nao existe mais.
 
+`feedback` (RF17) segue o mesmo desenho: `POST /api/feedback` publico, com dois
+limites deliberadamente diferentes — rajada de 20/hora no `@fastify/rate-limit`
+(conta requisicoes, inclusive invalidas) e o limite diario de
+`FEEDBACK_MAX_PER_DAY` no service (conta relatos gravados, e e o numero que o
+usuario le). O IP so e gravado como `SHA-256(FEEDBACK_IP_SALT + IP)`; nunca em
+claro, nunca em log. Nao existe rota de leitura — o procedimento de consulta
+esta no `README.md`.
+
 ### Frontend
 
 `apps/web/src/features/workspace/` concentra a interface unica do RF09 (editor +

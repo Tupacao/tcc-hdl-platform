@@ -16,8 +16,18 @@ const EnvSchema = z.object({
    */
   JOB_RETENTION_SECONDS: z.coerce.number().int().positive().default(1800),
   JOB_RETENTION_COUNT: z.coerce.number().int().positive().default(100),
-  /** Sem ela, projetos persistem em memoria (RF07) — obrigatoria em producao. */
+  /** Sem ela, projetos e feedback persistem em memoria (RF07/RF17) — obrigatoria em producao. */
   DATABASE_URL: z.string().optional(),
+
+  /**
+   * Sal do hash do IP de quem envia feedback (RF17-I01). O IP em claro nunca e
+   * gravado; o hash serve para agrupar abuso. Sem a variavel, um sal aleatorio e
+   * sorteado no start: continua anonimo, mas os hashes mudam a cada reinicio e o
+   * agrupamento se perde — definir em producao.
+   */
+  FEEDBACK_IP_SALT: z.string().min(16).optional(),
+  /** Envios aceitos por origem em 24h (RF17-I01); acima disso, 429. */
+  FEEDBACK_MAX_PER_DAY: z.coerce.number().int().positive().default(5),
 
   /**
    * Endereco do daemon do Docker (RNF04-I02): `tcp://docker-proxy:2375` na VM (o worker nao

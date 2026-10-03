@@ -28,3 +28,26 @@ model Project {
   @@index([ownerId])
   @@index([updatedAt])
 }
+
+/// Feedback enviado pelos usuarios (RF17). Texto livre: tratado como dado, nunca
+/// interpolado em log nem renderizado como HTML.
+model Feedback {
+  id      String @id @default(uuid())
+  /// FeedbackKindSchema: problema | sugestao | elogio | outro.
+  kind    String
+  message String
+  /// E-mail opcional de quem enviou; nulo quando a pessoa nao quis se identificar.
+  contact String?
+  /// FeedbackContextSchema — navegador, tela, projeto, ultima execucao. Nulo quando
+  /// o usuario desligou o envio de contexto tecnico.
+  context Json?
+  /// Preparado para RF14 (feedback de usuario autenticado); nulo no acesso anonimo.
+  userId  String?
+  /// SHA-256 do IP com sal (FEEDBACK_IP_SALT) — agrupa abuso sem guardar dado
+  /// pessoal. O IP em claro nunca e gravado.
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([kind])
+}

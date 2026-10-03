@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Should Have |
 | Epico | Validacao da proposta |
-| Status | Nao implementado |
+| Status | Parcial (I01 feito; falta o formulario de I02) |
 | Requisitos relacionados | RF19, RF07, RNF01, RNF06 |
 
 ## 1. Enunciado
@@ -58,11 +58,15 @@ existe.
 
 ## 5. Estado atual no repositorio
 
-- Nao ha rota, schema ou tabela de feedback.
-- `apps/api/src/app.ts` ja tem `@fastify/rate-limit` global (`max: 60`,
-  `timeWindow: '1 minute'`), reaproveitavel com configuracao propria por rota.
+- `POST /api/feedback` implementado (RF17-I01): contrato em
+  `packages/shared/src/schemas/feedback.ts`, camadas em
+  `apps/api/src/{domain,application}/feedback/`, tabela `Feedback` no Prisma.
+- Limite de rajada (20/hora) no `@fastify/rate-limit` da rota e limite diario
+  (`FEEDBACK_MAX_PER_DAY`, 5) no service, contado sobre relatos gravados.
+- IP guardado so como hash com sal (`FEEDBACK_IP_SALT`); procedimento de leitura
+  dos relatos documentado no `README.md`.
 - `sonner` ja esta disponivel no frontend para confirmacao de envio.
-- **Falta**: tudo.
+- **Falta**: o formulario na interface (RF17-I02).
 
 ## 6. Escopo
 

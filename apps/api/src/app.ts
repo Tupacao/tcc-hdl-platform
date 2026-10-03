@@ -15,11 +15,19 @@ import { healthRoutes } from './application/health/controller/health.controller.
 import { projectRoutes } from './application/projects/controller/project.controller.js';
 import { InMemoryProjectRepository } from './application/projects/repository/in-memory-project.repository.js';
 import { PrismaProjectRepository } from './application/projects/repository/prisma-project.repository.js';
+import {
+  feedbackRoutes,
+  RATE_LIMIT_ERROR_CODE,
+} from './application/feedback/controller/feedback.controller.js';
+import { InMemoryFeedbackRepository } from './application/feedback/repository/in-memory-feedback.repository.js';
+import { PrismaFeedbackRepository } from './application/feedback/repository/prisma-feedback.repository.js';
+import { DefaultFeedbackService } from './application/feedback/service/feedback.service.js';
 import { DefaultProjectService } from './application/projects/service/project.service.js';
 import { simulationRoutes } from './application/simulation/controller/simulation.controller.js';
 import { BullMqSimulationJobRepository } from './application/simulation/repository/bullmq-simulation-job.repository.js';
 import { DefaultSimulationService } from './application/simulation/service/simulation.service.js';
 import { env } from './config/env.js';
+import type { FeedbackService } from './domain/feedback/services/feedback.service.js';
 import type { ProjectService } from './domain/projects/services/project.service.js';
 import type { SimulationService } from './domain/simulation/services/simulation.service.js';
 import { getPrismaClient } from './infra/prisma/client.js';
@@ -50,6 +58,14 @@ function createProjectService(): ProjectService {
   }
   console.warn('DATABASE_URL nao definida: projetos serao persistidos em memoria (RF07).');
   return new DefaultProjectService(new InMemoryProjectRepository());
+}
+
+/** Mesmo criterio de `createProjectService`: Postgres quando ha `DATABASE_URL`, memoria em dev. */
+function createFeedbackService(): FeedbackService {
+  const repository = env.DATABASE_URL
+    ? new PrismaFeedbackRepository(getPrismaClient())
+    : new InMemoryFeedbackRepository();
+  return new DefaultFeedbackService(repository);
 }
 
 /** A fila (BullMQ/Redis) e o repositorio de jobs de simulacao (RF03). */
@@ -89,6 +105,7 @@ export async function buildApp() {
         { name: 'system', description: 'Status da API' },
         { name: 'projects', description: 'CRUD de projetos (RF07)' },
         { name: 'simulation', description: 'Compilacao e simulacao de HDL (RF03/RF04)' },
+        { name: 'feedback', description: 'Envio de feedback pelos usuarios (RF17)' },
       ],
     },
     transform: jsonSchemaTransform,
@@ -122,10 +139,15 @@ export async function buildApp() {
     if (error.statusCode === 429) {
       // @fastify/rate-limit ja define o cabecalho Retry-After antes de lancar;
       // so trocamos o corpo pela mensagem em portugues no formato ApiErrorSchema.
+      // Uma rota pode trazer a propria mensagem (o feedback fala de limite
+      // diario, nao de simulacoes em sequencia) marcando o erro com o codigo.
       return reply.status(429).send({
         statusCode: 429,
         error: 'Too Many Requests',
-        message: 'Muitas simulações em sequência. Aguarde antes de tentar novamente.',
+        message:
+          error.code === RATE_LIMIT_ERROR_CODE
+            ? error.message
+            : 'Muitas simulações em sequência. Aguarde antes de tentar novamente.',
       });
     }
 
@@ -144,6 +166,7 @@ export async function buildApp() {
   await app.register(healthRoutes);
   await app.register(projectRoutes, { prefix: '/api', service: createProjectService() });
   await app.register(simulationRoutes, { prefix: '/api', service: createSimulationService() });
+  await app.register(feedbackRoutes, { prefix: '/api', service: createFeedbackService() });
 
   return app;
 }
