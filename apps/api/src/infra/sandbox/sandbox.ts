@@ -12,9 +12,22 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Docker from 'dockerode';
-import type { HdlSources, SimulationFailure, TruncatedFlags } from '@tplab/shared';
+import type { HdlSources, SimulationFailure } from '@tplab/shared';
 import { env } from '../../config/env.js';
-import { VERILOG_TOOLCHAIN, type ArtifactSpec, type Toolchain } from './toolchains.js';
+import type {
+  SandboxLimits,
+  SandboxOutcome,
+  TimeoutPhase,
+  TruncationResult,
+} from '../../domain/simulation/entities/sandbox.js';
+import type { ArtifactSpec, Toolchain } from '../../domain/simulation/entities/toolchain.js';
+import {
+  EXIT_COMPILE_ERROR,
+  EXIT_COMPILE_TIMEOUT,
+  EXIT_FILE_SIZE_LIMIT,
+  EXIT_RUNTIME_ERROR,
+  EXIT_TIMEOUT,
+} from '../../domain/simulation/enums/exit-code.js';
 
 /** `DOCKER_HOST` (`tcp://host:porta` ou `unix:///caminho`) no formato de opcoes do dockerode. */
 export function dockerConnectionOptions(host: string | undefined): Docker.DockerOptions {
@@ -33,55 +46,6 @@ export function workdirRoot(): string {
 
 /** Rotulo dos containers de simulacao — permite varrer orfaos sem tocar em outros containers do host. */
 export const SANDBOX_LABEL = 'tplab.sandbox';
-
-/** Codigos de saida definidos por `infra/sandbox/run-simulation.sh` (contrato de todo script de sandbox). */
-export const EXIT_COMPILE_ERROR = 2;
-export const EXIT_RUNTIME_ERROR = 3;
-export const EXIT_COMPILE_TIMEOUT = 4;
-export const EXIT_TIMEOUT = 124;
-/** 128 + SIGXFSZ: um arquivo gravado pelo testbench passou do teto por arquivo (RNF04-I03). */
-export const EXIT_FILE_SIZE_LIMIT = 153;
-export const EXIT_KILLED = 137;
-
-/** Em qual etapa o limite de tempo estourou — `host` = o `killTimer` do worker, nao o script. */
-export type TimeoutPhase = 'compile' | 'simulate' | 'host';
-
-export interface SandboxOutcome {
-  exitCode: number;
-  failure: SimulationFailure | null;
-  stdout: string;
-  stderr: string;
-  /** RNF08-I01 — artefatos declarados pela toolchain que o container gerou, por nome. */
-  artifacts: Record<string, string>;
-  /** Derivado de `artifacts.vcd`, mantido para os consumidores atuais. */
-  vcd: string | null;
-  durationMs: number;
-  timings: SandboxTimings;
-  /** RF04-I02 — quais dos tres artefatos acima vieram cortados por teto de tamanho. */
-  truncated: TruncatedFlags;
-  /** RNF05-I01 — `State.OOMKilled` do container: o dado autoritativo de estouro de memoria. */
-  oomKilled: boolean;
-  /** RNF05-I01 — etapa que estourou o tempo, ou `null` quando nao houve timeout. */
-  timeoutPhase: TimeoutPhase | null;
-  /** RNF05-I02 — o Docker recusou `logs` mesmo apos novas tentativas: stdout/stderr vieram vazios por falha, nao por silencio do codigo. */
-  logsUnavailable: boolean;
-}
-
-/**
- * Tempos parciais dentro de `durationMs` (RF03-I04) — separam o overhead do
- * Docker (criacao do container) da execucao de verdade (`iverilog`/`vvp`) e
- * da leitura dos artefatos, para investigar RNF07-I02 sem adivinhar onde o
- * tempo foi gasto. Somados, ficam perto de `durationMs` (a diferenca e o
- * tempo gasto escrevendo os fontes no tmpdir e removendo o container/workdir).
- */
-export interface SandboxTimings {
-  containerCreateMs: number;
-  executionMs: number;
-  artifactsReadMs: number;
-  /** RNF07-I01 — `iverilog` e `vvp` separados (marca `@@tplab-timing` do script); `null` se a etapa nao terminou. */
-  compileMs: number | null;
-  simulateMs: number | null;
-}
 
 const TIMING_LINE = /^@@tplab-timing((?: (?:compile|simulate)_ms=\d+)*)[ \t]*\r?$\n?/gm;
 
@@ -107,15 +71,6 @@ export function extractStageTimings(stderr: string): {
   return { stderr: cleaned, compileMs, simulateMs };
 }
 
-export interface SandboxLimits {
-  image: string;
-  timeoutMs: number;
-  /** Teto da compilacao (`iverilog`), separado do da simulacao. */
-  compileTimeoutMs: number;
-  memoryMb: number;
-  cpus: number;
-}
-
 /**
  * Todas as barreiras de RNF04/RNF05 num lugar so, sem tocar no Docker: e o que
  * `sandbox.security.test.ts` confere chave a chave, para que remover ou errar o
@@ -124,7 +79,7 @@ export interface SandboxLimits {
  */
 export function buildSandboxContainerOptions(
   workdir: string,
-  limits: SandboxLimits = defaultSandboxLimits(),
+  limits: SandboxLimits,
 ): Docker.ContainerCreateOptions {
   return {
     Image: limits.image,
@@ -256,8 +211,8 @@ export async function removeOrphanWorkdirs(
  */
 export async function runInSandbox(
   sources: Pick<HdlSources, 'design' | 'testbench'>,
-  limits: SandboxLimits = defaultSandboxLimits(),
-  toolchain: Toolchain = VERILOG_TOOLCHAIN,
+  limits: SandboxLimits,
+  toolchain: Toolchain,
 ): Promise<SandboxOutcome> {
   const workdir = await mkdtemp(join(workdirRoot(), WORKDIR_PREFIX));
   const startedAt = Date.now();
@@ -377,7 +332,7 @@ export async function readContainerLogs(
   return null;
 }
 
-export function defaultSandboxLimits(toolchain: Toolchain = VERILOG_TOOLCHAIN): SandboxLimits {
+export function defaultSandboxLimits(toolchain: Toolchain): SandboxLimits {
   return {
     image: toolchain.image(),
     timeoutMs: env.SANDBOX_TIMEOUT_MS,
@@ -424,15 +379,6 @@ export function timeoutPhaseOf(exitCode: number, killedByHost: boolean): Timeout
   return null;
 }
 
-export interface TruncationResult {
-  text: string;
-  truncated: boolean;
-}
-
-/**
- * Le cada artefato declarado pela toolchain, com o teto de tamanho dele (RF04-I02). `text` e
- * `null` quando o arquivo nao existe ou nao e legivel.
- */
 export async function readArtifacts(
   workdir: string,
   specs: readonly ArtifactSpec[],

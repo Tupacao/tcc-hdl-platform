@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { HdlFile } from '@tplab/shared';
-import { analyzePostExecution, analyzeTestbenchContract } from './testbench.js';
+import {
+  analyzePostExecution,
+  analyzeTestbenchContract,
+} from '../../application/simulation/service/testbench.js';
 
 function file(name: string, content: string): HdlFile {
   return { name, content };

@@ -3,8 +3,8 @@ import { test } from 'node:test';
 import {
   buildSandboxContainerOptions,
   dockerConnectionOptions,
-  type SandboxLimits,
-} from './sandbox.js';
+} from '../../infra/sandbox/sandbox.js';
+import type { SandboxLimits } from '../../domain/simulation/entities/sandbox.js';
 
 // RNF04-I02 — o proxy do socket do Docker (`infra/docker-proxy/policy.mjs`) recusa qualquer
 // `create` que nao seja exatamente o que `buildSandboxContainerOptions` monta. Este teste e o

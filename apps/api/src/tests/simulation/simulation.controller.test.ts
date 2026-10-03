@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { MAX_SOURCE_BYTES } from '@tplab/shared';
 import { buildApp } from '../../app.js';
-import { simulationQueue } from './queue.js';
+import { simulationQueue } from '../../infra/queue/simulation.queue.js';
 
-// Importar `app.js` carrega `simulationQueue` (modules/simulation/queue.ts),
+// Importar `app.js` carrega `simulationQueue` (infra/queue/simulation.queue.ts),
 // que abre uma conexao "shared" com o Redis (ver `lib/redis.ts`) e, sem
 // Redis no ar, fica tentando reconectar indefinidamente — deliberado, para a
 // API nao cair so por falta de Redis. O BullMQ nao encerra conexoes

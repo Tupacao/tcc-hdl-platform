@@ -4,8 +4,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { CompileRequestSchema, JobKindSchema } from '@tplab/shared';
-import { readArtifacts } from './sandbox.js';
-import { TOOLCHAINS, VERILOG_TOOLCHAIN, toolchainFor, type ArtifactSpec } from './toolchains.js';
+import { readArtifacts } from '../../infra/sandbox/sandbox.js';
+import type { ArtifactSpec } from '../../domain/simulation/entities/toolchain.js';
+import {
+  TOOLCHAINS,
+  VERILOG_TOOLCHAIN,
+  toolchainFor,
+} from '../../application/simulation/service/toolchains.js';
 
 const sources = {
   design: { name: 'd.v', content: 'module d; endmodule' },

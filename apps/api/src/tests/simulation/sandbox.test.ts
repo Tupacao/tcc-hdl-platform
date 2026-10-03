@@ -8,7 +8,7 @@ import {
   timeoutPhaseOf,
   truncateAtLineBoundary,
   truncateFromEnd,
-} from './sandbox.js';
+} from '../../infra/sandbox/sandbox.js';
 
 test('truncateAtLineBoundary devolve o conteudo intacto quando cabe no limite', () => {
   const content = 'linha 1\nlinha 2\n';

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { HdlSources } from '@tplab/shared';
-import { buildJobLogRecord } from './job-log.js';
-import type { SandboxOutcome } from './sandbox.js';
+import { buildJobLogRecord } from '../../application/simulation/service/job-log.js';
+import type { SandboxOutcome } from '../../domain/simulation/entities/sandbox.js';
 
 function sources(
   designBytes: number,

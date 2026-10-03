@@ -6,40 +6,25 @@ import {
   CompileRequestSchema,
   SimulationJobSchema,
   SimulationResultSchema,
-  type JobStatus,
-  type SimulationResult,
 } from '@tplab/shared';
-import { env } from '../../config/env.js';
-import { simulationQueue } from './queue.js';
+import { QueueFullError } from '../../../domain/simulation/entities/simulation-error.js';
+import type { SimulationService } from '../../../domain/simulation/services/simulation.service.js';
 
 const JobIdParamsSchema = z.object({ jobId: z.string().min(1) });
 
-/** Estados internos do BullMQ mapeados para o contrato publico da API. */
-function toJobStatus(state: string): JobStatus {
-  switch (state) {
-    case 'completed':
-      return 'succeeded';
-    case 'failed':
-      return 'failed';
-    case 'active':
-      return 'running';
-    default:
-      return 'queued';
-  }
+export interface SimulationRoutesOptions {
+  /** Injetado por `app.ts` — a rota nao monta a propria dependencia. */
+  service: SimulationService;
 }
 
 /**
- * Posicao (1-based) do job na lista de espera FIFO do BullMQ. `null` quando o
- * job nao esta mais nela (ja foi pego pelo worker entre o `getState()` e esta
- * chamada) — corrida rara e inofensiva, so faz a posicao sumir por um poll.
+ * Entrada HTTP da simulacao (RF03/RF04). So valida, chama o service e traduz
+ * falha de dominio em status — nenhuma regra de negocio nem acesso a fila aqui.
  */
-async function getQueuePosition(jobId: string | undefined): Promise<number | null> {
-  const waiting = await simulationQueue.getJobs(['waiting'], 0, -1);
-  const index = waiting.findIndex((waitingJob) => waitingJob.id === jobId);
-  return index === -1 ? null : index + 1;
-}
-
-export async function simulationRoutes(app: FastifyInstance): Promise<void> {
+export async function simulationRoutes(
+  app: FastifyInstance,
+  { service }: SimulationRoutesOptions,
+): Promise<void> {
   const typed = app.withTypeProvider<ZodTypeProvider>();
 
   // RF03/RF04: enfileira compilacao + simulacao; a execucao ocorre no sandbox.
@@ -57,23 +42,16 @@ export async function simulationRoutes(app: FastifyInstance): Promise<void> {
     },
     async (request, reply) => {
       try {
-        const waitingCount = await simulationQueue.getWaitingCount();
-        if (waitingCount >= env.SIMULATION_MAX_QUEUE_DEPTH) {
+        const job = await service.enqueue(request.body);
+        return reply.status(202).send(job);
+      } catch (cause) {
+        if (cause instanceof QueueFullError) {
           return reply.status(503).send({
             statusCode: 503,
             error: 'Service Unavailable',
             message: 'Fila de simulações cheia. Tente novamente em alguns minutos.',
           });
         }
-
-        const job = await simulationQueue.add('simulate', request.body);
-
-        return reply.status(202).send({
-          jobId: String(job.id),
-          status: 'queued' as const,
-          createdAt: new Date(job.timestamp).toISOString(),
-        });
-      } catch (cause) {
         // Sem Redis a fila nao aceita jobs: mensagem explicita em vez de 500 generico.
         request.log.error(cause);
         return reply.status(503).send({
@@ -107,9 +85,9 @@ export async function simulationRoutes(app: FastifyInstance): Promise<void> {
       config: { rateLimit: { max: 300, timeWindow: '1 minute' } },
     },
     async (request, reply) => {
-      const job = await simulationQueue.getJob(request.params.jobId);
+      const result = await service.findResult(request.params.jobId);
 
-      if (!job) {
+      if (!result) {
         return reply.status(404).send({
           statusCode: 404,
           error: 'Not Found',
@@ -117,40 +95,7 @@ export async function simulationRoutes(app: FastifyInstance): Promise<void> {
         });
       }
 
-      const status = toJobStatus(await job.getState());
-      const pending: SimulationResult = {
-        jobId: String(job.id),
-        status,
-        failure: null,
-        diagnostics: [],
-        stdout: '',
-        stderr: '',
-        vcd: null,
-        durationMs: 0,
-        finishedAt: null,
-        queuePosition: status === 'queued' ? await getQueuePosition(job.id) : null,
-        truncated: { stdout: false, stderr: false, vcd: false },
-      };
-
-      if (status !== 'succeeded' || !job.returnvalue) {
-        if (status === 'failed') {
-          return reply.send({
-            ...pending,
-            failure: 'internal_error' as const,
-            stderr:
-              job.failedReason ??
-              'A execução falhou antes de produzir resultado. Execute novamente; se repetir, avise quem mantém a plataforma.',
-            finishedAt: job.finishedOn ? new Date(job.finishedOn).toISOString() : null,
-          });
-        }
-        return reply.send(pending);
-      }
-
-      return reply.send({
-        ...job.returnvalue,
-        jobId: String(job.id),
-        status,
-      });
+      return reply.send(result);
     },
   );
 }

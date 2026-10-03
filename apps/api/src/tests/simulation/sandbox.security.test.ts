@@ -8,8 +8,8 @@ import {
   buildSandboxContainerOptions,
   prepareWorkdir,
   removeOrphanWorkdirs,
-  type SandboxLimits,
-} from './sandbox.js';
+} from '../../infra/sandbox/sandbox.js';
+import type { SandboxLimits } from '../../domain/simulation/entities/sandbox.js';
 
 const LIMITS: SandboxLimits = {
   image: 'tplab-sandbox:test',

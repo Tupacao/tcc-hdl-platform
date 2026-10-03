@@ -5,8 +5,8 @@
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { defaultSandboxLimits, runInSandbox } from './sandbox.js';
-import { VHDL_TOOLCHAIN } from './toolchains.js';
+import { defaultSandboxLimits, runInSandbox } from '../../infra/sandbox/sandbox.js';
+import { VHDL_TOOLCHAIN } from '../../application/simulation/service/toolchains.js';
 
 const COUNTER = `library ieee; use ieee.std_logic_1164.all; use ieee.numeric_std.all;
 entity counter is port (clk, rst : in std_logic; q : out unsigned(3 downto 0)); end entity;

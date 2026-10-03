@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Diagnostic } from '@tplab/shared';
-import { attachHints, explanationFor } from './hints.js';
+import { attachHints, explanationFor } from '../../application/simulation/service/hints.js';
 
 test('módulo desconhecido traz o nome no título e explica o nome divergente', () => {
   const explanation = explanationFor('Unknown module type: fulladder');

@@ -1,5 +1,6 @@
 import type { Diagnostic, SimulationFailure } from '@tplab/shared';
-import { EXIT_FILE_SIZE_LIMIT, type TimeoutPhase } from './sandbox.js';
+import type { TimeoutPhase } from '../../../domain/simulation/entities/sandbox.js';
+import { EXIT_FILE_SIZE_LIMIT } from '../../../domain/simulation/enums/exit-code.js';
 
 export interface LimitFailureInput {
   failure: SimulationFailure | null;

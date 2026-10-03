@@ -1,5 +1,8 @@
 import type { HdlSources, TruncatedFlags } from '@tplab/shared';
-import type { SandboxOutcome, SandboxTimings } from './sandbox.js';
+import type {
+  SandboxOutcome,
+  SandboxTimings,
+} from '../../../domain/simulation/entities/sandbox.js';
 
 export interface JobLogRecord {
   jobId: string;

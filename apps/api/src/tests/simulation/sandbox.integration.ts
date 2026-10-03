@@ -19,10 +19,21 @@ import {
   dockerSupportsSwapLimit,
   mapFailure,
   runInSandbox,
-  type SandboxLimits,
-} from './sandbox.js';
+} from '../../infra/sandbox/sandbox.js';
+import type { SandboxLimits } from '../../domain/simulation/entities/sandbox.js';
+import { VERILOG_TOOLCHAIN } from '../../application/simulation/service/toolchains.js';
 
 const docker = new Docker();
+
+/** Limites e toolchain que a API usa de verdade — `runInSandbox` nao tem mais valor padrao. */
+const DEFAULT_LIMITS = defaultSandboxLimits(VERILOG_TOOLCHAIN);
+
+function run(
+  sources: Pick<HdlSources, 'design' | 'testbench'>,
+  limits: SandboxLimits = DEFAULT_LIMITS,
+) {
+  return runInSandbox(sources, limits, VERILOG_TOOLCHAIN);
+}
 
 // Sem SwapLimit o OOM nao e deterministico (o processo pagina): os testes de memoria so valem com ele.
 const swapLimit = await dockerSupportsSwapLimit();
@@ -49,7 +60,7 @@ async function shell(
 ): Promise<{ exitCode: number; oomKilled: boolean; output: string }> {
   const workdir = await mkdtemp(join(tmpdir(), 'hdl-sim-integration-'));
   await writeFile(join(workdir, 'dut.v'), DESIGN.content);
-  const options = buildSandboxContainerOptions(workdir);
+  const options = buildSandboxContainerOptions(workdir, DEFAULT_LIMITS);
   options.Entrypoint = ['/bin/sh', '-c'];
   options.Cmd = [command];
   if (override.memoryMb) {
@@ -137,7 +148,7 @@ test(
 );
 
 test('Verilog: $fopen fora do workdir falha e dentro funciona', async () => {
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources(`module tb; integer a, b, c;
   initial begin
     a = $fopen("/etc/pwn", "w"); b = $fopen("/work/../pwn", "w"); c = $fopen("/work/ok.txt", "w");
@@ -151,7 +162,7 @@ endmodule`),
 });
 
 test('Verilog: $dumpfile fora do workdir e recusado', async () => {
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources(
       'module tb; initial begin $dumpfile("/etc/x.vcd"); $dumpvars(0, tb); $finish; end endmodule',
     ),
@@ -162,7 +173,7 @@ test('Verilog: $dumpfile fora do workdir e recusado', async () => {
 });
 
 test('Verilog: $system nao existe nesta build do Icarus (sem execucao de comando)', async () => {
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources('module tb; initial begin $system("id"); $finish; end endmodule'),
   );
   assert.equal(outcome.failure, 'runtime_error');
@@ -170,7 +181,7 @@ test('Verilog: $system nao existe nesta build do Icarus (sem execucao de comando
 });
 
 test('Verilog: `include de caminho absoluto le so o que ja esta na imagem', async () => {
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources('module tb; initial $finish;\n`include "/etc/passwd"\nendmodule'),
   );
   assert.equal(outcome.failure, 'compile_error');
@@ -178,7 +189,7 @@ test('Verilog: `include de caminho absoluto le so o que ja esta na imagem', asyn
 });
 
 test('uso legitimo continua funcionando ($dumpfile relativo, $display)', async () => {
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources(`module tb; reg a; wire b; dut u(.a(a), .b(b));
   initial begin $dumpfile("wave.vcd"); $dumpvars(0, tb); a = 1; #5 $display("b=%b", b); $finish; end
 endmodule`),
@@ -191,13 +202,13 @@ endmodule`),
 // RNF05-I01 — cada limite dispara e produz o desfecho correto.
 
 const FAST: SandboxLimits = {
-  ...defaultSandboxLimits(),
+  ...DEFAULT_LIMITS,
   timeoutMs: 3_000,
   compileTimeoutMs: 2_000,
 };
 
 test('tempo: simulacao sem $finish termina no limite e reporta timeout da simulacao', async () => {
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources('module tb; reg a; initial a = 0; always #1 a = ~a; endmodule'),
     FAST,
   );
@@ -209,7 +220,7 @@ test('tempo: simulacao sem $finish termina no limite e reporta timeout da simula
 
 test('tempo: compilacao que nao termina (macro recursiva) e interrompida e distinguivel (fase compile)', async () => {
   const started = Date.now();
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources(
       '`define A `B\n`define B `A\nmodule tb; initial begin $display(`A); $finish; end endmodule',
     ),
@@ -227,7 +238,7 @@ test('tempo: compilacao que nao termina (macro recursiva) e interrompida e disti
 
 test('`include circular termina rapido, sem prender o worker (o limite de descritores corta a recursao)', async () => {
   const started = Date.now();
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources('`include "tb.v"\nmodule tb; initial $finish; endmodule'),
     FAST,
   );
@@ -240,7 +251,7 @@ test(
   'memoria: estouro reporta memory_limit confirmado pelo OOMKilled (nao timeout)',
   { skip: SKIP_MEMORY },
   async () => {
-    const outcome = await runInSandbox(
+    const outcome = await run(
       sources(
         'module tb; reg [31:0] mem [0:100000000]; integer i; initial begin for (i = 0; i < 100000000; i = i + 1) mem[i] = i; $finish; end endmodule',
       ),
@@ -263,7 +274,7 @@ test('SIGKILL sem OOM (processo filho morto por kill -9) NAO vira memory_limit',
 
 test('variaveis SANDBOX_* mudam o comportamento efetivo (entram nos limites e no container)', () => {
   const script =
-    'import("./src/modules/simulation/sandbox.ts").then((m) => { const l = m.defaultSandboxLimits(); const o = m.buildSandboxContainerOptions("/w", l); console.log(JSON.stringify({ l, env: o.Env, mem: o.HostConfig.Memory, cpu: o.HostConfig.NanoCpus })); })';
+    'Promise.all([import("./src/infra/sandbox/sandbox.ts"), import("./src/application/simulation/service/toolchains.ts")]).then(([m, t]) => { const l = m.defaultSandboxLimits(t.VERILOG_TOOLCHAIN); const o = m.buildSandboxContainerOptions("/w", l); console.log(JSON.stringify({ l, env: o.Env, mem: o.HostConfig.Memory, cpu: o.HostConfig.NanoCpus })); })';
   const out = execFileSync(process.execPath, ['--import', 'tsx', '-e', script], {
     env: {
       ...process.env,
@@ -285,7 +296,7 @@ test('variaveis SANDBOX_* mudam o comportamento efetivo (entram nos limites e no
 // RNF04-I03 — vetores especificos da toolchain Verilog.
 
 test('leitura: $fopen/$fgets le so o que ja esta na imagem; o ambiente nao tem segredos', async () => {
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources(`module tb;
   integer fd, r;
   reg [8*200-1:0] line;
@@ -306,7 +317,7 @@ endmodule`),
 });
 
 test('disco: $fwrite em laco para em 16 MiB (RLIMIT_FSIZE) e vira runtime_error com exit 153', async () => {
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources(`module tb;
   integer fd, i;
   initial begin
@@ -322,7 +333,7 @@ endmodule`),
 });
 
 test('disco: $dumpvars em laco tambem para em 16 MiB, e o VCD parcial ainda chega cortado a 2 MiB', async () => {
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources(`module tb;
   reg [63:0] a;
   integer i;
@@ -344,7 +355,7 @@ endmodule`),
 });
 
 test('log: $display em laco nao estoura o docker-modem e as ultimas linhas chegam', async () => {
-  const outcome = await runInSandbox(
+  const outcome = await run(
     sources(`module tb;
   integer i;
   initial begin
@@ -362,7 +373,9 @@ endmodule`),
 
 test('log: o container tem rotacao configurada (1 MiB x 2)', async () => {
   const workdir = await mkdtemp(join(tmpdir(), 'hdl-sim-integration-'));
-  const container = await docker.createContainer(buildSandboxContainerOptions(workdir));
+  const container = await docker.createContainer(
+    buildSandboxContainerOptions(workdir, DEFAULT_LIMITS),
+  );
   try {
     const info = await container.inspect();
     assert.deepEqual(info.HostConfig.LogConfig?.Config, { 'max-size': '1m', 'max-file': '2' });

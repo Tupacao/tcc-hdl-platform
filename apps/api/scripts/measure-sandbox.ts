@@ -22,7 +22,7 @@ import { CASES, type Case } from './examples.js';
 import {
   buildSandboxContainerOptions,
   defaultSandboxLimits,
-} from '../src/modules/simulation/sandbox.js';
+} from '../src/infra/sandbox/sandbox.js';
 
 const docker = new Docker();
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { analyzeToolchainVectors } from './vectors.js';
+import { analyzeToolchainVectors } from '../../application/simulation/service/vectors.js';
 
 const file = (content: string, name = 'tb.v') => ({ name, content });
 

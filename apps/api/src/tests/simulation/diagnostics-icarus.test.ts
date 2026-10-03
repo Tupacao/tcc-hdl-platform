@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { hasErrors, parseIcarusDiagnostics } from './diagnostics.js';
+import {
+  hasErrors,
+  parseIcarusDiagnostics,
+} from '../../application/simulation/service/diagnostics-icarus.js';
 
 test('extrai arquivo, linha e mensagem de um erro do iverilog', () => {
   const [diagnostic] = parseIcarusDiagnostics('design.v:12: error: Unknown module type: fulladder');

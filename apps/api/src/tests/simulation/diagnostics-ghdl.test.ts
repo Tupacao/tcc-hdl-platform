@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { parseGhdlDiagnostics } from './diagnostics-ghdl.js';
+import { parseGhdlDiagnostics } from '../../application/simulation/service/diagnostics-ghdl.js';
 
 test('erro de analise sem prefixo: arquivo, linha e coluna, sem o eco do codigo', () => {
   const output = [

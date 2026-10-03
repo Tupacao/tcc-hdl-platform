@@ -16,11 +16,15 @@ import { projectRoutes } from './application/projects/controller/project.control
 import { InMemoryProjectRepository } from './application/projects/repository/in-memory-project.repository.js';
 import { PrismaProjectRepository } from './application/projects/repository/prisma-project.repository.js';
 import { DefaultProjectService } from './application/projects/service/project.service.js';
+import { simulationRoutes } from './application/simulation/controller/simulation.controller.js';
+import { BullMqSimulationJobRepository } from './application/simulation/repository/bullmq-simulation-job.repository.js';
+import { DefaultSimulationService } from './application/simulation/service/simulation.service.js';
 import { env } from './config/env.js';
 import type { ProjectService } from './domain/projects/services/project.service.js';
+import type { SimulationService } from './domain/simulation/services/simulation.service.js';
 import { getPrismaClient } from './infra/prisma/client.js';
+import { simulationQueue } from './infra/queue/simulation.queue.js';
 import { logger } from './lib/logger.js';
-import { simulationRoutes } from './modules/simulation/routes.js';
 
 /**
  * Maior corpo esperado e a submissao de simulacao (RF03): design + testbench,
@@ -46,6 +50,11 @@ function createProjectService(): ProjectService {
   }
   console.warn('DATABASE_URL nao definida: projetos serao persistidos em memoria (RF07).');
   return new DefaultProjectService(new InMemoryProjectRepository());
+}
+
+/** A fila (BullMQ/Redis) e o repositorio de jobs de simulacao (RF03). */
+function createSimulationService(): SimulationService {
+  return new DefaultSimulationService(new BullMqSimulationJobRepository(simulationQueue));
 }
 
 // Sem tipo de retorno explicito: `loggerInstance: logger` (pino) faz a
@@ -134,7 +143,7 @@ export async function buildApp() {
 
   await app.register(healthRoutes);
   await app.register(projectRoutes, { prefix: '/api', service: createProjectService() });
-  await app.register(simulationRoutes, { prefix: '/api' });
+  await app.register(simulationRoutes, { prefix: '/api', service: createSimulationService() });
 
   return app;
 }

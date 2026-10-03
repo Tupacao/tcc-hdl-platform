@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Diagnostic } from '@tplab/shared';
-import { analyzeLimitFailure, dropShellNoise, type LimitFailureInput } from './limits.js';
+import {
+  analyzeLimitFailure,
+  dropShellNoise,
+  type LimitFailureInput,
+} from '../../application/simulation/service/limits.js';
 
 const base: LimitFailureInput = {
   failure: null,

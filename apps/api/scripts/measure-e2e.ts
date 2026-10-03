@@ -13,7 +13,8 @@
  * A primeira amostra de cada cenario e descartada. Resultados: docs/DESEMPENHO.md.
  */
 import type { SimulationTimings } from '@tplab/shared';
-import { simulationQueue, type SimulationJobResult } from '../src/modules/simulation/queue.js';
+import type { SimulationJobResult } from '../src/domain/simulation/dtos/simulation-job.dto.js';
+import { simulationQueue } from '../src/infra/queue/simulation.queue.js';
 import { CASES, toSources } from './examples.js';
 
 const POLL_MS = 400;
