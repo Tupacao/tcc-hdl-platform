@@ -6,8 +6,15 @@
 | Categoria | Requisito Nao Funcional |
 | Prioridade (MoSCoW) | Must Have |
 | Epico | Experiencia integrada |
-| Status | Parcial (funciona acima de 1024px; abaixo ha rolagem horizontal) |
+| Status | Fora do escopo de validacao do MVP (decisao: MVP focado em Full HD, 1920x1080) |
 | Requisitos relacionados | RF09, RF06, RF12, RNF01, RNF02 |
+
+> **Decisao de escopo (2026-10-03):** o MVP foi projetado e testado apenas para Full HD
+> (1920x1080). Nao ha verificacao em 1024px nem comportamento adaptado abaixo dele; as
+> issues [RNF03-I01](issue-01-verificacao-larguras-alvo.md) e
+> [RNF03-I02](issue-02-comportamento-abaixo-do-minimo.md) ficam **nao planejadas** para o MVP.
+> O comportamento atual (`min-w-[1024px]` com rolagem horizontal) permanece como esta.
+> No texto do TCC, registrar como limitacao conhecida.
 
 ## 1. Enunciado
 
