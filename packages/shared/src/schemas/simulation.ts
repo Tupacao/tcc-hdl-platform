@@ -65,8 +65,19 @@ export const SimulationFailureSchema = z.enum([
   'internal_error',
 ]);
 
+/**
+ * Tipo do job = qual toolchain o worker executa (RNF08-I01). Cada valor novo (GHDL, Yosys...)
+ * entra aqui e no registro `apps/api/src/modules/simulation/toolchains.ts`.
+ */
+export const JobKindSchema = z.enum(['simulate-verilog']);
+
+/** Tipo assumido quando o cliente nao informa `kind` — preserva os clientes anteriores a RNF08. */
+export const DEFAULT_JOB_KIND: JobKind = 'simulate-verilog';
+
 /** Corpo do POST /api/simulations (RF03/RF04). */
 export const CompileRequestSchema = HdlSourcesSchema.extend({
+  /** Toolchain do job (RNF08-I01); ausente = `simulate-verilog`. */
+  kind: JobKindSchema.optional(),
   /** Referencia opcional ao projeto salvo que originou a submissao. */
   projectId: IdSchema.optional(),
 });
@@ -89,6 +100,12 @@ export const SimulationResultSchema = z.object({
   stderr: z.string(),
   /** Conteudo do arquivo .vcd gerado, para o visualizador de ondas (RF06). */
   vcd: z.string().nullable(),
+  /**
+   * Artefatos nomeados que a toolchain produziu (RNF08-I01), ex.: `{ vcd: "..." }`. `vcd` acima
+   * e o campo derivado de `artifacts.vcd`, mantido para os clientes atuais. Ausente em
+   * resultados gerados antes de RNF08.
+   */
+  artifacts: z.record(z.string(), z.string()).optional(),
   /** Tempo total de execucao no sandbox, em ms (RNF07: alvo < 5000). */
   durationMs: z.number().int().nonnegative(),
   finishedAt: IsoDateSchema.nullable(),
@@ -99,6 +116,7 @@ export const SimulationResultSchema = z.object({
   timings: SimulationTimingsSchema.nullable().optional(),
 });
 
+export type JobKind = z.infer<typeof JobKindSchema>;
 export type Diagnostic = z.infer<typeof DiagnosticSchema>;
 export type JobStatus = z.infer<typeof JobStatusSchema>;
 export type TruncatedFlags = z.infer<typeof TruncatedFlagsSchema>;

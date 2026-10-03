@@ -20,6 +20,7 @@ function outcome(overrides: Partial<SandboxOutcome> = {}): SandboxOutcome {
     failure: null,
     stdout: '',
     stderr: '',
+    artifacts: {},
     vcd: null,
     durationMs: 500,
     timings: {

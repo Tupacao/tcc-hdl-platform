@@ -14,6 +14,7 @@ import { join } from 'node:path';
 import Docker from 'dockerode';
 import type { HdlSources, SimulationFailure, TruncatedFlags } from '@tplab/shared';
 import { env } from '../../config/env.js';
+import { VERILOG_TOOLCHAIN, type ArtifactSpec, type Toolchain } from './toolchains.js';
 
 /** `DOCKER_HOST` (`tcp://host:porta` ou `unix:///caminho`) no formato de opcoes do dockerode. */
 export function dockerConnectionOptions(host: string | undefined): Docker.DockerOptions {
@@ -50,6 +51,9 @@ export interface SandboxOutcome {
   failure: SimulationFailure | null;
   stdout: string;
   stderr: string;
+  /** RNF08-I01 — artefatos declarados pela toolchain que o container gerou, por nome. */
+  artifacts: Record<string, string>;
+  /** Derivado de `artifacts.vcd`, mantido para os consumidores atuais. */
   vcd: string | null;
   durationMs: number;
   timings: SandboxTimings;
@@ -253,6 +257,7 @@ export async function removeOrphanWorkdirs(
 export async function runInSandbox(
   sources: HdlSources,
   limits: SandboxLimits = defaultSandboxLimits(),
+  toolchain: Toolchain = VERILOG_TOOLCHAIN,
 ): Promise<SandboxOutcome> {
   const workdir = await mkdtemp(join(workdirRoot(), WORKDIR_PREFIX));
   const startedAt = Date.now();
@@ -309,7 +314,7 @@ export async function runInSandbox(
       const stdoutResult = truncateFromEnd(stdout, env.MAX_STDOUT_BYTES);
       const stages = extractStageTimings(stderr);
       const stderrResult = truncateFromEnd(stages.stderr, env.MAX_STDERR_BYTES);
-      const vcdResult = await readVcd(workdir);
+      const artifactResults = await readArtifacts(workdir, toolchain.artifacts);
       const artifactsReadMs = Date.now() - artifactsReadStartedAt;
       const oomKilled = await container
         .inspect()
@@ -328,7 +333,12 @@ export async function runInSandbox(
         timeoutPhase: timeoutPhaseOf(timedOut ? EXIT_TIMEOUT : exitCode, timedOut),
         stdout: stdoutResult.text,
         stderr: stderrResult.text,
-        vcd: vcdResult.text,
+        artifacts: Object.fromEntries(
+          Object.entries(artifactResults).flatMap(([name, result]) =>
+            result.text === null ? [] : [[name, result.text]],
+          ),
+        ),
+        vcd: artifactResults.vcd?.text ?? null,
         durationMs: Date.now() - startedAt,
         timings: {
           containerCreateMs,
@@ -340,7 +350,7 @@ export async function runInSandbox(
         truncated: {
           stdout: stdoutResult.truncated,
           stderr: stderrResult.truncated,
-          vcd: vcdResult.truncated,
+          vcd: artifactResults.vcd?.truncated ?? false,
         },
       };
     } finally {
@@ -367,9 +377,9 @@ export async function readContainerLogs(
   return null;
 }
 
-export function defaultSandboxLimits(): SandboxLimits {
+export function defaultSandboxLimits(toolchain: Toolchain = VERILOG_TOOLCHAIN): SandboxLimits {
   return {
-    image: env.SANDBOX_IMAGE,
+    image: toolchain.image(),
     timeoutMs: env.SANDBOX_TIMEOUT_MS,
     compileTimeoutMs: env.SANDBOX_COMPILE_TIMEOUT_MS,
     memoryMb: env.SANDBOX_MEMORY_MB,
@@ -419,21 +429,40 @@ export interface TruncationResult {
   truncated: boolean;
 }
 
-async function readVcd(workdir: string): Promise<{ text: string | null; truncated: boolean }> {
+/**
+ * Le cada artefato declarado pela toolchain, com o teto de tamanho dele (RF04-I02). `text` e
+ * `null` quando o arquivo nao existe ou nao e legivel.
+ */
+export async function readArtifacts(
+  workdir: string,
+  specs: readonly ArtifactSpec[],
+): Promise<Record<string, { text: string | null; truncated: boolean }>> {
   const entries = await readdir(workdir).catch(() => [] as string[]);
-  const vcdName = entries.find((entry) => entry.endsWith('.vcd'));
-  if (!vcdName) return { text: null, truncated: false };
+  const results: Record<string, { text: string | null; truncated: boolean }> = {};
+  for (const spec of specs) {
+    results[spec.name] = await readArtifact(workdir, entries, spec);
+  }
+  return results;
+}
+
+async function readArtifact(
+  workdir: string,
+  entries: readonly string[],
+  spec: ArtifactSpec,
+): Promise<{ text: string | null; truncated: boolean }> {
+  const fileName = entries.find((entry) => spec.filePattern.test(entry));
+  if (!fileName) return { text: null, truncated: false };
 
   // So arquivo regular: o workdir e gravavel pelo codigo do usuario, e um link simbolico
   // (que o Verilog nao consegue criar, mas custa uma linha garantir) faria o worker ler
-  // um arquivo do host no lugar do VCD.
-  const info = await lstat(join(workdir, vcdName)).catch(() => null);
+  // um arquivo do host no lugar do artefato.
+  const info = await lstat(join(workdir, fileName)).catch(() => null);
   if (!info?.isFile()) return { text: null, truncated: false };
 
-  const content = await readFile(join(workdir, vcdName), 'utf8').catch(() => null);
+  const content = await readFile(join(workdir, fileName), 'utf8').catch(() => null);
   if (content === null) return { text: null, truncated: false };
 
-  return truncateAtLineBoundary(content, env.MAX_VCD_BYTES);
+  return truncateAtLineBoundary(content, spec.maxBytes());
 }
 
 /**

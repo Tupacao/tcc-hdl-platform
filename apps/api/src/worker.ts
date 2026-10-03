@@ -9,17 +9,18 @@ import {
   type SimulationJobData,
   type SimulationJobResult,
 } from './modules/simulation/queue.js';
-import { parseIcarusDiagnostics } from './modules/simulation/diagnostics.js';
 import { attachHints } from './modules/simulation/hints.js';
 import { buildJobLogRecord } from './modules/simulation/job-log.js';
 import { analyzeLimitFailure, dropShellNoise } from './modules/simulation/limits.js';
 import {
   removeOrphanSandboxContainers,
+  defaultSandboxLimits,
   dockerSupportsSwapLimit,
   removeOrphanWorkdirs,
   runInSandbox,
 } from './modules/simulation/sandbox.js';
 import { analyzePostExecution, analyzeTestbenchContract } from './modules/simulation/testbench.js';
+import { toolchainFor } from './modules/simulation/toolchains.js';
 import { analyzeToolchainVectors } from './modules/simulation/vectors.js';
 
 /** Conexao separada da do BullMQ (RF03-I04) — so para os contadores em `lib/metrics.ts`. */
@@ -32,7 +33,8 @@ const metricsConnection = createRedisConnection();
 const worker = new Worker<SimulationJobData, SimulationJobResult>(
   SIMULATION_QUEUE,
   async (job): Promise<SimulationJobResult> => {
-    const outcome = await runInSandbox(job.data);
+    const toolchain = toolchainFor(job.data.kind);
+    const outcome = await runInSandbox(job.data, defaultSandboxLimits(toolchain), toolchain);
 
     // RF04-I01: contrato do testbench (topModule coerente, $dumpfile/$dumpvars
     // presentes) — heuristica, nunca bloqueia; vira `warning` no mesmo console
@@ -78,7 +80,10 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
       ...limitDiagnostics,
       ...dropShellNoise(
         attachHints(
-          parseIcarusDiagnostics(outcome.stderr, [job.data.design.name, job.data.testbench.name]),
+          toolchain.parseDiagnostics(outcome.stderr, [
+            job.data.design.name,
+            job.data.testbench.name,
+          ]),
         ),
         limitDiagnostics,
       ),
@@ -104,6 +109,7 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
       diagnostics,
       stdout: outcome.stdout,
       stderr: outcome.stderr,
+      artifacts: outcome.artifacts,
       vcd: outcome.vcd,
       durationMs: outcome.durationMs,
       finishedAt: new Date().toISOString(),
