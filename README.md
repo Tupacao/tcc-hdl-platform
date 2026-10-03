@@ -188,6 +188,31 @@ casos o corte vem com um aviso explicito no proprio texto, mais uma flag
 estruturada em `SimulationResultSchema.truncated` (`{ stdout, stderr, vcd }`),
 para a interface nao ter que adivinhar pelo conteudo.
 
+## Compatibilidade de navegadores (RNF02-I01)
+
+Alvo declarado em 2026-10-03, com o piso em `build.target` (`apps/web/vite.config.ts`) e a
+lista exibida ao usuário em `features/browser-support/utils/messages.ts`:
+
+| Navegador | Versão mínima |
+| --------- | ------------- |
+| Chrome    | 120           |
+| Firefox   | 121           |
+| Edge      | 120           |
+| Safari    | 17            |
+
+- **Por quê:** é o que o Monaco 0.5x, o Tailwind v4 (`@tailwindcss/vite`) e o parser de VCD em
+  Web Worker exigem sem transpilação extra; alvo mais antigo só incharia o bundle.
+- **`browserslist`:** não adotado — sem PostCSS/autoprefixer (o Tailwind v4 cuida do CSS), o
+  `build.target` do Vite basta.
+- **Aviso:** a detecção é por **capacidade**, não por user agent (`lib/browser-support.ts`:
+  Web Worker, `matchMedia`, `ResizeObserver`, canvas 2D e `structuredClone`). Faltando alguma,
+  aparece uma faixa informativa, dispensável (por sessão) e que nunca bloqueia o uso (RF01).
+- **Bundle com o alvo declarado:** `index` 628,05 kB (antes 625,80 kB) e `monaco` 3.271 kB (antes
+  3.270 kB) — variação desprezível.
+- **Reavaliar:** a cada semestre letivo ou se uma API nova entrar no código — conferir o parque
+  de máquinas do laboratório, atualizar as duas listas acima e este quadro.
+- **Pendente (RNF02-I02):** conferência manual nos quatro motores.
+
 ## Estado atual
 
 Ja implementado:

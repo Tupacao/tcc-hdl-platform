@@ -8,6 +8,7 @@ import { Workspace } from '@/features/workspace/workspace';
 import { OpenExampleDialog } from '@/features/workspace/components/open-example-dialog';
 import { ProjectsPage, useLocalProjects, type LocalProject } from '@/features/projects';
 import { DocsPage } from '@/features/docs';
+import { BrowserSupportBanner } from '@/features/browser-support';
 import { queryClient } from '@/lib/query-client';
 
 type View = 'workspace' | 'projects' | 'docs';
@@ -105,31 +106,37 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        {view === 'projects' && (
-          <ProjectsPage
-            localProjects={localProjects}
-            onOpenProject={handleOpenProject}
-            onNavigateBack={() => setView('workspace')}
-            onOpenDocs={() => setView('docs')}
-          />
-        )}
-        {view === 'docs' && (
-          <DocsPage
-            onNavigateBack={() => setView('workspace')}
-            onOpenInEditor={handleOpenExample}
-          />
-        )}
-        {view === 'workspace' && (
-          <Workspace
-            key={openProject?.id ?? `anonymous-${workspaceVersion}`}
-            project={openProject}
-            overrideSources={overrideSources}
-            onSaveProject={localProjects.save}
-            onRecordRun={localProjects.recordRun}
-            onOpenProjects={() => setView('projects')}
-            onOpenDocs={() => setView('docs')}
-          />
-        )}
+        {/* RNF02: a faixa ocupa espaço no fluxo e as telas ocupam o restante, sem sobrepor. */}
+        <div className="flex h-full flex-col">
+          <BrowserSupportBanner />
+          <div className="min-h-0 flex-1">
+            {view === 'projects' && (
+              <ProjectsPage
+                localProjects={localProjects}
+                onOpenProject={handleOpenProject}
+                onNavigateBack={() => setView('workspace')}
+                onOpenDocs={() => setView('docs')}
+              />
+            )}
+            {view === 'docs' && (
+              <DocsPage
+                onNavigateBack={() => setView('workspace')}
+                onOpenInEditor={handleOpenExample}
+              />
+            )}
+            {view === 'workspace' && (
+              <Workspace
+                key={openProject?.id ?? `anonymous-${workspaceVersion}`}
+                project={openProject}
+                overrideSources={overrideSources}
+                onSaveProject={localProjects.save}
+                onRecordRun={localProjects.recordRun}
+                onOpenProjects={() => setView('projects')}
+                onOpenDocs={() => setView('docs')}
+              />
+            )}
+          </div>
+        </div>
 
         <OpenExampleDialog
           projectName={pendingExample ? (openProject?.name ?? null) : null}

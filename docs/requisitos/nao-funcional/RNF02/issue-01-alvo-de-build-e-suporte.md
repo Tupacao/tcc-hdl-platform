@@ -53,12 +53,12 @@ declaracao e avisar quem estiver fora dela.
 
 ## Criterios de aceite
 
-- [ ] O `README.md` lista os navegadores e versoes suportados, com data.
-- [ ] `build.target` corresponde a essa lista.
-- [ ] A deteccao e por capacidade, nao por user agent.
-- [ ] O aviso aparece em navegador sem as APIs necessarias e nao bloqueia o uso.
-- [ ] O build continua funcionando e o tamanho do bundle esta registrado.
-- [ ] A decisao e o criterio de reavaliacao estao documentados.
+- [x] O `README.md` lista os navegadores e versoes suportados, com data.
+- [x] `build.target` corresponde a essa lista.
+- [x] A deteccao e por capacidade, nao por user agent.
+- [x] O aviso aparece em navegador sem as APIs necessarias e nao bloqueia o uso.
+- [x] O build continua funcionando e o tamanho do bundle esta registrado.
+- [x] A decisao e o criterio de reavaliacao estao documentados.
 
 ## Verificacao
 
