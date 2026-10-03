@@ -8,8 +8,8 @@ import type { Feedback, NewFeedback } from '../entities/feedback.js';
 export interface FeedbackRepository {
   create(input: NewFeedback): Promise<Feedback>;
   /**
-   * Quantos relatos a mesma origem (hash do IP) gravou desde `since` — base do
-   * limite diario. Conta envios aceitos, nao requisicoes.
+   * Quantos relatos a mesma chave de limite (sessao anonima, ou o IP quando nao ha
+   * sessao) gravou desde `since`. Conta envios aceitos, nao requisicoes.
    */
-  countSince(ipHash: string, since: Date): Promise<number>;
+  countSince(limitKey: string, since: Date): Promise<number>;
 }

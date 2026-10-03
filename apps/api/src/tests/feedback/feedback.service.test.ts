@@ -17,6 +17,11 @@ function relato(overrides: Partial<CreateFeedback> = {}): CreateFeedback {
   };
 }
 
+/** Relato com contexto tecnico, que e onde viaja o identificador anonimo de sessao. */
+function relatoDaSessao(sessionId: string): CreateFeedback {
+  return relato({ context: { sessionId } });
+}
+
 function build(maxPerDay = 5) {
   const repository = new InMemoryFeedbackRepository();
   return { repository, service: new DefaultFeedbackService(repository, maxPerDay, SALT) };
@@ -34,6 +39,17 @@ test('grava o relato e devolve so o recibo (nada do texto volta)', async () => {
   const [stored] = await repository.list();
   assert.equal(stored?.message, relato().message);
   assert.equal(stored?.contact, 'aluno@exemplo.com');
+});
+
+test('o identificador de sessao tambem vira hash, nunca vai em claro para a coluna', async () => {
+  const { repository, service } = build();
+
+  await service.submit(relatoDaSessao('a3f9-c21e'), { ip: IP });
+
+  const [stored] = await repository.list();
+  assert.match(stored?.limitKey ?? '', /^[0-9a-f]{64}$/);
+  assert.notEqual(stored?.limitKey, 'a3f9-c21e');
+  assert.notEqual(stored?.limitKey, stored?.ipHash);
 });
 
 test('o IP nunca e gravado em claro, so o hash com sal', async () => {
@@ -71,7 +87,32 @@ test('o contexto tecnico enviado e preservado como veio do schema', async () => 
   assert.deepEqual(stored?.context, context);
 });
 
-test('o sexto envio da mesma origem no dia e recusado (RF17)', async () => {
+test('o sexto envio da mesma sessao no dia e recusado (RF17)', async () => {
+  const { service } = build();
+
+  for (let i = 0; i < 5; i++) await service.submit(relatoDaSessao('sessao-1'), { ip: IP });
+
+  await assert.rejects(
+    () => service.submit(relatoDaSessao('sessao-1'), { ip: IP }),
+    (error: unknown) => {
+      assert.ok(error instanceof FeedbackDailyLimitError);
+      assert.equal(error.limit, 5);
+      return true;
+    },
+  );
+});
+
+test('duas sessoes no mesmo endereco nao dividem a cota (laboratorio)', async () => {
+  const { service } = build();
+
+  for (let i = 0; i < 5; i++) await service.submit(relatoDaSessao('aluno-a'), { ip: IP });
+
+  // Mesmo IP, outra sessao: o limite e por sessao anonima, nao por endereco.
+  const receipt = await service.submit(relatoDaSessao('aluno-b'), { ip: IP });
+  assert.ok(receipt.id);
+});
+
+test('sem sessao, o limite cai para o endereco — mais apertado, nunca mais frouxo', async () => {
   const { service } = build();
 
   for (let i = 0; i < 5; i++) await service.submit(relato(), { ip: IP });
@@ -86,7 +127,7 @@ test('o sexto envio da mesma origem no dia e recusado (RF17)', async () => {
   );
 });
 
-test('o limite e por origem: outro IP continua podendo enviar', async () => {
+test('o limite e por origem: outro IP continua podendo enviar quando nao ha sessao', async () => {
   const { service } = build();
 
   for (let i = 0; i < 5; i++) await service.submit(relato(), { ip: IP });
@@ -134,11 +175,12 @@ test('o repositorio conta apenas a origem pedida', async () => {
     contact: null,
     context: null,
     userId: null,
-    ipHash: 'hash-a',
+    ipHash: 'hash-ip',
+    limitKey: 'hash-a',
   };
 
   await repository.create(base);
-  await repository.create({ ...base, ipHash: 'hash-b' });
+  await repository.create({ ...base, limitKey: 'hash-b' });
 
   assert.equal(await repository.countSince('hash-a', new Date(Date.now() - 1000)), 1);
   assert.equal(await repository.countSince('hash-b', new Date(Date.now() - 1000)), 1);

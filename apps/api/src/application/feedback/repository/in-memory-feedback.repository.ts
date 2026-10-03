@@ -16,8 +16,8 @@ export class InMemoryFeedbackRepository implements FeedbackRepository {
     return feedback;
   }
 
-  async countSince(ipHash: string, since: Date): Promise<number> {
-    return this.#entries.filter((entry) => entry.ipHash === ipHash && entry.createdAt >= since)
+  async countSince(limitKey: string, since: Date): Promise<number> {
+    return this.#entries.filter((entry) => entry.limitKey === limitKey && entry.createdAt >= since)
       .length;
   }
 

@@ -14,6 +14,12 @@ export interface Feedback {
   userId: string | null;
   /** SHA-256 do IP com sal — agrupa abuso sem guardar dado pessoal. */
   ipHash: string | null;
+  /**
+   * Chave do limite diario (com sal): a sessao anonima quando o relato traz uma,
+   * senao o IP. O limite e por sessao de proposito — um laboratorio inteiro atras
+   * do mesmo endereco nao divide a cota.
+   */
+  limitKey: string | null;
   createdAt: Date;
 }
 

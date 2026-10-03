@@ -46,8 +46,13 @@ model Feedback {
   /// SHA-256 do IP com sal (FEEDBACK_IP_SALT) — agrupa abuso sem guardar dado
   /// pessoal. O IP em claro nunca e gravado.
   ipHash    String?
+  /// Chave do limite diario, tambem com sal: a sessao anonima quando o relato traz
+  /// uma, senao o IP. Separada de ipHash porque o limite e por sessao (decisao de
+  /// design: um laboratorio atras do mesmo endereco nao compartilha a cota).
+  limitKey  String?
   createdAt DateTime @default(now())
 
   @@index([createdAt])
   @@index([kind])
+  @@index([limitKey, createdAt])
 }

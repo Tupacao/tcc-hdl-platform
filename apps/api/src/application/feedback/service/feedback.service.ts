@@ -42,11 +42,21 @@ export class DefaultFeedbackService implements FeedbackService {
   }
 
   async submit(input: CreateFeedback, origin: FeedbackOrigin): Promise<FeedbackReceipt> {
-    const ipHash = this.hashIp(origin.ip);
+    const ipHash = this.hash(origin.ip ? `ip:${origin.ip}` : null);
+    /**
+     * O limite diario e por sessao anonima, nao por endereco: sem conta nao ha
+     * usuario a quem atribuir a cota, e cobrar por IP faria um laboratorio
+     * inteiro dividir cinco mensagens. Sem sessao (relato enviado sem o contexto
+     * tecnico), cai para o IP — mais apertado, nunca mais frouxo.
+     */
+    const sessionKey = this.hash(
+      input.context?.sessionId ? `sessao:${input.context.sessionId}` : null,
+    );
+    const limitKey = sessionKey ?? ipHash;
 
-    // Sem IP nao ha a quem atribuir o limite; o rate limit da rota ainda vale.
-    if (ipHash) {
-      const sent = await this.repository.countSince(ipHash, new Date(Date.now() - DAY_MS));
+    // Sem nenhuma das duas chaves resta so o limite de rajada da rota.
+    if (limitKey) {
+      const sent = await this.repository.countSince(limitKey, new Date(Date.now() - DAY_MS));
       if (sent >= this.maxPerDay) throw new FeedbackDailyLimitError(this.maxPerDay);
     }
 
@@ -57,6 +67,7 @@ export class DefaultFeedbackService implements FeedbackService {
       context: input.context ?? null,
       userId: origin.userId ?? null,
       ipHash,
+      limitKey,
     });
 
     // Sem o texto e sem o contato: o log diz que um relato chegou, nao o que diz.
@@ -68,8 +79,9 @@ export class DefaultFeedbackService implements FeedbackService {
     return { id: feedback.id, receivedAt: feedback.createdAt.toISOString() };
   }
 
-  private hashIp(ip: string | null): string | null {
-    if (!ip) return null;
-    return createHash('sha256').update(`${this.#salt}:${ip}`).digest('hex');
+  /** Hash com sal: nem o IP nem o identificador de sessao sao gravados em claro. */
+  private hash(value: string | null): string | null {
+    if (!value) return null;
+    return createHash('sha256').update(`${this.#salt}:${value}`).digest('hex');
   }
 }

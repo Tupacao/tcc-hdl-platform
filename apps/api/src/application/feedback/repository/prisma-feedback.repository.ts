@@ -11,6 +11,7 @@ interface FeedbackRow {
   context: Prisma.JsonValue;
   userId: string | null;
   ipHash: string | null;
+  limitKey: string | null;
   createdAt: Date;
 }
 
@@ -31,6 +32,7 @@ function toFeedback(row: FeedbackRow): Feedback {
     context: context.success ? context.data : null,
     userId: row.userId,
     ipHash: row.ipHash,
+    limitKey: row.limitKey,
     createdAt: row.createdAt,
   };
 }
@@ -48,12 +50,13 @@ export class PrismaFeedbackRepository implements FeedbackRepository {
         context: input.context === null ? Prisma.DbNull : (input.context as Prisma.InputJsonValue),
         userId: input.userId,
         ipHash: input.ipHash,
+        limitKey: input.limitKey,
       },
     });
     return toFeedback(row);
   }
 
-  async countSince(ipHash: string, since: Date): Promise<number> {
-    return this.prisma.feedback.count({ where: { ipHash, createdAt: { gte: since } } });
+  async countSince(limitKey: string, since: Date): Promise<number> {
+    return this.prisma.feedback.count({ where: { limitKey, createdAt: { gte: since } } });
   }
 }

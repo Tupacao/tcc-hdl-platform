@@ -207,14 +207,23 @@ Dois limites protegem a rota, e eles são diferentes de propósito:
 | Limite                                        | Onde                              | Conta o quê                         | Resposta                               |
 | --------------------------------------------- | --------------------------------- | ----------------------------------- | -------------------------------------- |
 | Rajada: 20/hora por origem                    | `@fastify/rate-limit` na rota     | requisições, inclusive as inválidas | 429 "Muitas mensagens em sequência."   |
-| Diário: `FEEDBACK_MAX_PER_DAY` (5) por origem | service, sobre o que está gravado | relatos aceitos                     | 429 "Você já enviou 5 mensagens hoje." |
+| Diário: `FEEDBACK_MAX_PER_DAY` (5) por sessão | service, sobre o que está gravado | relatos aceitos                     | 429 "Você já enviou 5 mensagens hoje." |
 
 O limite que o usuário lê é o diário, e ele conta só envios aceitos: o plugin de
 rate limit roda antes da validação, então sozinho ele deixaria cinco tentativas
 recusadas por e-mail inválido consumirem a cota do dia.
 
+O limite diário é **por sessão anônima**, não por endereço: sem conta não há
+usuário a quem atribuir a cota, e cobrar por IP faria um laboratório inteiro
+dividir cinco mensagens. É frouxo de propósito — limpar os dados do navegador
+reinicia a contagem —, porque o custo de bloquear um relato legítimo é maior que
+o de receber uma mensagem repetida. Quando o relato vem sem contexto técnico (sem
+identificador de sessão), a cota cai para o IP: mais apertada, nunca mais frouxa.
+As duas chaves são gravadas com o mesmo sal, em colunas distintas (`limitKey` e
+`ipHash`); nenhuma das duas guarda o valor original.
+
 O IP de quem envia **nunca** é gravado em claro — só `SHA-256(FEEDBACK_IP_SALT + IP)`,
-o suficiente para agrupar abuso e aplicar o limite diário. Sem `FEEDBACK_IP_SALT`
+o suficiente para agrupar abuso. Sem `FEEDBACK_IP_SALT`
 definida, a API sorteia um sal por processo e avisa no log: segue anônimo, mas os
 hashes mudam a cada reinício e o limite diário zera com ele. Em produção, definir
 a variável (gerar com `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
