@@ -6,6 +6,7 @@ import {
   type SimulationResult,
 } from '@tplab/shared';
 import type { ZodType } from 'zod';
+import { markPerf, measurePerf, startRunPerf } from './perf';
 
 /** Vazio em desenvolvimento: o proxy do Vite repassa /api para a API. */
 const BASE_URL = import.meta.env.VITE_API_URL ?? '';
@@ -65,14 +66,21 @@ export async function runSimulation(
   signal?: AbortSignal,
   onPoll?: (result: SimulationResult) => void,
 ): Promise<SimulationResult> {
+  startRunPerf();
   const job = await startSimulation(body);
+  markPerf('enqueued');
+  measurePerf('enqueue', 'run-start', 'enqueued');
   const deadline = Date.now() + POLL_TIMEOUT_MS;
 
   while (Date.now() < deadline) {
     signal?.throwIfAborted();
     const result = await getSimulation(job.jobId);
     onPoll?.(result);
-    if (result.status === 'succeeded' || result.status === 'failed') return result;
+    if (result.status === 'succeeded' || result.status === 'failed') {
+      markPerf('result');
+      measurePerf('wait', 'enqueued', 'result');
+      return result;
+    }
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
 

@@ -59,7 +59,7 @@ na VM alvo.
 ## Criterios de aceite
 
 - [x] "Baixa complexidade" e "condicoes normais" estao definidos por escrito. _(docs/DESEMPENHO.md, secao 1)_
-- [~] Cada etapa tem tempo medido, no servidor e no cliente. _(servidor: nesta PR; cliente: PR de front da mesma issue)_
+- [x] Cada etapa tem tempo medido, no servidor e no cliente. _(servidor: `measure:e2e`; cliente: marcas `tplab:*`, `apps/web/src/lib/perf.ts`)_
 - [x] Compilacao e simulacao aparecem separadas. _(marca `@@tplab-timing` em run-simulation.sh)_
 - [x] Ha mediana, p95 e maximo, com pelo menos 20 amostras por exemplo. _(somador e contador4 com n=20/20/30; caso pesado a parte)_
 - [x] Os tres cenarios de fila foram medidos. _(1, 2 e 3 jobs simultaneos)_

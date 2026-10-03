@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { markPerf, measurePerf } from '@/lib/perf';
 import type { Waveform } from '../models/types';
 import VcdWorker from '../workers/vcd-worker?worker';
 
@@ -28,10 +29,13 @@ export function useParsedVcd(vcd: string | null): UseParsedVcdResult {
     const worker = new VcdWorker();
 
     worker.onmessage = (event: MessageEvent<Waveform>) => {
+      markPerf('vcd-parsed');
+      measurePerf('parse', 'parse-start', 'vcd-parsed');
       setWaveform(event.data);
       setIsLoading(false);
     };
 
+    markPerf('parse-start');
     worker.postMessage(vcd);
 
     return () => {
