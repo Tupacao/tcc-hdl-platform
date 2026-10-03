@@ -54,14 +54,34 @@ com contexto tecnico declarado.
 
 ## Criterios de aceite
 
-- [ ] O feedback e acessivel de qualquer tela.
-- [ ] O formulario valida com o mesmo schema do backend.
-- [ ] O contexto tecnico e visivel antes do envio e pode ser omitido.
-- [ ] O codigo do usuario nunca e enviado.
-- [ ] O sucesso e confirmado e o dialogo fecha.
-- [ ] Erro de envio preserva o texto digitado.
-- [ ] O limite de envios mostra mensagem propria.
-- [ ] O dialogo e operavel por teclado.
+- [x] O feedback e acessivel de qualquer tela (barra de estado no workspace;
+      cabecalho em "Meus projetos" e na documentacao).
+- [x] O formulario valida com o mesmo schema do backend (`CreateFeedbackSchema`).
+- [x] O contexto tecnico e visivel antes do envio e pode ser omitido.
+- [x] O codigo do usuario nunca e enviado (teste proprio fecha a lista de campos).
+- [x] O sucesso e confirmado e o dialogo fecha sozinho em 2 s.
+- [x] Erro de envio preserva o texto digitado (verificado com a rede desligada).
+- [x] O limite de envios mostra mensagem propria.
+- [x] O dialogo e operavel por teclado, com retorno de foco ao ponto de origem.
+
+## Divergencias da especificacao original
+
+- **Onde fica o ponto de acesso**: barra de estado, nao o cabecalho. O Figma 10.1
+  e explicito ("discreto e sempre presente - nao em um botao flutuante que cobre
+  o editor"), e o escopo tecnico da issue citava `workspace-header.tsx`.
+- **Caminhos**: a feature mora em `features/feedback/{components,hooks,models,utils}`,
+  como manda `docs/ARCHITECTURE.md`, e nao em arquivos soltos na raiz da pasta.
+- **Confirmacao de sucesso**: painel dentro do proprio dialogo com fechamento
+  automatico em 2 s (Figma 10.5), em vez de toast do `sonner`. Dois avisos para o
+  mesmo evento seriam ruido.
+- **Interruptor de contexto**: `Checkbox` do shadcn ja instalado, no lugar de um
+  `Switch` novo - evitou uma dependencia (`@radix-ui/react-switch`) so por causa
+  da forma do controle.
+- **Tipo "outro"**: existe no contrato, mas a interface oferece os tres rotulos do
+  Figma (Algo quebrou / Tenho uma sugestao / Esta funcionando bem).
+- **Campo de contato**: o Figma 10.1 nao mostra, mas e criterio de aceite da
+  feature ("tipo, mensagem e contato opcional"); entrou discreto, abaixo da
+  mensagem, com a nota de que ninguem precisa se identificar.
 
 ## Verificacao
 

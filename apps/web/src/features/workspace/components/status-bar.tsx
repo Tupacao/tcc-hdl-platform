@@ -1,4 +1,5 @@
-import { Check, X } from 'lucide-react';
+import { Check, MessageSquare, X } from 'lucide-react';
+import { FEEDBACK_TRIGGER_LABEL } from '@/features/feedback';
 import { cn } from '@/lib/utils';
 import { STATUS_BAR, formatCursorPosition } from '../utils/messages';
 import { announcementFor, type RunStatus } from '../utils/run-status';
@@ -12,6 +13,8 @@ interface StatusBarProps {
   cursor: { line: number; column: number } | null;
   /** Leva ao console, na aba Problemas. */
   onFocusProblems: () => void;
+  /** RF17: abre o formulário de feedback. O ponto de acesso mora aqui, não num botão flutuante. */
+  onSendFeedback: () => void;
 }
 
 /**
@@ -26,6 +29,7 @@ export function StatusBar({
   isDirty,
   cursor,
   onFocusProblems,
+  onSendFeedback,
 }: StatusBarProps) {
   const finished = status.kind === 'success' || status.kind === 'failure';
 
@@ -78,6 +82,15 @@ export function StatusBar({
       </div>
 
       <div className="flex shrink-0 items-center gap-3 font-mono text-muted-foreground">
+        <button
+          type="button"
+          onClick={onSendFeedback}
+          className="flex items-center gap-1.5 rounded-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <MessageSquare aria-hidden className="size-3" />
+          {FEEDBACK_TRIGGER_LABEL}
+        </button>
+        <Separator />
         <span>{STATUS_BAR.LANGUAGE}</span>
         <Separator />
         <span>{STATUS_BAR.ENCODING}</span>
