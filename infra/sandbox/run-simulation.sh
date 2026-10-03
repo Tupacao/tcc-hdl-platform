@@ -1,14 +1,61 @@
 #!/bin/sh
 # Compila e simula os arquivos HDL montados em /work.
-# Codigos de saida consumidos por apps/api/src/modules/simulation/sandbox.ts:
+# Codigos de saida — contrato de todo script de sandbox, consumido por
+# apps/api/src/modules/simulation/sandbox.ts (`mapFailure`):
 #   0   sucesso
 #   2   erro de compilacao (iverilog)
 #   3   erro em tempo de execucao (vvp)
-#   124 timeout
+#   4   timeout da compilacao (iverilog passou de SIM_COMPILE_TIMEOUT_S)
+#   124 timeout da simulacao (vvp passou de SIM_TIMEOUT_S)
+#   153 arquivo gravado passou de MAX_FILE_BLOCKS (128 + SIGXFSZ) — $fwrite/$dumpvars
+#       em laco; a inundacao de disco do workdir (bind no host) e o que isto limita
+#   137 processo morto por SIGKILL antes do limite de tempo — quase sempre o OOM
+#       killer; quem decide se foi memoria e o `State.OOMKilled` do Docker, nao
+#       este script (ele so nao pode rotular como timeout algo que nao foi).
+# Alem do codigo, a ultima linha de stderr e `@@tplab-timing compile_ms=N simulate_ms=N`
+# (RNF07-I01): o host le e REMOVE essa linha antes de mostrar a saida ao usuario.
 set -u
 
 BIN=/tmp/simulation.vvp
 TIMEOUT_S="${SIM_TIMEOUT_S:-10}"
+COMPILE_TIMEOUT_S="${SIM_COMPILE_TIMEOUT_S:-5}"
+
+# RNF04-I03 — `/work` e um bind no disco do host e nao tem cota: sem teto, um $fwrite em
+# laco grava centenas de MB por segundo ate o timeout. RLIMIT_FSIZE (em blocos de 512 B)
+# corta o arquivo em 16 MiB (o VCD lido pela plataforma ja e cortado em 2 MiB) e o limite de
+# descritores limita quantos arquivos um testbench abre ao mesmo tempo.
+MAX_FILE_BLOCKS=32768
+MAX_OPEN_FILES=64
+ulimit -f "$MAX_FILE_BLOCKS"
+ulimit -n "$MAX_OPEN_FILES"
+
+# Relogio em centesimos de segundo: `/proc/uptime` (o busybox nao tem `date +%N`). Serve ao
+# tempo de cada etapa (RNF07-I01) e a separar timeout de OOM com 10 ms de janela, em vez do
+# 1 s que `date +%s` deixava (RNF05-I01).
+now_cs() {
+    cut -d' ' -f1 /proc/uptime | tr -d .
+}
+
+t_compile_start=0
+t_compile_end=0
+t_sim_start=0
+t_sim_end=0
+
+# So emite a etapa que chegou a terminar.
+emit_timing() {
+    out="@@tplab-timing"
+    [ "$t_compile_end" -gt 0 ] && out="$out compile_ms=$(((t_compile_end - t_compile_start) * 10))"
+    [ "$t_sim_end" -gt 0 ] && out="$out simulate_ms=$(((t_sim_end - t_sim_start) * 10))"
+    echo "$out" >&2
+}
+trap emit_timing EXIT
+
+# `timeout -s KILL` devolve 137 tanto quando o limite estoura quanto quando outro SIGKILL
+# (OOM) mata o processo antes. O tempo decorrido separa os dois casos; o `OOMKilled` do
+# Docker, consultado pelo host, continua sendo o dado autoritativo de memoria.
+reached_limit() {
+    [ $(($2 - $1)) -ge $(($3 * 100)) ]
+}
 
 # Glob sem match expande para o proprio padrao no /bin/sh: filtra os inexistentes.
 FILES=""
@@ -23,11 +70,26 @@ fi
 
 # Sem -s: o iverilog elege como topo o modulo que ninguem instancia (o testbench).
 # shellcheck disable=SC2086
-iverilog -g2012 -o "$BIN" $FILES || exit 2
+t_compile_start=$(now_cs)
+timeout -s KILL "$COMPILE_TIMEOUT_S" iverilog -g2012 -o "$BIN" $FILES
+status=$?
+t_compile_end=$(now_cs)
+if [ "$status" -ne 0 ]; then
+    if [ "$status" -eq 137 ]; then
+        reached_limit "$t_compile_start" "$t_compile_end" "$COMPILE_TIMEOUT_S" && exit 4
+        exit 137
+    fi
+    exit 2
+fi
 
+t_sim_start=$(now_cs)
 timeout -s KILL "$TIMEOUT_S" vvp "$BIN"
 status=$?
-
-[ "$status" -eq 137 ] && exit 124
+t_sim_end=$(now_cs)
+if [ "$status" -eq 137 ]; then
+    reached_limit "$t_sim_start" "$t_sim_end" "$TIMEOUT_S" && exit 124
+    exit 137
+fi
+[ "$status" -eq 153 ] && exit 153
 [ "$status" -ne 0 ] && exit 3
 exit 0

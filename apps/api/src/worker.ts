@@ -9,11 +9,19 @@ import {
   type SimulationJobData,
   type SimulationJobResult,
 } from './modules/simulation/queue.js';
-import { parseIcarusDiagnostics } from './modules/simulation/diagnostics.js';
 import { attachHints } from './modules/simulation/hints.js';
 import { buildJobLogRecord } from './modules/simulation/job-log.js';
-import { runInSandbox } from './modules/simulation/sandbox.js';
+import { analyzeLimitFailure, dropShellNoise } from './modules/simulation/limits.js';
+import {
+  removeOrphanSandboxContainers,
+  defaultSandboxLimits,
+  dockerSupportsSwapLimit,
+  removeOrphanWorkdirs,
+  runInSandbox,
+} from './modules/simulation/sandbox.js';
 import { analyzePostExecution, analyzeTestbenchContract } from './modules/simulation/testbench.js';
+import { toolchainFor } from './modules/simulation/toolchains.js';
+import { analyzeToolchainVectors } from './modules/simulation/vectors.js';
 
 /** Conexao separada da do BullMQ (RF03-I04) — so para os contadores em `lib/metrics.ts`. */
 const metricsConnection = createRedisConnection();
@@ -25,29 +33,61 @@ const metricsConnection = createRedisConnection();
 const worker = new Worker<SimulationJobData, SimulationJobResult>(
   SIMULATION_QUEUE,
   async (job): Promise<SimulationJobResult> => {
-    const outcome = await runInSandbox(job.data);
+    const toolchain = toolchainFor(job.data.kind);
+    const outcome = await runInSandbox(job.data, defaultSandboxLimits(toolchain), toolchain);
 
     // RF04-I01: contrato do testbench (topModule coerente, $dumpfile/$dumpvars
     // presentes) — heuristica, nunca bloqueia; vira `warning` no mesmo console
     // dos diagnosticos do iverilog, sem componente novo no frontend.
-    const contract = analyzeTestbenchContract(
-      job.data.design,
-      job.data.testbench,
-      job.data.topModule,
-    );
-    const postExecutionWarnings = analyzePostExecution({
-      testbenchName: job.data.testbench.name,
-      topModule: job.data.topModule,
+    // Essas analises conhecem a sintaxe Verilog (RNF08-I02): outras toolchains nao as recebem.
+    const verilogAnalysis = toolchain.sourceAnalysis === 'verilog';
+    const contract = verilogAnalysis
+      ? analyzeTestbenchContract(job.data.design, job.data.testbench, job.data.topModule)
+      : { diagnostics: [], missingDumpDirectives: false };
+    const postExecutionWarnings = !verilogAnalysis
+      ? []
+      : analyzePostExecution({
+          testbenchName: job.data.testbench.name,
+          topModule: job.data.topModule,
+          failure: outcome.failure,
+          stdout: outcome.stdout,
+          vcd: outcome.vcd,
+          alreadyWarnedMissingDump: contract.missingDumpDirectives,
+        });
+
+    // RNF05: limite atingido vira erro com causa provavel e proximo passo.
+    const limitDiagnostics = analyzeLimitFailure({
       failure: outcome.failure,
-      stdout: outcome.stdout,
-      vcd: outcome.vcd,
-      alreadyWarnedMissingDump: contract.missingDumpDirectives,
+      timeoutPhase: outcome.timeoutPhase,
+      exitCode: outcome.exitCode,
+      logsUnavailable: outcome.logsUnavailable,
+      testbenchName: job.data.testbench.name,
+      timeoutMs: env.SANDBOX_TIMEOUT_MS,
+      compileTimeoutMs: env.SANDBOX_COMPILE_TIMEOUT_MS,
+      memoryMb: env.SANDBOX_MEMORY_MB,
     });
+    if (outcome.timeoutPhase === 'host') {
+      // O timeout interno do script deveria ter agido antes: se o `killTimer` do host
+      // foi quem matou, o limite de dentro do container parou de funcionar.
+      logger.warn(
+        { jobId: String(job.id) },
+        'killTimer do host encerrou o job — timeout interno falhou',
+      );
+    }
 
     const diagnostics = [
       ...contract.diagnostics,
-      ...attachHints(
-        parseIcarusDiagnostics(outcome.stderr, [job.data.design.name, job.data.testbench.name]),
+      // RNF04-I03: construcoes que tocam o sistema de arquivos/SO — aviso, nunca bloqueio.
+      ...(verilogAnalysis ? analyzeToolchainVectors([job.data.design, job.data.testbench]) : []),
+      ...limitDiagnostics,
+      ...dropShellNoise(
+        ((diagnostics) => (verilogAnalysis ? attachHints(diagnostics) : diagnostics))(
+          toolchain.parseDiagnostics(outcome.stderr, [
+            job.data.design.name,
+            job.data.testbench.name,
+          ]),
+        ),
+        limitDiagnostics,
       ),
       ...postExecutionWarnings,
     ];
@@ -71,12 +111,21 @@ const worker = new Worker<SimulationJobData, SimulationJobResult>(
       diagnostics,
       stdout: outcome.stdout,
       stderr: outcome.stderr,
+      artifacts: outcome.artifacts,
       vcd: outcome.vcd,
       durationMs: outcome.durationMs,
       finishedAt: new Date().toISOString(),
       // O job terminou de processar — por definicao nao esta mais na fila (RF03-I02).
       queuePosition: null,
       truncated: outcome.truncated,
+      timings: {
+        queueWaitMs: job.processedOn !== undefined ? job.processedOn - job.timestamp : null,
+        containerCreateMs: outcome.timings.containerCreateMs,
+        compileMs: outcome.timings.compileMs,
+        simulateMs: outcome.timings.simulateMs,
+        executionMs: outcome.timings.executionMs,
+        artifactsReadMs: outcome.timings.artifactsReadMs,
+      },
     } satisfies Omit<SimulationResult, 'jobId' | 'status'>;
   },
   {
@@ -97,6 +146,36 @@ worker.on('failed', (job, error) => {
 worker.on('error', (error) => {
   logger.error({ err: error }, 'erro de conexao com o Redis');
 });
+
+/**
+ * RNF04-I01 — o `finally` de `runInSandbox` nao roda se o worker for morto a
+ * forca (OOM do host, `kill -9`, queda da VM): sobram um container e o diretorio
+ * com os fontes do usuario. Varre no start e de tempos em tempos.
+ */
+async function sweepOrphans(): Promise<void> {
+  const containers = await removeOrphanSandboxContainers().catch((cause: unknown) => {
+    logger.warn({ err: cause }, 'falha ao varrer containers orfaos do sandbox');
+    return 0;
+  });
+  const workdirs = await removeOrphanWorkdirs().catch(() => 0);
+  if (containers > 0 || workdirs > 0) {
+    logger.warn({ containers, workdirs }, 'orfaos de um worker anterior removidos');
+  }
+}
+
+void dockerSupportsSwapLimit()
+  .then((supported) => {
+    if (!supported) {
+      logger.warn(
+        'Docker sem limite de swap (SwapLimit=false): MemorySwap nao e aplicado e um estouro de memoria pagina em vez de ser morto — o limite de memoria (RNF05) nao protege a maquina',
+      );
+    }
+  })
+  .catch(() => undefined);
+
+const ORPHAN_SWEEP_INTERVAL_MS = 5 * 60_000;
+void sweepOrphans();
+setInterval(() => void sweepOrphans(), ORPHAN_SWEEP_INTERVAL_MS).unref();
 
 logger.info({ image: env.SANDBOX_IMAGE }, `escutando a fila "${SIMULATION_QUEUE}"`);
 

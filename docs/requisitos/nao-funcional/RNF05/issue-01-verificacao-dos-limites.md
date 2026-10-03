@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RNF05](feature.md) |
-| Branch | `chore/rnf05-verificacao-dos-limites` |
+| Branch | `feat-RNF05-01-verificacao-limites-back` |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | - |
 
@@ -69,14 +69,14 @@ corresponde a causa.
 
 ## Criterios de aceite
 
-- [ ] Cada limite tem caso de teste e resultado registrado.
-- [ ] Simulacao sem `$finish` reporta `timeout`.
-- [ ] Estouro de memoria reporta `memory_limit`, confirmado por `OOMKilled`.
-- [ ] Morte por `SIGKILL` sem OOM nao e reportada como `memory_limit`.
-- [ ] Compilacao infinita e interrompida e reportada de forma distinguivel.
-- [ ] `mapFailure` tem teste para cada combinacao.
-- [ ] As tres variaveis de ambiente surtem efeito verificado.
-- [ ] Os codigos de saida do script e `mapFailure` estao consistentes.
+- [x] Cada limite tem caso de teste e resultado registrado. _(`docs/SEGURANCA.md` secoes 2 e 4; `test:sandbox`)_
+- [x] Simulacao sem `$finish` reporta `timeout`.
+- [x] Estouro de memoria reporta `memory_limit`, confirmado por `OOMKilled`.
+- [x] Morte por `SIGKILL` sem OOM nao e reportada como `memory_limit`.
+- [x] Compilacao infinita e interrompida e reportada de forma distinguivel. _(exit 4, fase `compile`, mensagem propria)_
+- [x] `mapFailure` tem teste para cada combinacao. _(`sandbox.test.ts`)_
+- [x] As tres variaveis de ambiente surtem efeito verificado.
+- [x] Os codigos de saida do script e `mapFailure` estao consistentes. _(0/2/3/4/124/137; `CLAUDE.md` atualizado)_
 
 ## Verificacao
 
@@ -87,6 +87,23 @@ pnpm typecheck
 ```
 
 Manual: submeter cada caso pela interface e conferir a mensagem.
+
+## Nota de implementacao
+
+Feito **sem** novo valor em `SimulationFailureSchema`: acrescentar `compile_timeout` ao
+enum obrigaria mudar `packages/shared` e os mapas exaustivos do frontend
+(`run-status.ts`, `console-panel.tsx`) na mesma entrega, e front e back nao
+compartilham branch. O timeout de compilacao continua `failure: 'timeout'`, e
+o que o distingue e (a) o codigo de saida interno **4**, (b) `timeoutPhase` no
+resultado do sandbox e no log do job, e (c) um diagnostico proprio no console
+("Tempo limite da compilacao excedido", com a causa provavel: macro recursiva /
+`include` circular). Se a interface passar a precisar tratar os dois de forma
+diferente (por exemplo, um icone), `compile_timeout` vira o passo seguinte.
+
+Antes/depois de cada caso, as mudancas e a ressalva de resolucao de 1 s do
+script estao em `docs/SEGURANCA.md` secao 4. Achado colateral: um container
+cujo PID 1 morre por OOM pode recusar `logs` (`409`) — a leitura agora tolera
+isso; antes o job inteiro falhava sem resultado.
 
 ## Riscos
 

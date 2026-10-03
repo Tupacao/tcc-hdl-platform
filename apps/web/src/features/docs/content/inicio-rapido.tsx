@@ -1,3 +1,4 @@
+import { MAX_SOURCE_BYTES } from '@tplab/shared';
 import { SAMPLE_SOURCES } from '@/lib/samples';
 import { CodeBlock } from '../components/code-block';
 import type { DocSectionContentProps } from '../models/types';
@@ -109,8 +110,8 @@ a=1 b=1 cin=1 -> sum=1 cout=1
         <p className="text-muted-foreground">
           O <code>/work/</code> no caminho é a pasta temporária de cada execução
           isolada - não existe no seu projeto, é normal aparecer nas mensagens.
-          Arquivos muito grandes não chegam a compilar: o limite é 256 KB por
-          arquivo.
+          Arquivos muito grandes não chegam a compilar: o limite é{' '}
+          {MAX_SOURCE_BYTES / 1024} KB por arquivo.
         </p>
       </section>
 

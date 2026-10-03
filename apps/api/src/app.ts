@@ -32,9 +32,15 @@ const SIMULATION_BODY_LIMIT_BYTES = MAX_SOURCE_BYTES * 2 * 4;
 
 /**
  * Com `DATABASE_URL`, persiste em Postgres via Prisma; sem ela, sobe em memoria
- * (dev local sem banco) com aviso — `env.ts` ja exige a variavel em producao.
+ * (dev local sem banco) com aviso — e em producao a variavel e obrigatoria (RF07). A checagem
+ * fica aqui, no processo da API, e nao no schema de `env.ts`: o worker importa o mesmo
+ * schema, nao usa o banco e nao deve receber credenciais que nao usa (RNF04-I02: o
+ * compose subia o worker em producao sem DATABASE_URL e ele morria no start).
  */
 function createProjectService(): ProjectService {
+  if (env.NODE_ENV === 'production' && !env.DATABASE_URL) {
+    throw new Error('DATABASE_URL e obrigatoria quando NODE_ENV=production (RF07)');
+  }
   if (env.DATABASE_URL) {
     return new DefaultProjectService(new PrismaProjectRepository(getPrismaClient()));
   }

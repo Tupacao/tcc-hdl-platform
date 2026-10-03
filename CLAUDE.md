@@ -77,13 +77,24 @@ Compilacao/simulacao nunca roda no processo da API:
    stderr e o `.vcd` do workdir (RNF04/RNF05).
 4. `modules/simulation/diagnostics.ts` converte o stderr do `iverilog` em
    diagnosticos com arquivo/linha/coluna (RF05).
-5. O frontend faz polling em `GET /api/simulations/:jobId` (`runSimulation` em
+5. O tipo do job (`kind`, default `simulate-verilog`) escolhe a toolchain no registro
+   `modules/simulation/toolchains.ts` (imagem, parser de diagnosticos, artefatos); o worker e
+   `runInSandbox` nao conhecem a ferramenta. Artefatos voltam em `artifacts` (por nome) e `vcd`
+   e derivado de `artifacts.vcd`. Convencao dos scripts: `infra/sandbox/README.md`.
+6. O frontend faz polling em `GET /api/simulations/:jobId` (`runSimulation` em
    `lib/api.ts`); o `.vcd` volta como string e alimenta o visualizador (RF06).
 
 Acoplamentos que quebram em silencio se alterados de um lado so:
 
-- **Codigos de saida**: `infra/sandbox/run-simulation.sh` define 0/2/3/124; o
-  `mapFailure` em `sandbox.ts` traduz para `SimulationFailure`. Mudar um exige mudar o outro.
+- **Codigos de saida**: `infra/sandbox/run-simulation.sh` define 0/2/3/4/124/137/153 (4 =
+  timeout da compilacao; 137 = SIGKILL antes do limite; 153 = arquivo acima de 16 MiB); o `mapFailure` em `sandbox.ts`
+  traduz para `SimulationFailure`, e **memoria so e `memory_limit` se o `OOMKilled` do
+  Docker confirmar** (137 sozinho vira `internal_error`). Mudar um exige mudar o outro.
+- **Opcoes do container**: `buildSandboxContainerOptions` (`sandbox.ts`) e a politica do
+  proxy do socket do Docker (`infra/docker-proxy/policy.mjs`) precisam aceitar exatamente as
+  mesmas opcoes — o proxy recusa qualquer `create` diferente. Mudar um exige mudar o outro
+  (`docker-proxy.test.ts` reprova se divergirem). O worker nao monta o socket: fala com o
+  proxy por `DOCKER_HOST`.
 - **Estados do job**: `toJobStatus` mapeia os estados do BullMQ para o
   `JobStatusSchema` publico.
 - **Formato dos logs**: sem TTY o Docker multiplexa stdout/stderr; `demuxDockerLogs`
@@ -91,8 +102,9 @@ Acoplamentos que quebram em silencio se alterados de um lado so:
 - O `run-simulation.sh` roda `iverilog` **sem** `-s`, deixando a toolchain eleger o
   testbench como topo; `topModule` do request e informativo.
 
-A fila e por tipo de job: GHDL (VHDL) e Yosys entram como novos jobs, sem mudar a
-API (RNF08).
+A fila e **unica**, com jobs de tipos distintos (preserva rate limit, retencao e metricas):
+GHDL (VHDL) e Yosys entram como novo `JobKind` + entrada em `TOOLCHAINS`, sem mudar a API
+(RNF08).
 
 ### Persistencia
 

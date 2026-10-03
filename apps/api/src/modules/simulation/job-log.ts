@@ -13,6 +13,10 @@ export interface JobLogRecord {
   timings: SandboxTimings;
   /** RF04-I02 — quais artefatos vieram cortados por teto de tamanho. */
   truncated: TruncatedFlags;
+  /** RNF05-I01 — estouro de memoria confirmado pelo Docker, e etapa em que o tempo estourou. */
+  oomKilled: boolean;
+  timeoutPhase: string | null;
+  logsUnavailable: boolean;
 }
 
 export interface JobLogInput {
@@ -42,5 +46,8 @@ export function buildJobLogRecord(input: JobLogInput): JobLogRecord {
     queueWaitMs: input.processedAt !== undefined ? input.processedAt - input.queuedAt : null,
     timings: input.outcome.timings,
     truncated: input.outcome.truncated,
+    oomKilled: input.outcome.oomKilled,
+    timeoutPhase: input.outcome.timeoutPhase,
+    logsUnavailable: input.outcome.logsUnavailable,
   };
 }

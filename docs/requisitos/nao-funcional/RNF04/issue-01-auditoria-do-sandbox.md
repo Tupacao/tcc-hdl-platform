@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Feature | [RNF04](feature.md) |
-| Branch | `chore/rnf04-auditoria-do-sandbox` |
+| Branch | `feat-RNF04-01-auditoria-sandbox-back` |
 | Tamanho | M (aprox. 1 dia) |
 | Depende de | - |
 
@@ -59,14 +59,14 @@ como evidencia.
 
 ## Criterios de aceite
 
-- [ ] Existe um caso de teste por barreira, com resultado registrado.
-- [ ] Nenhum caso consegue escapar, escrever fora ou alcancar a rede.
-- [ ] Nenhuma variavel de ambiente da API aparece dentro do container.
-- [ ] Estouro de memoria e de tempo produzem os desfechos corretos.
-- [ ] Nao restam containers nem diretorios apos os testes.
-- [ ] O worker morto no meio de uma execucao nao deixa container orfao.
-- [ ] Ha teste automatizado das opcoes de seguranca do container.
-- [ ] `docs/SEGURANCA.md` traz o modelo de ameaca e os resultados.
+- [x] Existe um caso de teste por barreira, com resultado registrado. _(`docs/SEGURANCA.md` secao 2; `test:sandbox`)_
+- [x] Nenhum caso consegue escapar, escrever fora ou alcancar a rede.
+- [x] Nenhuma variavel de ambiente da API aparece dentro do container.
+- [x] Estouro de memoria e de tempo produzem os desfechos corretos. _(o container e morto nos dois; o **desfecho reportado** ao usuario tinha defeito e e o objeto de RNF05-I01 — ver Nota)_
+- [x] Nao restam containers nem diretorios apos os testes.
+- [x] O worker morto no meio de uma execucao nao deixa container orfao. _(rotulo + varredura; reproduzido antes e depois)_
+- [x] Ha teste automatizado das opcoes de seguranca do container. _(`sandbox.security.test.ts`)_
+- [x] `docs/SEGURANCA.md` traz o modelo de ameaca e os resultados.
 
 ## Verificacao
 
@@ -75,6 +75,32 @@ pnpm sandbox:build
 pnpm --filter @tplab/api test
 docker ps -a | grep tplab   # nao deve listar nada apos os testes
 ```
+
+## Nota de implementacao
+
+`sandbox.ts` passou a montar as opcoes do container em uma funcao pura
+(`buildSandboxContainerOptions`), o que torna o passo 6 (teste de integridade
+da configuracao) possivel sem Docker e mantem uma unica fonte das barreiras. Os
+casos de abuso foram rodados pelo fluxo real (`runInSandbox`) e, para o que o
+Verilog nao alcanca, por shell dentro do container com **as mesmas opcoes**.
+
+Achado que muda o plano: `$system` **nao esta definido** no Icarus 12.0 desta
+imagem — a execucao de comando por Verilog nao existe, o que reduz muito o risco
+de I03, mas obrigou a verificar as barreiras por shell (exatamente o caso que o
+risco #1 desta issue antecipava).
+
+O passo 5 (orfaos) tinha razao de existir: reproduzido com um worker filho
+morto por `SIGKILL`, o container ficou `Exited (124)` para sempre e o
+diretorio com os fontes do usuario ficou em `/tmp`. Corrigido com rotulo
+`tplab.sandbox` e varredura no start do worker e a cada 5 minutos.
+
+Registrados para RNF05-I01 (nao corrigidos aqui, por serem de fidelidade do
+desfecho e nao de isolamento): OOM do `vvp` e reportado como `timeout`, OOM do
+`iverilog` como `compile_error`, e `iverilog` esta fora do `timeout`.
+
+O teste de integracao contra Docker (`sandbox.integration.ts`) fica fora do glob
+de `pnpm test` de proposito — e lento (~40 s) e exige a imagem —, e roda por
+`pnpm --filter @tplab/api test:sandbox`.
 
 ## Riscos
 
