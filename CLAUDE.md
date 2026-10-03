@@ -132,6 +132,9 @@ Em desenvolvimento o Vite faz proxy de `/api` para `localhost:3333`, entao nao h
   explicito do usuario (o texto sem acento estava sendo lido como erro de
   portugues). Comentarios e textos ja existentes nao precisam ser reescritos
   so por causa disso; a regra vale para texto novo ou tocado a partir de agora.
+- Textos visiveis ao usuario (interface, documentacao, mensagens da API/validacao) usam o
+  vocabulario de `docs/GLOSSARIO.md` (circuito, testbench, modulo principal, simular, Executar,
+  forma de onda, erro/aviso, Problemas, Console) — consultar antes de escrever texto novo.
 - Prettier: aspas simples, ponto e virgula, `printWidth` 100, LF. `.sh` e Dockerfile
   sao forcados a LF pelo `.gitattributes` (rodam em container Linux).
 

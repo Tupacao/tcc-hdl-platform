@@ -12,7 +12,7 @@ export const DOC_SECTIONS: DocSection[] = [
     category: 'inicio-rapido',
     title: 'Primeiro projeto',
     summary:
-      'O caminho mínimo até a primeira forma de onda: mapa da tela, design, testbench, executar e ler o resultado.',
+      'O caminho mínimo até a primeira forma de onda: mapa da tela, circuito, testbench, executar e ler o resultado.',
     Component: InicioRapidoSection,
   },
   {

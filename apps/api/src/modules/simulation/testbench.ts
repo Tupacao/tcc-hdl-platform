@@ -73,7 +73,7 @@ export function analyzeTestbenchContract(
     diagnostics.push(
       warning(
         design.name,
-        `O arquivo de design nao declara "module ${topModule}". Confira se o nome do modulo de topo bate com o que foi declarado.`,
+        `O arquivo de circuito não declara "module ${topModule}". Confira se o nome do módulo principal bate com o que foi declarado.`,
       ),
     );
   }
@@ -82,7 +82,7 @@ export function analyzeTestbenchContract(
     diagnostics.push(
       warning(
         testbench.name,
-        `O testbench nao parece instanciar "${topModule}". A simulacao roda, mas pode nao testar o circuito esperado.`,
+        `O testbench não parece instanciar "${topModule}". A simulação termina, mas pode não testar o circuito esperado.`,
       ),
     );
   }
@@ -124,7 +124,7 @@ export function analyzePostExecution(input: PostExecutionInput): Diagnostic[] {
     return [
       warning(
         input.testbenchName,
-        'A simulacao terminou sem nenhuma saida (nem texto, nem forma de onda). O testbench provavelmente nao instancia o modulo de topo.',
+        'A simulação terminou sem nenhuma saída (nem texto, nem forma de onda). O testbench provavelmente não instancia o módulo principal.',
       ),
     ];
   }

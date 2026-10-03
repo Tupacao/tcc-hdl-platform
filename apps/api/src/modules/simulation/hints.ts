@@ -25,7 +25,7 @@ const HINT_RULES: ReadonlyArray<HintRule> = [
   {
     pattern: /^Unknown module type:\s*(\S+)/i,
     title: (match) => `O módulo ${match[1]} não foi encontrado`,
-    hint: 'Confira se o nome usado na instanciação é exatamente o mesmo do "module" declarado no arquivo de design.',
+    hint: 'Confira se o nome usado na instanciação é exatamente o mesmo do "module" declarado no arquivo de circuito.',
   },
   {
     pattern: /^I give up\.?$/i,
@@ -35,7 +35,7 @@ const HINT_RULES: ReadonlyArray<HintRule> = [
   {
     pattern: /is not a port of/i,
     title: () => 'Porta inexistente no módulo',
-    hint: 'O nome dessa porta na instanciação não existe no módulo. Confira se está escrito igual nos dois arquivos (design e testbench).',
+    hint: 'O nome dessa porta na instanciação não existe no módulo. Confira se está escrito igual nos dois arquivos (circuito e testbench).',
   },
   {
     pattern: /expects \d+ bits?, got \d+/i,

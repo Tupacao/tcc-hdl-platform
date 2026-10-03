@@ -15,7 +15,7 @@ import { DefaultProjectService } from '../service/project.service.js';
 const notFound = {
   statusCode: 404,
   error: 'Not Found',
-  message: 'Projeto nao encontrado',
+  message: 'Projeto não encontrado. Ele pode ter sido excluído; confira em Meus projetos.',
 } as const;
 
 /** CRUD de projetos (RF07). Entrada HTTP; toda regra passa pelo `ProjectService`. */

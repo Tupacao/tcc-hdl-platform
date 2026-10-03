@@ -89,7 +89,8 @@ export async function buildApp() {
       return reply.status(400).send({
         statusCode: 400,
         error: 'Bad Request',
-        message: firstValidationMessage ?? 'Dados de entrada invalidos',
+        message:
+          firstValidationMessage ?? 'Dados inválidos. Confira os arquivos e tente novamente.',
         details: error.validation,
       });
     }
@@ -98,7 +99,8 @@ export async function buildApp() {
       return reply.status(413).send({
         statusCode: 413,
         error: 'Payload Too Large',
-        message: 'Corpo da requisicao excede o limite permitido',
+        message:
+          'O código enviado excede o limite permitido. Reduza o tamanho dos arquivos e execute novamente.',
       });
     }
 
@@ -108,7 +110,7 @@ export async function buildApp() {
       return reply.status(429).send({
         statusCode: 429,
         error: 'Too Many Requests',
-        message: 'Muitas simulacoes em sequencia. Aguarde antes de tentar novamente.',
+        message: 'Muitas simulações em sequência. Aguarde antes de tentar novamente.',
       });
     }
 
@@ -117,7 +119,10 @@ export async function buildApp() {
     return reply.status(statusCode).send({
       statusCode,
       error: error.name,
-      message: statusCode >= 500 ? 'Erro interno do servidor' : error.message,
+      message:
+        statusCode >= 500
+          ? 'Erro interno da plataforma. Tente novamente em instantes.'
+          : error.message,
     });
   });
 

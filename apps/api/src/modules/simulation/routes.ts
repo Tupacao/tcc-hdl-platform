@@ -62,7 +62,7 @@ export async function simulationRoutes(app: FastifyInstance): Promise<void> {
           return reply.status(503).send({
             statusCode: 503,
             error: 'Service Unavailable',
-            message: 'Fila de simulacoes cheia. Tente novamente em alguns minutos.',
+            message: 'Fila de simulações cheia. Tente novamente em alguns minutos.',
           });
         }
 
@@ -79,7 +79,8 @@ export async function simulationRoutes(app: FastifyInstance): Promise<void> {
         return reply.status(503).send({
           statusCode: 503,
           error: 'Service Unavailable',
-          message: 'Fila de simulacao indisponivel. Verifique se o Redis esta em execucao.',
+          message:
+            'O serviço de simulação está indisponível. Tente novamente em instantes; se persistir, avise quem mantém a plataforma.',
         });
       }
     },
@@ -112,7 +113,7 @@ export async function simulationRoutes(app: FastifyInstance): Promise<void> {
         return reply.status(404).send({
           statusCode: 404,
           error: 'Not Found',
-          message: 'Simulacao nao encontrada ou expirada',
+          message: 'Simulação não encontrada ou expirada. Execute o circuito novamente.',
         });
       }
 
@@ -136,7 +137,9 @@ export async function simulationRoutes(app: FastifyInstance): Promise<void> {
           return reply.send({
             ...pending,
             failure: 'internal_error' as const,
-            stderr: job.failedReason ?? 'Falha inesperada na execucao',
+            stderr:
+              job.failedReason ??
+              'A execução falhou antes de produzir resultado. Execute novamente; se repetir, avise quem mantém a plataforma.',
             finishedAt: job.finishedOn ? new Date(job.finishedOn).toISOString() : null,
           });
         }

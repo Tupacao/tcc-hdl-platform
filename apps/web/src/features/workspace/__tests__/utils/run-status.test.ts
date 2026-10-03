@@ -129,19 +129,19 @@ test('RF03-I02: 429 e 503 têm rótulos distintos de uma falha de rede genérica
   const rateLimited = buildRunStatus({
     ...IDLE_INPUT,
     isRunning: false,
-    error: 'Muitas simulacoes em sequencia. Aguarde antes de tentar novamente.',
+    error: 'Muitas simulações em sequência. Aguarde antes de tentar novamente.',
     errorStatus: 429,
   });
   assert.equal(rateLimited.label, 'Limite de uso atingido');
   assert.equal(
     rateLimited.detail,
-    'Muitas simulacoes em sequencia. Aguarde antes de tentar novamente.',
+    'Muitas simulações em sequência. Aguarde antes de tentar novamente.',
   );
 
   const serviceUnavailable = buildRunStatus({
     ...IDLE_INPUT,
     isRunning: false,
-    error: 'Fila de simulacoes cheia. Tente novamente em alguns minutos.',
+    error: 'Fila de simulações cheia. Tente novamente em alguns minutos.',
     errorStatus: 503,
   });
   assert.equal(serviceUnavailable.label, 'Não foi possível executar');
@@ -160,7 +160,7 @@ test('RF03-I03: 404 de jobId expirado orienta a reexecutar', () => {
   const expired = buildRunStatus({
     ...IDLE_INPUT,
     isRunning: false,
-    error: 'Simulacao nao encontrada ou expirada',
+    error: 'Simulação não encontrada ou expirada. Execute o circuito novamente.',
     errorStatus: 404,
   });
   assert.equal(expired.label, 'Simulação expirada');

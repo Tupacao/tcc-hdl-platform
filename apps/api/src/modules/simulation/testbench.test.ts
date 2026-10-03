@@ -13,14 +13,14 @@ test('testbench que instancia o topModule nao gera aviso de instanciacao', () =>
   const testbench = file('tb.v', 'counter dut (.clk(clk), .q(q));');
   const result = analyzeTestbenchContract(VALID_DESIGN, testbench, 'counter');
 
-  assert.ok(!result.diagnostics.some((d) => d.message.includes('nao parece instanciar')));
+  assert.ok(!result.diagnostics.some((d) => d.message.includes('não parece instanciar')));
 });
 
 test('testbench que nao instancia o topModule gera aviso', () => {
   const testbench = file('tb.v', 'wire clk;');
   const result = analyzeTestbenchContract(VALID_DESIGN, testbench, 'counter');
 
-  const found = result.diagnostics.find((d) => d.message.includes('nao parece instanciar'));
+  const found = result.diagnostics.find((d) => d.message.includes('não parece instanciar'));
   assert.ok(found);
   assert.equal(found.severity, 'warning');
   assert.equal(found.file, 'tb.v');
@@ -30,7 +30,7 @@ test('aceita instanciacao parametrizada (#(.WIDTH(8)))', () => {
   const testbench = file('tb.v', 'counter #(.WIDTH(8)) dut (.clk(clk), .q(q));');
   const result = analyzeTestbenchContract(VALID_DESIGN, testbench, 'counter');
 
-  assert.ok(!result.diagnostics.some((d) => d.message.includes('nao parece instanciar')));
+  assert.ok(!result.diagnostics.some((d) => d.message.includes('não parece instanciar')));
 });
 
 test('aceita instanciacao quebrada em varias linhas', () => {
@@ -41,7 +41,7 @@ test('aceita instanciacao quebrada em varias linhas', () => {
   );
   const result = analyzeTestbenchContract(VALID_DESIGN, testbench, 'counter');
 
-  assert.ok(!result.diagnostics.some((d) => d.message.includes('nao parece instanciar')));
+  assert.ok(!result.diagnostics.some((d) => d.message.includes('não parece instanciar')));
 });
 
 test('mencao dentro de comentario nao conta como instanciacao', () => {
@@ -53,7 +53,7 @@ test('mencao dentro de comentario nao conta como instanciacao', () => {
   );
   const result = analyzeTestbenchContract(VALID_DESIGN, testbench, 'counter');
 
-  assert.ok(result.diagnostics.some((d) => d.message.includes('nao parece instanciar')));
+  assert.ok(result.diagnostics.some((d) => d.message.includes('não parece instanciar')));
 });
 
 test('design que nao declara o topModule gera aviso', () => {
@@ -61,7 +61,7 @@ test('design que nao declara o topModule gera aviso', () => {
   const testbench = file('tb.v', 'counter dut (.clk(clk), .q(q));');
   const result = analyzeTestbenchContract(design, testbench, 'counter');
 
-  const found = result.diagnostics.find((d) => d.message.includes('nao declara'));
+  const found = result.diagnostics.find((d) => d.message.includes('não declara'));
   assert.ok(found);
   assert.equal(found.file, 'd.v');
 });
@@ -153,7 +153,7 @@ test('analyzePostExecution: sucesso sem stdout nem vcd sugere que o testbench na
   });
 
   assert.ok(diagnostic);
-  assert.match(diagnostic.message, /provavelmente nao instancia/);
+  assert.match(diagnostic.message, /provavelmente não instancia/);
 });
 
 test('analyzePostExecution: sucesso com stdout mas sem vcd pede para conferir dumpfile/dumpvars', () => {
