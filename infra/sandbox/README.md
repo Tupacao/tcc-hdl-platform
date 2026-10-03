@@ -8,15 +8,15 @@ esperados) e esta convenção.
 
 ## Códigos de saída — contrato de todo script
 
-| Código | Significado                                                                      |
-| ------ | -------------------------------------------------------------------------------- |
-| 0      | sucesso                                                                          |
-| 2      | erro de compilação/análise do código do usuário                                  |
-| 3      | erro em tempo de execução/simulação                                              |
-| 4      | timeout da compilação/análise (`SIM_COMPILE_TIMEOUT_S`)                          |
-| 124    | timeout da execução (`SIM_TIMEOUT_S`)                                            |
-| 153    | arquivo gravado acima do teto por arquivo (128 + SIGXFSZ, `ulimit -f`)           |
-| 137    | SIGKILL antes do limite — quem decide se foi memória é o `OOMKilled` do Docker   |
+| Código | Significado                                                                    |
+| ------ | ------------------------------------------------------------------------------ |
+| 0      | sucesso                                                                        |
+| 2      | erro de compilação/análise do código do usuário                                |
+| 3      | erro em tempo de execução/simulação                                            |
+| 4      | timeout da compilação/análise (`SIM_COMPILE_TIMEOUT_S`)                        |
+| 124    | timeout da execução (`SIM_TIMEOUT_S`)                                          |
+| 153    | arquivo gravado acima do teto por arquivo (128 + SIGXFSZ, `ulimit -f`)         |
+| 137    | SIGKILL antes do limite — quem decide se foi memória é o `OOMKilled` do Docker |
 
 `mapFailure` (`sandbox.ts`) traduz estes códigos para `SimulationFailure`; mudar um lado
 exige mudar o outro. Qualquer outro código vira `internal_error`.
