@@ -15,6 +15,11 @@ interface CodeEditorProps {
   onShortcut: (id: ShortcutId) => void;
   /** RF09-I03 - posição do cursor para a barra de estado. */
   onCursorChange?: (position: { line: number; column: number }) => void;
+  /**
+   * RF16-I01 - o Monaco carrega de forma assíncrona; o tour só pode destacar o
+   * editor depois disto, ou destacaria o retângulo de "Carregando editor...".
+   */
+  onReady?: () => void;
 }
 
 /** RF05-I02 - navegação imperativa até um diagnóstico, exposta ao `Workspace`. */
@@ -53,7 +58,7 @@ function applyModelOptions(instance: editor.IStandaloneCodeEditor): void {
 
 /** Editor Verilog com destaque de sintaxe (RF02) e marcação de erros (RF05). */
 export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditor(
-  { fileName, value, diagnostics, onChange, onShortcut, onCursorChange },
+  { fileName, value, diagnostics, onChange, onShortcut, onCursorChange, onReady },
   ref,
 ) {
   const { resolvedTheme } = useTheme();
@@ -76,10 +81,12 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function
   const visitedFileNamesRef = useRef<Set<string>>(new Set());
   const onCursorChangeRef = useRef(onCursorChange);
   const onShortcutRef = useRef(onShortcut);
+  const onReadyRef = useRef(onReady);
   useEffect(() => {
     onShortcutRef.current = onShortcut;
     onCursorChangeRef.current = onCursorChange;
-  }, [onShortcut, onCursorChange]);
+    onReadyRef.current = onReady;
+  }, [onShortcut, onCursorChange, onReady]);
 
   // RF02-I02 — tema Monaco customizado, definido antes do editor nascer (evita o flash de
   // `vs` padrão) e refeito a cada troca de tema (inclui a preferência "system" do SO, que
@@ -110,6 +117,8 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function
     };
     report();
     instance.onDidChangeCursorPosition(report);
+    // RF16-I01: só agora o editor existe de verdade na tela.
+    onReadyRef.current?.();
 
     // Sobrescrevem os atalhos nativos do Monaco (Ctrl+Enter insere linha; F8 só percorre
     // marcadores do arquivo aberto). Escape só sai do editor quando nenhum widget está aberto.

@@ -60,14 +60,37 @@ quebrem com mudanca de estilo.
 
 ## Criterios de aceite
 
-- [ ] O tour percorre os passos do roteiro na ordem.
-- [ ] Todas as ancoras usam `data-tour`, nenhuma usa classe de estilo.
-- [ ] Ancora ausente e pulada sem quebrar nada.
-- [ ] O tour so inicia com a interface pronta, incluindo o editor.
-- [ ] `Esc` encerra e devolve o foco ao ponto de origem.
-- [ ] O balao e navegavel por teclado e anunciado como dialogo.
-- [ ] Funciona nos dois temas e em 1024px.
-- [ ] Os textos sao consistentes com o guia de RF11.
+- [x] O tour percorre os passos do roteiro na ordem (verificado no navegador:
+      1 de 6 a 6 de 6, com "Concluir" no ultimo).
+- [x] Todas as ancoras usam `data-tour`, nenhuma usa classe de estilo.
+- [x] Ancora ausente e pulada sem quebrar nada (teste proprio).
+- [x] O tour so inicia com a interface pronta: `CodeEditor` avisa por `onReady`
+      no `onMount` do Monaco.
+- [x] `Esc` encerra e devolve o foco ao ponto de origem.
+- [x] O balao e navegavel por teclado e anunciado como dialogo
+      (`role="dialog"` + `aria-label`).
+- [x] Funciona nos dois temas e em 1024px (conferido no navegador).
+- [x] Os textos sao consistentes com o glossario e com o guia de RF11.
+
+## Divergencias da especificacao original
+
+- **Numero de passos**: 6, nao 4. O frame 7.4 ilustra o balao com "3 de 4", mas
+  o criterio de aceite da feature exige editor, abas, executar, **console** e
+  formas de onda; o sexto passo apresenta o menu de ajuda — a documentacao, o
+  "refazer o tour" e o envio de feedback (RF17), que nao se anuncia em lugar
+  nenhum e ficava invisivel para quem nunca abre o menu. E o item 7 da ordem
+  sugerida nesta issue ("onde encontrar a documentacao completa e como reabrir o
+  tour"), que a primeira versao resolvia com uma frase no passo das formas de
+  onda. O contador e dinamico, entao o balao continua fiel ao design.
+- **Trilha de passos no rodape** (o componente "TrilhaDosPassos" de 7.4) nao foi
+  implementada: o contador "3 de 6" e os pontos de progresso ja dao a posicao, e
+  um segundo indicador fixo ocuparia a tela toda do tour. Registrado como
+  melhoria possivel.
+- **Peso no bundle** (a issue pede a medicao): +30 KB sem compressao, +9 KB
+  comprimido, somando `driver.js`, o CSS do balao e a feature.
+- **Troca de tema durante o tour**: a opacidade do veu e resolvida ao iniciar;
+  trocar de tema com o tour aberto mantem a opacidade anterior ate o proximo
+  inicio. Aceitavel — o Figma trata os dois temas, nao a troca no meio.
 
 ## Verificacao
 

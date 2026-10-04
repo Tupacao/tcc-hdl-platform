@@ -11,6 +11,7 @@ import {
   type LocalProject,
 } from '@/features/projects';
 import { describeLastRun, pickCompilerOutput, rememberRunContext } from '@/features/feedback';
+import { TOUR_ANCHORS, anchorAttributes, useTour } from '@/features/tour';
 import { cn } from '@/lib/utils';
 import { CodeEditor, type CodeEditorHandle } from './components/code-editor';
 import { ConsolePanel, type ConsolePanelHandle } from './components/console-panel';
@@ -88,6 +89,9 @@ export function Workspace({
   const consolePanelRef = useRef<ConsolePanelHandle>(null);
   const idPrefix = useId();
   const [cursor, setCursor] = useState<{ line: number; column: number } | null>(null);
+  // RF16-I01: o tour só começa com o Monaco montado.
+  const [editorReady, setEditorReady] = useState(false);
+  const { start: startTour } = useTour({ ready: editorReady });
   // RF09-I01 - layout salvo lido uma vez, na montagem; `Panel` só usa o defaultSize inicial.
   const [initialHorizontal] = useState(() => loadLayout(HORIZONTAL_LAYOUT_KEY));
   const [initialVertical] = useState(() => loadLayout(VERTICAL_LAYOUT_KEY));
@@ -306,6 +310,8 @@ export function Workspace({
         onCancel={runMutation.cancel}
         onResetLayout={handleResetLayout}
         onOpenShortcuts={() => setShortcutsOpen(true)}
+        onRestartTour={startTour}
+        onSendFeedback={onSendFeedback}
       />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
 
@@ -345,19 +351,22 @@ export function Workspace({
                 minSize={PANEL_MIN_SIZE.EDITOR}
                 className="flex flex-col"
               >
-                <FileTabs
-                  sources={sources}
-                  activeTab={activeTab}
-                  onSelectTab={setActiveTab}
-                  idPrefix={idPrefix}
-                  filesWithErrors={filesWithErrors}
-                  dirtyFiles={dirtyFiles}
-                />
+                <div {...anchorAttributes(TOUR_ANCHORS.FILE_TABS)}>
+                  <FileTabs
+                    sources={sources}
+                    activeTab={activeTab}
+                    onSelectTab={setActiveTab}
+                    idPrefix={idPrefix}
+                    filesWithErrors={filesWithErrors}
+                    dirtyFiles={dirtyFiles}
+                  />
+                </div>
                 <div
                   role="tabpanel"
                   id={fileTabPanelId(idPrefix)}
                   aria-labelledby={fileTabId(idPrefix, activeTab)}
                   className="min-h-0 flex-1"
+                  {...anchorAttributes(TOUR_ANCHORS.EDITOR)}
                 >
                   <CodeEditor
                     ref={codeEditorRef}
@@ -367,6 +376,7 @@ export function Workspace({
                     onChange={(content) => updateFile(activeTab, content)}
                     onShortcut={handleShortcut}
                     onCursorChange={setCursor}
+                    onReady={() => setEditorReady(true)}
                   />
                 </div>
               </Panel>
@@ -376,6 +386,7 @@ export function Workspace({
               <Panel
                 defaultSize={(initialVertical ?? DEFAULT_VERTICAL_LAYOUT)[1]}
                 minSize={PANEL_MIN_SIZE.CONSOLE}
+                {...anchorAttributes(TOUR_ANCHORS.CONSOLE)}
               >
                 <ConsolePanel
                   ref={consolePanelRef}
@@ -396,6 +407,7 @@ export function Workspace({
           <Panel
             defaultSize={(initialHorizontal ?? DEFAULT_HORIZONTAL_LAYOUT)[1]}
             minSize={PANEL_MIN_SIZE.WAVEFORM}
+            {...anchorAttributes(TOUR_ANCHORS.WAVEFORM)}
           >
             <div className="flex h-full flex-col">
               <PanelHeading>Formas de onda</PanelHeading>
