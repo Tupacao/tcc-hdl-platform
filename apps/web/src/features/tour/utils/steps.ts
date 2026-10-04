@@ -49,8 +49,20 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     anchor: TOUR_ANCHORS.WAVEFORM,
     title: 'Leia as formas de onda',
-    body: 'Os sinais gravados pelo testbench aparecem aqui ao longo do tempo. Para refazer este tour depois, use o menu de ajuda no topo.',
+    body: 'Os sinais gravados pelo testbench aparecem aqui ao longo do tempo, com o valor de cada um em qualquer instante da simulação.',
     side: 'left',
+  },
+  /**
+   * O passo existe porque o formulário de feedback (RF17) não se anuncia: mora
+   * dentro deste menu e na barra de estado, e quem nunca abriu o menu não
+   * descobre que pode relatar um problema. Última posição de propósito — o tour
+   * ensina a usar a ferramenta antes de pedir opinião sobre ela.
+   */
+  {
+    anchor: TOUR_ANCHORS.HELP_MENU,
+    title: 'Ajuda e feedback',
+    body: 'Neste menu ficam a documentação, os atalhos de teclado e este tour, para refazer quando quiser. É também por aqui que você nos conta o que quebrou ou o que faria o TP Lab melhor.',
+    side: 'bottom',
   },
 ];
 

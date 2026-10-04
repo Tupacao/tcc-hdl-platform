@@ -134,6 +134,7 @@ export function WorkspaceHeader({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
+              {...anchorAttributes(TOUR_ANCHORS.HELP_MENU)}
               variant="ghost"
               size="icon"
               aria-label={TOUR_MENU.TRIGGER_LABEL}

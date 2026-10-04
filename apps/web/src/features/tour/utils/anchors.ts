@@ -9,6 +9,7 @@ export const TOUR_ANCHORS = {
   RUN_BUTTON: 'run-button',
   CONSOLE: 'console',
   WAVEFORM: 'waveform',
+  HELP_MENU: 'help-menu',
 } as const;
 
 export type TourAnchor = (typeof TOUR_ANCHORS)[keyof typeof TOUR_ANCHORS];

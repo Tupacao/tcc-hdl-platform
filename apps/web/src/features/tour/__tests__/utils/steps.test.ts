@@ -18,7 +18,7 @@ const TODAS = Object.values(TOUR_ANCHORS);
 test('o roteiro cobre o fluxo de trabalho na ordem (RF16)', () => {
   assert.deepEqual(
     TOUR_STEPS.map((step) => step.anchor),
-    ['editor', 'file-tabs', 'run-button', 'console', 'waveform'],
+    ['editor', 'file-tabs', 'run-button', 'console', 'waveform', 'help-menu'],
   );
 });
 
@@ -64,8 +64,19 @@ test('nenhuma ancora na tela devolve lista vazia, sem lancar', () => {
 });
 
 test('o contador do balao conta a partir de 1', () => {
-  assert.equal(formatStepCounter(1, 5), '1 de 5');
-  assert.equal(formatStepCounter(5, 5), '5 de 5');
+  assert.equal(formatStepCounter(1, 6), '1 de 6');
+  assert.equal(formatStepCounter(6, 6), '6 de 6');
+});
+
+/**
+ * O formulario de feedback (RF17) mora dentro do menu de ajuda: sem um passo que
+ * o nomeie, quem nunca abriu o menu nao descobre que pode relatar um problema.
+ */
+test('o ultimo passo apresenta o menu de ajuda e cita o feedback', () => {
+  const ultimo = TOUR_STEPS[TOUR_STEPS.length - 1];
+
+  assert.equal(ultimo?.anchor, TOUR_ANCHORS.HELP_MENU);
+  assert.match(`${ultimo?.title} ${ultimo?.body}`, /feedback|conta o que/i);
 });
 
 test('o contador acompanha o roteiro realmente exibido, nao o total fixo', () => {
