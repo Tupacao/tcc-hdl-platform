@@ -185,6 +185,26 @@
     @apply bg-background text-foreground antialiased;
   }
 
+  /* O preflight do Tailwind v4 passou a dar `cursor: default` a todo controle
+     nativo — inclusive `<button>`. Sem isto, o ponteiro não muda sobre nenhum
+     botão da aplicação e some a única pista de "isto é clicável" que existe antes
+     do clique (RNF09). A regra fica aqui, e não em cada componente: são dezenas
+     de botões, e qualquer um esquecido volta a parecer texto.
+     `:disabled` fica de fora de propósito: botão travado não é clicável, e o
+     `disabled:pointer-events-none` do shadcn já impede o estado de hover.
+     As funções de botão do Radix (item de menu, aba, opção de lista) entram pelo
+     papel ARIA, porque ali o elemento renderizado é uma `div`. */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='menuitem']:not([aria-disabled='true']),
+  [role='menuitemcheckbox']:not([aria-disabled='true']),
+  [role='menuitemradio']:not([aria-disabled='true']),
+  [role='tab']:not([aria-disabled='true']),
+  [role='option']:not([aria-disabled='true']),
+  summary {
+    cursor: pointer;
+  }
+
   /* RNF03: resolucao minima recomendada de 1024px. */
   html,
   body,
