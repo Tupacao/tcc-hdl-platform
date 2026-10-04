@@ -59,7 +59,8 @@ com contexto tecnico declarado.
 - [x] O formulario valida com o mesmo schema do backend (`CreateFeedbackSchema`).
 - [x] O contexto tecnico e visivel antes do envio e pode ser omitido.
 - [x] O codigo do usuario nunca e enviado (teste proprio fecha a lista de campos).
-- [x] O sucesso e confirmado e o dialogo fecha sozinho em 2 s.
+- [x] O sucesso e confirmado e o dialogo fecha sozinho (sem espera - ver
+      divergencia "Confirmacao de sucesso").
 - [x] Erro de envio preserva o texto digitado (verificado com a rede desligada).
 - [x] O limite de envios mostra mensagem propria.
 - [x] O dialogo e operavel por teclado, com retorno de foco ao ponto de origem.
@@ -71,9 +72,12 @@ com contexto tecnico declarado.
   o editor"), e o escopo tecnico da issue citava `workspace-header.tsx`.
 - **Caminhos**: a feature mora em `features/feedback/{components,hooks,models,utils}`,
   como manda `docs/ARCHITECTURE.md`, e nao em arquivos soltos na raiz da pasta.
-- **Confirmacao de sucesso**: painel dentro do proprio dialogo com fechamento
-  automatico em 2 s (Figma 10.5), em vez de toast do `sonner`. Dois avisos para o
-  mesmo evento seriam ruido.
+- **Confirmacao de sucesso**: nenhuma mensagem - o dialogo fecha assim que o
+  servidor responde 201, e o fechamento e a confirmacao. O Figma 10.5 pede um
+  painel "Obrigado - recebido" que some em 2 s, e a primeira versao fez isso;
+  revertido a pedido do autor do projeto, porque a tela de agradecimento prende a
+  pessoa 2 s num lugar onde nao ha nada a fazer. O caminho de falha e o de limite
+  diario continuam com painel proprio: ali a pessoa ainda precisa decidir algo.
 - **Interruptor de contexto**: `Checkbox` do shadcn ja instalado, no lugar de um
   `Switch` novo - evitou uma dependencia (`@radix-ui/react-switch`) so por causa
   da forma do controle.
