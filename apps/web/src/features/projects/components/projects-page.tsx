@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { FEEDBACK_TRIGGER_LABEL } from '@/features/feedback';
 import { DOCS_BUTTON_LABEL } from '@/features/docs';
 import type { UseLocalProjectsResult } from '../hooks/use-local-projects';
 import type { LocalProject } from '../models/types';
@@ -40,6 +41,8 @@ interface ProjectsPageProps {
   onNavigateBack: () => void;
   /** RF11: navega para a documentação (página própria, não sobreposta). */
   onOpenDocs: () => void;
+  /** RF17: o formulário de feedback é alcançável de qualquer tela. */
+  onSendFeedback: () => void;
 }
 
 /** Página "Meus projetos" (RF07-I02, frame 6.1 do Figma). */
@@ -48,6 +51,7 @@ export function ProjectsPage({
   onOpenProject,
   onNavigateBack,
   onOpenDocs,
+  onSendFeedback,
 }: ProjectsPageProps) {
   const { projects, loadError, retryLoad, create, rename, duplicate, remove, restore } =
     localProjects;
@@ -137,6 +141,9 @@ export function ProjectsPage({
           <Button variant="ghost" size="sm" onClick={onOpenDocs}>
             <BookOpen aria-hidden />
             {DOCS_BUTTON_LABEL}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onSendFeedback}>
+            {FEEDBACK_TRIGGER_LABEL}
           </Button>
           <Button variant="ghost" size="sm" onClick={onNavigateBack}>
             {NAVIGATE_BACK_LABEL}

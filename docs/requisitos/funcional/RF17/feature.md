@@ -6,7 +6,7 @@
 | Categoria | Requisito Funcional |
 | Prioridade (MoSCoW) | Should Have |
 | Epico | Validacao da proposta |
-| Status | Parcial (I01 feito; falta o formulario de I02) |
+| Status | Implementado (I01 + I02) |
 | Requisitos relacionados | RF19, RF07, RNF01, RNF06 |
 
 ## 1. Enunciado
@@ -66,7 +66,10 @@ existe.
 - IP guardado so como hash com sal (`FEEDBACK_IP_SALT`); procedimento de leitura
   dos relatos documentado no `README.md`.
 - `sonner` ja esta disponivel no frontend para confirmacao de envio.
-- **Falta**: o formulario na interface (RF17-I02).
+- Formulario em `apps/web/src/features/feedback/`, alcancavel da barra de estado
+  (workspace) e do cabecalho de "Meus projetos" e da documentacao.
+- **Falta**: nada do escopo desta feature. Associar o relato ao usuario logado
+  depende de RF14 (o campo `userId` ja existe no banco e no contrato).
 
 ## 6. Escopo
 

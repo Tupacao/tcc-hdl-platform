@@ -1,7 +1,10 @@
 import {
+  FeedbackReceiptSchema,
   SimulationJobSchema,
   SimulationResultSchema,
   type CompileRequest,
+  type CreateFeedback,
+  type FeedbackReceipt,
   type SimulationJob,
   type SimulationResult,
 } from '@tplab/shared';
@@ -43,6 +46,17 @@ async function request<T>(path: string, schema: ZodType<T>, init?: RequestInit):
 
 export function startSimulation(body: CompileRequest): Promise<SimulationJob> {
   return request('/api/simulations', SimulationJobSchema, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/**
+ * Envia um relato (RF17). O `429` do limite diario chega como `ApiRequestError`
+ * com `status` 429 e a mensagem do servidor — o diálogo distingue os dois casos.
+ */
+export function sendFeedback(body: CreateFeedback): Promise<FeedbackReceipt> {
+  return request('/api/feedback', FeedbackReceiptSchema, {
     method: 'POST',
     body: JSON.stringify(body),
   });

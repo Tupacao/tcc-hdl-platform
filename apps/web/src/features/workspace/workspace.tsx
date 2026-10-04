@@ -10,6 +10,7 @@ import {
   type LastRunStatus,
   type LocalProject,
 } from '@/features/projects';
+import { describeLastRun, pickCompilerOutput, rememberRunContext } from '@/features/feedback';
 import { cn } from '@/lib/utils';
 import { CodeEditor, type CodeEditorHandle } from './components/code-editor';
 import { ConsolePanel, type ConsolePanelHandle } from './components/console-panel';
@@ -58,6 +59,8 @@ interface WorkspaceProps {
   onOpenProjects?: () => void;
   /** RF11: navega para a documentação (página própria, não sobreposta). */
   onOpenDocs: () => void;
+  /** RF17: abre o formulário de feedback, cujo estado vive no App (alcançável de qualquer tela). */
+  onSendFeedback: () => void;
 }
 
 /**
@@ -71,6 +74,7 @@ export function Workspace({
   onRecordRun,
   onOpenProjects,
   onOpenDocs,
+  onSendFeedback,
 }: WorkspaceProps) {
   const { sources, updateFile, isDirty, dirtyFiles, save, pendingDraft, useDraft, discardDraft } =
     useProjectLink(project, onSaveProject, overrideSources);
@@ -109,12 +113,30 @@ export function Workspace({
     runMutation.error instanceof ApiRequestError ? runMutation.error.status : null;
   const isRunning = runMutation.isPending;
 
+  // RF17-I02: o projeto aberto ja faz parte do contexto tecnico antes da
+  // primeira execucao — quem relata "nao consigo abrir" nunca chegou a executar.
+  useEffect(() => {
+    rememberRunContext({
+      projectId: project?.id ?? null,
+      projectName: project?.name ?? null,
+      lastRun: null,
+      compilerOutput: null,
+    });
+  }, [project?.id, project?.name]);
+
   const handleRun = useCallback(() => {
     runMutation.mutate(
       { ...sources, projectId: project?.id },
       {
         onSuccess: (simulation) => {
           setLastResult(simulation);
+          // RF17-I02: o contexto técnico do feedback descreve a última execução.
+          rememberRunContext({
+            projectId: project?.id ?? null,
+            projectName: project?.name ?? null,
+            lastRun: describeLastRun(simulation),
+            compilerOutput: pickCompilerOutput(simulation),
+          });
           if (project) {
             onRecordRun(project.id, {
               kind: simulation.failure ? 'failure' : 'success',
@@ -394,6 +416,7 @@ export function Workspace({
         isDirty={isDirty}
         cursor={cursor}
         onFocusProblems={() => consolePanelRef.current?.focusProblems()}
+        onSendFeedback={onSendFeedback}
       />
     </div>
   );
