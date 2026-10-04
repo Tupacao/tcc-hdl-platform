@@ -24,7 +24,7 @@ engano — o caso mais comum não é malicioso, é acidental.
 | Atacar terceiros | usar a VM como origem de tráfego |
 
 **O que o protege** (barreiras de `buildSandboxContainerOptions`, em
-`apps/api/src/modules/simulation/sandbox.ts`):
+`apps/api/src/infra/sandbox/sandbox.ts`):
 
 | Barreira | Configuração | O que impede |
 | --- | --- | --- |

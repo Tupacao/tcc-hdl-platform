@@ -147,7 +147,7 @@ A plataforma nunca gera estimulo nem infere clock — **o testbench e do usuario
 por decisao deliberada (escrever testbench faz parte do que a disciplina
 ensina). Isso funciona bem quando o testbench instancia o design certo e pede
 a gravacao da forma de onda; falha de formas confusas quando nao. Antes de
-gastar um container, `modules/simulation/testbench.ts` roda uma analise
+gastar um container, `application/simulation/service/testbench.ts` roda uma analise
 heuristica (regex, nunca bloqueia) e devolve tres avisos possiveis, sempre
 como diagnostico `warning` no mesmo console dos erros do `iverilog`:
 

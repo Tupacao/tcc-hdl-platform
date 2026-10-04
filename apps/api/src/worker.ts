@@ -1,30 +1,27 @@
 import { Worker } from 'bullmq';
-import type { SimulationResult } from '@tplab/shared';
-import { createRedisConnection } from './lib/redis.js';
+import { DefaultSimulationRunService } from './application/simulation/service/simulation-run.service.js';
 import { env } from './config/env.js';
-import { logger } from './lib/logger.js';
-import { recordJobOutcome } from './lib/metrics.js';
-import {
-  SIMULATION_QUEUE,
-  type SimulationJobData,
-  type SimulationJobResult,
-} from './modules/simulation/queue.js';
-import { attachHints } from './modules/simulation/hints.js';
-import { buildJobLogRecord } from './modules/simulation/job-log.js';
-import { analyzeLimitFailure, dropShellNoise } from './modules/simulation/limits.js';
+import type {
+  SimulationJobData,
+  SimulationJobResult,
+} from './domain/simulation/dtos/simulation-job.dto.js';
+import { SIMULATION_QUEUE } from './infra/queue/simulation.queue.js';
 import {
   removeOrphanSandboxContainers,
-  defaultSandboxLimits,
   dockerSupportsSwapLimit,
   removeOrphanWorkdirs,
-  runInSandbox,
-} from './modules/simulation/sandbox.js';
-import { analyzePostExecution, analyzeTestbenchContract } from './modules/simulation/testbench.js';
-import { toolchainFor } from './modules/simulation/toolchains.js';
-import { analyzeToolchainVectors } from './modules/simulation/vectors.js';
+} from './infra/sandbox/sandbox.js';
+import { logger } from './lib/logger.js';
+import { recordJobOutcome } from './lib/metrics.js';
+import { createRedisConnection } from './lib/redis.js';
 
 /** Conexao separada da do BullMQ (RF03-I04) — so para os contadores em `lib/metrics.ts`. */
 const metricsConnection = createRedisConnection();
+
+/** Todo o pipeline de um job vive em `application/simulation/service` (RF04/RF05/RNF05). */
+const runService = new DefaultSimulationRunService((outcome) =>
+  recordJobOutcome(metricsConnection, outcome),
+);
 
 /**
  * Consumidor da fila: cada job vira um container efemero. Rodar como processo
@@ -32,102 +29,13 @@ const metricsConnection = createRedisConnection();
  */
 const worker = new Worker<SimulationJobData, SimulationJobResult>(
   SIMULATION_QUEUE,
-  async (job): Promise<SimulationJobResult> => {
-    const toolchain = toolchainFor(job.data.kind);
-    const outcome = await runInSandbox(job.data, defaultSandboxLimits(toolchain), toolchain);
-
-    // RF04-I01: contrato do testbench (topModule coerente, $dumpfile/$dumpvars
-    // presentes) — heuristica, nunca bloqueia; vira `warning` no mesmo console
-    // dos diagnosticos do iverilog, sem componente novo no frontend.
-    // Essas analises conhecem a sintaxe Verilog (RNF08-I02): outras toolchains nao as recebem.
-    const verilogAnalysis = toolchain.sourceAnalysis === 'verilog';
-    const contract = verilogAnalysis
-      ? analyzeTestbenchContract(job.data.design, job.data.testbench, job.data.topModule)
-      : { diagnostics: [], missingDumpDirectives: false };
-    const postExecutionWarnings = !verilogAnalysis
-      ? []
-      : analyzePostExecution({
-          testbenchName: job.data.testbench.name,
-          topModule: job.data.topModule,
-          failure: outcome.failure,
-          stdout: outcome.stdout,
-          vcd: outcome.vcd,
-          alreadyWarnedMissingDump: contract.missingDumpDirectives,
-        });
-
-    // RNF05: limite atingido vira erro com causa provavel e proximo passo.
-    const limitDiagnostics = analyzeLimitFailure({
-      failure: outcome.failure,
-      timeoutPhase: outcome.timeoutPhase,
-      exitCode: outcome.exitCode,
-      logsUnavailable: outcome.logsUnavailable,
-      testbenchName: job.data.testbench.name,
-      timeoutMs: env.SANDBOX_TIMEOUT_MS,
-      compileTimeoutMs: env.SANDBOX_COMPILE_TIMEOUT_MS,
-      memoryMb: env.SANDBOX_MEMORY_MB,
-    });
-    if (outcome.timeoutPhase === 'host') {
-      // O timeout interno do script deveria ter agido antes: se o `killTimer` do host
-      // foi quem matou, o limite de dentro do container parou de funcionar.
-      logger.warn(
-        { jobId: String(job.id) },
-        'killTimer do host encerrou o job — timeout interno falhou',
-      );
-    }
-
-    const diagnostics = [
-      ...contract.diagnostics,
-      // RNF04-I03: construcoes que tocam o sistema de arquivos/SO — aviso, nunca bloqueio.
-      ...(verilogAnalysis ? analyzeToolchainVectors([job.data.design, job.data.testbench]) : []),
-      ...limitDiagnostics,
-      ...dropShellNoise(
-        ((diagnostics) => (verilogAnalysis ? attachHints(diagnostics) : diagnostics))(
-          toolchain.parseDiagnostics(outcome.stderr, [
-            job.data.design.name,
-            job.data.testbench.name,
-          ]),
-        ),
-        limitDiagnostics,
-      ),
-      ...postExecutionWarnings,
-    ];
-
-    logger.info(
-      buildJobLogRecord({
-        jobId: String(job.id),
-        sources: job.data,
-        outcome,
-        queuedAt: job.timestamp,
-        processedAt: job.processedOn,
-      }),
-      'job de simulacao concluido',
-    );
-    await recordJobOutcome(metricsConnection, outcome).catch((cause: unknown) => {
-      logger.warn({ err: cause }, 'falha ao gravar metricas do worker no Redis');
-    });
-
-    return {
-      failure: outcome.failure,
-      diagnostics,
-      stdout: outcome.stdout,
-      stderr: outcome.stderr,
-      artifacts: outcome.artifacts,
-      vcd: outcome.vcd,
-      durationMs: outcome.durationMs,
-      finishedAt: new Date().toISOString(),
-      // O job terminou de processar — por definicao nao esta mais na fila (RF03-I02).
-      queuePosition: null,
-      truncated: outcome.truncated,
-      timings: {
-        queueWaitMs: job.processedOn !== undefined ? job.processedOn - job.timestamp : null,
-        containerCreateMs: outcome.timings.containerCreateMs,
-        compileMs: outcome.timings.compileMs,
-        simulateMs: outcome.timings.simulateMs,
-        executionMs: outcome.timings.executionMs,
-        artifactsReadMs: outcome.timings.artifactsReadMs,
-      },
-    } satisfies Omit<SimulationResult, 'jobId' | 'status'>;
-  },
+  (job) =>
+    runService.run({
+      jobId: String(job.id),
+      data: job.data,
+      queuedAt: job.timestamp,
+      processedAt: job.processedOn,
+    }),
   {
     connection: createRedisConnection(),
     // Cada job consome CPU/memoria do host; manter baixo na VM B2s.

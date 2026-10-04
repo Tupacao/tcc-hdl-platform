@@ -68,7 +68,7 @@ export const SimulationFailureSchema = z.enum([
 
 /**
  * Tipo do job = qual toolchain o worker executa (RNF08-I01). Cada valor novo (GHDL, Yosys...)
- * entra aqui e no registro `apps/api/src/modules/simulation/toolchains.ts`.
+ * entra aqui e no registro `apps/api/src/application/simulation/service/toolchains.ts`.
  */
 export const JobKindSchema = z.enum(['simulate-verilog', 'simulate-vhdl']);
 
