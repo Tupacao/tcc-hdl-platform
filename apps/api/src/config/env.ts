@@ -1,5 +1,33 @@
 import { z } from 'zod';
 
+/**
+ * Caminho de `apps/api/.env`, resolvido a partir deste módulo e não do diretório
+ * de trabalho — vale igual rodando por `pnpm dev`, pelo worker ou pelos testes.
+ */
+export const DOT_ENV_PATH = new URL('../../.env', import.meta.url);
+
+/**
+ * Carrega o `.env` antes de validar o ambiente. Sem isto o processo da API nunca
+ * via o arquivo — `tsx` e `node` só leem `.env` com `--env-file` —, e o efeito era
+ * silencioso e enganoso: sem `DATABASE_URL`, `app.ts` escolhia os repositórios em
+ * memória, e projetos e feedback (RF07/RF17) sumiam a cada reinício mesmo com o
+ * Postgres no ar e o `.env` preenchido.
+ *
+ * Variável já presente no ambiente tem precedência sobre o arquivo (comportamento
+ * do `loadEnvFile`), então em produção — onde o compose injeta tudo e não existe
+ * `.env` — a chamada apenas falha com ENOENT e é ignorada. O parâmetro existe só
+ * para o teste apontar para um arquivo temporário.
+ */
+export function loadDotEnv(path: string | URL = DOT_ENV_PATH): void {
+  try {
+    process.loadEnvFile(path);
+  } catch {
+    // Arquivo ausente ou ilegível: o ambiente do processo é a única fonte.
+  }
+}
+
+loadDotEnv();
+
 const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().default('0.0.0.0'),
