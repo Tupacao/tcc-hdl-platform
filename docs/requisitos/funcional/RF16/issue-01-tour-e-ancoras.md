@@ -61,7 +61,7 @@ quebrem com mudanca de estilo.
 ## Criterios de aceite
 
 - [x] O tour percorre os passos do roteiro na ordem (verificado no navegador:
-      1 de 5 a 5 de 5, com "Concluir" no ultimo).
+      1 de 6 a 6 de 6, com "Concluir" no ultimo).
 - [x] Todas as ancoras usam `data-tour`, nenhuma usa classe de estilo.
 - [x] Ancora ausente e pulada sem quebrar nada (teste proprio).
 - [x] O tour so inicia com a interface pronta: `CodeEditor` avisa por `onReady`
@@ -74,11 +74,16 @@ quebrem com mudanca de estilo.
 
 ## Divergencias da especificacao original
 
-- **Numero de passos**: 5, nao 4. O frame 7.4 ilustra o balao com "3 de 4", mas
+- **Numero de passos**: 6, nao 4. O frame 7.4 ilustra o balao com "3 de 4", mas
   o criterio de aceite da feature exige editor, abas, executar, **console** e
-  formas de onda. O contador e dinamico, entao o balao continua fiel ao design.
+  formas de onda; o sexto passo apresenta o menu de ajuda — a documentacao, o
+  "refazer o tour" e o envio de feedback (RF17), que nao se anuncia em lugar
+  nenhum e ficava invisivel para quem nunca abre o menu. E o item 7 da ordem
+  sugerida nesta issue ("onde encontrar a documentacao completa e como reabrir o
+  tour"), que a primeira versao resolvia com uma frase no passo das formas de
+  onda. O contador e dinamico, entao o balao continua fiel ao design.
 - **Trilha de passos no rodape** (o componente "TrilhaDosPassos" de 7.4) nao foi
-  implementada: o contador "3 de 5" e os pontos de progresso ja dao a posicao, e
+  implementada: o contador "3 de 6" e os pontos de progresso ja dao a posicao, e
   um segundo indicador fixo ocuparia a tela toda do tour. Registrado como
   melhoria possivel.
 - **Peso no bundle** (a issue pede a medicao): +30 KB sem compressao, +9 KB
