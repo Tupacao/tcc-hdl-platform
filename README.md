@@ -65,6 +65,13 @@ pnpm dev
 pnpm dev:worker
 ```
 
+A API lê `apps/api/.env` sozinha, no start (`loadDotEnv` em
+`apps/api/src/config/env.ts`) — variável já exportada no shell tem precedência
+sobre o arquivo. Se o seu `.env` é antigo, vale recopiá-lo do `.env.example`: uma
+variável que falta ali não dá erro, só muda o comportamento em silêncio (sem
+`DATABASE_URL` cai para memória; sem `FEEDBACK_IP_SALT` o limite diário de
+feedback zera a cada reinício).
+
 Sem `DATABASE_URL` (ou sem rodar a migracao) a API ainda sobe, mas os projetos
 ficam em memoria e somem a cada reinicio — util para desenvolvimento rapido sem
 Postgres, nao para uso real. Em producao (`NODE_ENV=production`) a variavel e
