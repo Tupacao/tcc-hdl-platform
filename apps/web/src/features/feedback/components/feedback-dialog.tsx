@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Check, ChevronDown, ChevronRight, Loader2, X } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Loader2, X } from 'lucide-react';
 import { FEEDBACK_MESSAGE_MAX, type CreateFeedback } from '@tplab/shared';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -24,7 +24,6 @@ import {
   FEEDBACK_KIND_GROUP_LABEL,
   FEEDBACK_KIND_LABELS,
   FEEDBACK_LIMIT,
-  FEEDBACK_SUCCESS,
   formatCharacterCount,
 } from '../utils/messages';
 import { readRunContext } from '../utils/run-context';
@@ -32,8 +31,6 @@ import { localStorageOrNull, readOrCreateSessionId } from '../utils/session';
 import { canSubmit, validateFeedback, type FeedbackFieldErrors } from '../utils/validate';
 
 const KINDS = Object.keys(FEEDBACK_KIND_LABELS) as OfferedFeedbackKind[];
-/** Tempo que a confirmação fica na tela antes de o diálogo fechar sozinho (Figma 10.5). */
-const CLOSE_AFTER_SUCCESS_MS = 2000;
 
 interface FeedbackDialogProps {
   open: boolean;
@@ -92,13 +89,6 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
     return () => clearTimeout(timer);
   }, [open]);
 
-  // Confirmado o recebimento, o diálogo se fecha sozinho.
-  useEffect(() => {
-    if (state.kind !== 'sent') return;
-    const timer = setTimeout(() => onOpenChange(false), CLOSE_AFTER_SUCCESS_MS);
-    return () => clearTimeout(timer);
-  }, [state.kind, onOpenChange]);
-
   // Fechado, volta ao estado limpo — mas só apaga o texto se o servidor confirmou.
   useEffect(() => {
     if (open) return;
@@ -129,7 +119,9 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
-    await submit(body);
+    // O fechamento é a confirmação: o diálogo só sai da tela depois do 201 do
+    // servidor, e falha (ou limite diário) mantém ele aberto com o texto intacto.
+    if (await submit(body)) onOpenChange(false);
   }
 
   return (
@@ -245,16 +237,8 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
               {FEEDBACK_DIALOG.PRIVACY_NOTE}
             </p>
 
-            {state.kind === 'sent' && (
-              <StatusPanel
-                tone="success"
-                title={FEEDBACK_SUCCESS.TITLE}
-                description={FEEDBACK_SUCCESS.DESCRIPTION}
-              />
-            )}
             {state.kind === 'failed' && (
-              <StatusPanel
-                tone="error"
+              <ErrorPanel
                 title={FEEDBACK_ERROR.TITLE}
                 description={state.message || FEEDBACK_ERROR.DESCRIPTION}
               />
@@ -264,13 +248,19 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
               <Button variant="outline" disabled={sending} onClick={() => onOpenChange(false)}>
                 {FEEDBACK_DIALOG.CANCEL}
               </Button>
-              <Button onClick={() => void handleSubmit()} disabled={sending || !ready}>
-                {sending && <Loader2 aria-hidden className="size-4 animate-spin" />}
-                {sending
-                  ? FEEDBACK_DIALOG.SUBMITTING
-                  : state.kind === 'failed'
-                    ? FEEDBACK_DIALOG.RETRY
-                    : FEEDBACK_DIALOG.SUBMIT}
+              <Button
+                onClick={() => void handleSubmit()}
+                disabled={sending || !ready}
+                aria-busy={sending}
+              >
+                {sending && <Loader2 aria-hidden className="animate-spin" />}
+                <span aria-live="polite">
+                  {sending
+                    ? FEEDBACK_DIALOG.SUBMITTING
+                    : state.kind === 'failed'
+                      ? FEEDBACK_DIALOG.RETRY
+                      : FEEDBACK_DIALOG.SUBMIT}
+                </span>
               </Button>
             </DialogFooter>
           </>
@@ -360,22 +350,15 @@ function ContextBlock({
   );
 }
 
-function StatusPanel({
-  tone,
-  title,
-  description,
-}: {
-  tone: 'success' | 'error';
-  title: string;
-  description: string;
-}) {
-  const Icon = tone === 'success' ? Check : AlertTriangle;
+/**
+ * Só a falha tem painel. O envio bem-sucedido não mostra nada: o diálogo fecha, e
+ * é o fechamento que confirma — uma tela de "obrigado" que some sozinha obriga a
+ * esperar para voltar ao trabalho.
+ */
+function ErrorPanel({ title, description }: { title: string; description: string }) {
   return (
     <div className="flex items-start gap-3 rounded-md border p-3" role="status" aria-live="polite">
-      <Icon
-        aria-hidden
-        className={cn('mt-0.5 size-4', tone === 'success' ? 'text-success' : 'text-destructive')}
-      />
+      <AlertTriangle aria-hidden className="mt-0.5 size-4 text-destructive" />
       <div className="flex flex-col gap-0.5">
         <p className="text-sm font-medium">{title}</p>
         <p className="text-xs text-muted-foreground">{description}</p>

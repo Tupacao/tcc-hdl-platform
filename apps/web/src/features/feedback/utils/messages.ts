@@ -33,11 +33,6 @@ export const FEEDBACK_KIND_LABELS = {
 
 export const FEEDBACK_KIND_GROUP_LABEL = 'Tipo do relato';
 
-export const FEEDBACK_SUCCESS = {
-  TITLE: 'Obrigado — recebido',
-  DESCRIPTION: 'O que você escreveu chegou aqui.',
-} as const;
-
 export const FEEDBACK_ERROR = {
   TITLE: 'Não foi possível enviar',
   DESCRIPTION: 'O texto continua no campo, nada se perde. Confira a conexão e tente de novo.',
