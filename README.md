@@ -40,6 +40,9 @@ docs/
 
 ## Como rodar
 
+> Para **publicar** a plataforma (VM na Azure, HTTPS, frontend estático), o
+> passo a passo é outro: [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
 ```bash
 git clone https://github.com/Tupacao/tcc-hdl-platform.git
 cd tcc-hdl-platform

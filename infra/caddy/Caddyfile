@@ -1,0 +1,38 @@
+# Proxy reverso de producao (RF01-I02). O certificado e emitido e renovado
+# automaticamente pelo Caddy (Let's Encrypt) — por isso as portas 80 e 443
+# precisam estar abertas na VM e o dominio precisa apontar para o IP dela.
+
+{
+	email {$TPLAB_ACME_EMAIL}
+}
+
+{$TPLAB_DOMAIN} {
+	encode zstd gzip
+
+	# A API. `/health` fica fora de /api por ser a sonda publica do RF01-I02.
+	handle /api/* {
+		reverse_proxy api:3333
+	}
+	handle /health {
+		reverse_proxy api:3333
+	}
+
+	# Frontend estatico servido pela propria VM. Quando o `dist` estiver no Azure
+	# Static Web Apps, este bloco simplesmente nao encontra arquivos — e o
+	# frontend chama a API por `VITE_API_URL=https://<dominio>`.
+	handle {
+		root * /srv
+		# SPA: qualquer rota desconhecida volta para o index.html.
+		try_files {path} /index.html
+		file_server
+	}
+
+	# Cabecalhos que o Caddy nao define sozinho. O Helmet ja cuida das respostas
+	# da API; estes valem para os arquivos estaticos.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}
