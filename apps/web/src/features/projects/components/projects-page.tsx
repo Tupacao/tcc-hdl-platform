@@ -1,10 +1,11 @@
 import { EmptyState as EmptyStateBlock } from '@/components/empty-state';
 import { useMemo, useRef, useState } from 'react';
-import { BookOpen, CircuitBoard, Plus } from 'lucide-react';
+import { BookOpen, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { BrandLogo } from '@/components/brand-logo';
 import { FEEDBACK_TRIGGER_LABEL } from '@/features/feedback';
 import { DOCS_BUTTON_LABEL } from '@/features/docs';
 import type { UseLocalProjectsResult } from '../hooks/use-local-projects';
@@ -135,8 +136,7 @@ export function ProjectsPage({
   return (
     <div className="flex h-full min-w-[1024px] flex-col overflow-auto">
       <header className="flex items-center gap-3 border-b px-4 py-2">
-        <CircuitBoard aria-hidden className="size-5" />
-        <h1 className="text-sm font-semibold">TP Lab</h1>
+        <BrandLogo />
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={onOpenDocs}>
             <BookOpen aria-hidden />

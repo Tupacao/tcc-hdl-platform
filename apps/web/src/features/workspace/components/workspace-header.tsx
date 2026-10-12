@@ -1,6 +1,5 @@
 import {
   BookOpen,
-  CircuitBoard,
   Download,
   FolderOpen,
   HelpCircle,
@@ -18,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { BrandLogo } from '@/components/brand-logo';
 import { DOCS_BUTTON_LABEL } from '@/features/docs';
 import { FEEDBACK_TRIGGER_LABEL } from '@/features/feedback';
 import { TOUR_ANCHORS, TOUR_MENU, anchorAttributes } from '@/features/tour';
@@ -75,8 +75,7 @@ export function WorkspaceHeader({
 
   return (
     <header className="flex items-center gap-3 border-b px-4 py-2">
-      <CircuitBoard aria-hidden className="size-5" />
-      <h1 className="text-sm font-semibold">TP Lab</h1>
+      <BrandLogo />
 
       {project ? (
         <div className="flex items-center gap-1.5">

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CircuitBoard } from 'lucide-react';
 import type { HdlSources } from '@tplab/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { BrandLogo } from '@/components/brand-logo';
 import { FEEDBACK_TRIGGER_LABEL } from '@/features/feedback';
 import { cn } from '@/lib/utils';
 import { DOC_SECTIONS, OUT_OF_SCOPE_SECTION_ID } from '../content';
@@ -64,8 +64,7 @@ export function DocsPage({ onNavigateBack, onOpenInEditor, onSendFeedback }: Doc
   return (
     <div className="flex h-full min-w-[1024px] flex-col overflow-hidden">
       <header className="flex items-center gap-3 border-b px-4 py-2">
-        <CircuitBoard aria-hidden className="size-5" />
-        <h1 className="text-sm font-semibold">TP Lab</h1>
+        <BrandLogo />
         <span className="text-xs text-muted-foreground">{PAGE_BREADCRUMB}</span>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={onSendFeedback}>
