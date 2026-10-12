@@ -243,8 +243,10 @@ a variável (gerar com `node -e "console.log(require('crypto').randomBytes(32).t
 Não existe rota de leitura: feedback não pode ser público, e autorização só
 chega com RF14. A consulta é direta no Postgres:
 
+**Em desenvolvimento**, com o compose local no ar:
+
 ```bash
-# Na VM, com o compose no ar
+# Os relatos mais recentes
 docker compose -f infra/docker-compose.yml exec postgres   psql -U tplab -d tplab -c 'SELECT "createdAt", kind, message, contact FROM "Feedback" ORDER BY "createdAt" DESC LIMIT 50;'
 
 # Com contexto técnico, para reproduzir um problema relatado
@@ -252,6 +254,24 @@ docker compose -f infra/docker-compose.yml exec postgres   psql -U tplab -d tpla
 
 # Exportar para anexar ao TCC
 docker compose -f infra/docker-compose.yml exec postgres   psql -U tplab -d tplab --csv -c 'SELECT "createdAt", kind, message, contact, context FROM "Feedback" ORDER BY "createdAt";' > feedback.csv
+```
+
+**Na VM publicada** são os mesmos `SELECT`, mas o compose é outro e o `--env-file`
+é obrigatório — sem ele a senha do Postgres não é resolvida e o comando falha:
+
+```bash
+ssh azureuser@<ip-da-vm>
+cd /opt/tplab
+docker compose -f infra/docker-compose.prod.yml --env-file infra/.env exec postgres   psql -U tplab -d tplab -c 'SELECT "createdAt", kind, message, contact FROM "Feedback" ORDER BY "createdAt" DESC LIMIT 50;'
+```
+
+Para um psql interativo (`\d`, consultas soltas), o mesmo comando sem o `-c`.
+
+Dá para consultar sem abrir sessão na VM, trazendo o CSV direto para a sua
+máquina. Aqui o `-T` é obrigatório, porque não há terminal do outro lado:
+
+```bash
+ssh azureuser@<ip-da-vm> 'cd /opt/tplab && docker compose -f infra/docker-compose.prod.yml --env-file infra/.env exec -T postgres psql -U tplab -d tplab --csv -c "SELECT \"createdAt\", kind, message, contact, context FROM \"Feedback\" ORDER BY \"createdAt\";"' > feedback.csv
 ```
 
 O texto é dado de usuário: ao citar no trabalho ou abrir em planilha, tratar como
