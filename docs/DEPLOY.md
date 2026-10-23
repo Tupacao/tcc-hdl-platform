@@ -8,15 +8,16 @@
 > faz. Comandos marcados com 💻 rodam **na sua máquina**; com ☁️ rodam **dentro
 > da VM**, depois do `ssh`.
 >
-> O roteiro tem **duas trilhas**. A principal publica em HTTP, no IP da VM, e não
-> exige domínio nenhum — é a que foi executada e verificada. Quando você tiver um
-> domínio, a seção **11** migra para HTTPS sem refazer nada.
+> O roteiro tem **duas trilhas**, e **as duas foram executadas e verificadas**. A
+> principal publica em HTTP, no IP da VM, e não exige domínio nenhum. A seção
+> **11** migra para HTTPS sem refazer nada — foi o que colocou a aplicação em
+> <https://tphdl.com.br> (2026-10-23), onde ela está hoje.
 
 ## O que você vai ter no fim
 
 | Parte | Onde roda | Como fica acessível |
 | --- | --- | --- |
-| Frontend (SPA React) | arquivos estáticos | `http://<ip-da-vm>/` |
+| Frontend (SPA React) | arquivos estáticos | `http://<ip-da-vm>/` (hoje: <https://tphdl.com.br>) |
 | API (Fastify) | container na VM | `http://<ip-da-vm>/api/...` e `/health` |
 | Worker de simulação | container na VM | nenhuma porta: consome a fila |
 | Postgres e Redis | containers na VM | **só** pela rede interna do Docker |
@@ -477,6 +478,7 @@ az vm show --resource-group tplab --name tplab-vm --show-details \
 | `ResourceNotFound` do NIC/NSG com tudo existindo | Atraso de replicação do ARM na região | Confira com `az resource list`; repita a operação de escrita |
 | `curl: (7) Failed to connect` na 80 | Porta fechada no firewall do Azure | Refaça o `az vm open-port` do passo 2 |
 | Caddy em laço tentando emitir certificado | `TPLAB_DOMAIN` com IP ou domínio que não aponta para a VM | Na trilha sem domínio, `TPLAB_DOMAIN=:80` |
+| Domínio novo "sem registro A" horas depois de salvar | Consulta feita no nameserver antigo, após a transição trocar a delegação | Confira os NS atuais (passo 11.1) e consulte por um resolvedor público |
 | Tela carrega, mas toda ação falha com erro de rede | `CORS_ORIGIN` diferente da origem real do frontend | Corrija em `infra/.env` e `up -d api` |
 | `POST /api/simulations` responde 503 | Redis fora do ar, ou fila cheia | `logs redis`; se estiver de pé, a fila encheu — espere ou aumente `SIMULATION_MAX_QUEUE_DEPTH` |
 | Simulação fica em "Na fila" para sempre | Worker parado, ou imagem do sandbox ausente | `logs worker`; confira `docker images \| grep tplab-sandbox` |
@@ -491,23 +493,48 @@ az vm show --resource-group tplab --name tplab-vm --show-details \
 Nada do que já está no ar é refeito. São cinco passos, e a aplicação fica fora do
 ar só durante o reinício do Caddy (segundos).
 
+> **Executado em 2026-10-23.** Os valores reais aparecem nos exemplos abaixo.
+>
+> | Item | Valor |
+> | --- | --- |
+> | Domínio | `tphdl.com.br` (Registro.br, DNSSEC ativo) |
+> | Hostnames | `tphdl.com.br` e `www.tphdl.com.br` |
+> | IP público da VM (estático) | `57.156.69.148` |
+> | Grupo de recursos / VM | `tplab` / `tplab-vm` (`Standard_B2as_v2`, `chilecentral`) |
+> | Acesso | `ssh azureuser@57.156.69.148` |
+> | Certificado | Let's Encrypt, um por hostname, renovação automática pelo Caddy |
+
 ### 11.1 Apontar o domínio para a VM
 
 No painel de quem registrou seu domínio, crie um registro **A**:
 
 | Tipo | Nome | Valor | TTL |
 | --- | --- | --- | --- |
-| A | `tplab` (ou `@` para o domínio raiz) | o IP estático da VM | o menor oferecido |
+| A | `@` (domínio raiz) e `www` | o IP estático da VM | o menor oferecido |
 
 Confira a propagação (💻, pode levar de minutos a algumas horas):
 
 ```bash
-nslookup tplab.seu-dominio.br
+curl -s -H "accept: application/dns-json" "https://dns.google/resolve?name=tphdl.com.br&type=A"
+curl -s -H "accept: application/dns-json" "https://dns.google/resolve?name=www.tphdl.com.br&type=A"
 ```
 
-**Só siga quando esse comando devolver o IP da VM.** Pedir certificado antes
-disso gasta tentativas do limite do Let's Encrypt e o Caddy entra em laço de
-reemissão.
+Resposta boa é a que traz `"Answer"` com o IP da VM. **Só siga quando os dois
+nomes devolverem isso.** Pedir certificado antes disso gasta tentativas do limite
+do Let's Encrypt e o Caddy entra em laço de reemissão.
+
+> **Não consulte um nameserver pelo nome sem antes confirmar que ele ainda é o
+> autoritativo.** Domínio novo no Registro.br passa por uma janela de "servidores
+> DNS em transição", e ao fim dela **os servidores da zona mudam** — neste caso,
+> de `a/b.auto.dns.br` para `b.sec.dns.br`/`c.sec.dns.br`. Consultar os antigos
+> depois da troca devolve `NODATA` no apex e `NXDOMAIN` no `www`, exatamente o
+> sintoma de "registro não publicado", com os registros no ar o tempo todo. Isso
+> custou horas de espera inútil aqui. Confira a delegação atual antes de
+> diagnosticar:
+>
+> ```bash
+> curl -s -H "accept: application/dns-json" "https://dns.google/resolve?name=tphdl.com.br&type=NS"
+> ```
 
 ### 11.2 Abrir a porta 443
 
@@ -529,10 +556,25 @@ prioridade `901`.
 ☁️ Em `/opt/tplab/infra/.env`, três linhas mudam:
 
 ```bash
-TPLAB_DOMAIN=tplab.seu-dominio.br     # era :80 — sem https://, sem barra no fim
-TPLAB_ACME_EMAIL=voce@exemplo.br      # recebe os avisos de expiração do certificado
-CORS_ORIGIN=https://tplab.seu-dominio.br
+TPLAB_DOMAIN=tphdl.com.br, www.tphdl.com.br   # era :80 — sem https://, sem barra no fim
+TPLAB_ACME_EMAIL=voce@exemplo.br              # recebe os avisos de expiração do certificado
+CORS_ORIGIN=https://tphdl.com.br,https://www.tphdl.com.br
 ```
+
+Vários hostnames entram separados por vírgula, e o `Caddyfile` **não** precisa de
+alteração: o endereço do site aceita a lista e vira um host por nome. Para
+conferir antes de reiniciar qualquer coisa:
+
+```bash
+docker run --rm -v /opt/tplab/infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+  -e TPLAB_DOMAIN="tphdl.com.br, www.tphdl.com.br" -e TPLAB_ACME_EMAIL=teste@exemplo.br \
+  caddy:2-alpine caddy adapt --config /etc/caddy/Caddyfile
+```
+
+Esperado no JSON: `"host":["tphdl.com.br","www.tphdl.com.br"]`.
+
+> Guarde uma cópia do `.env` antes de editar (`cp infra/.env infra/.env.bak-http`).
+> É o caminho de volta para a trilha HTTP se o certificado não sair.
 
 ### 11.4 Recarregar o Caddy
 
@@ -546,6 +588,12 @@ docker compose -f infra/docker-compose.prod.yml --env-file infra/.env logs -f ca
 Acompanhe o log até ver a emissão do certificado concluir (`certificate obtained
 successfully`). Leva de alguns segundos a um ou dois minutos.
 
+O Caddy emite **um certificado por hostname** — com apex e `www` são dois, cada um
+com um único nome no `subjectAltName`, e o log mostra dois ciclos de
+`obtaining certificate`. Na primeira emissão ele também registra a conta ACME com
+o `TPLAB_ACME_EMAIL`; as linhas `creating new account because no account for
+configured email is known to us` fazem parte disso e não são erro.
+
 ### 11.5 Refazer o frontend e verificar
 
 Na opção A (Caddy servindo o `dist`), `VITE_API_URL` continua vazio e o `dist`
@@ -556,15 +604,30 @@ seguro se você tiver mexido no frontend desde a publicação.
 💻 Verifique:
 
 ```bash
-curl -i https://tplab.seu-dominio.br/health
+curl -s -o /dev/null -w "%{http_code}\n" https://tphdl.com.br/health
+curl -s -o /dev/null -w "%{http_code}\n" https://www.tphdl.com.br/health
+curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}\n" http://tphdl.com.br/
+echo | openssl s_client -connect tphdl.com.br:443 -servername tphdl.com.br 2>/dev/null \
+  | openssl x509 -noout -subject -issuer -dates
 ```
 
-Esperado: `HTTP/2 200` e certificado válido — **sem** precisar de `--insecure`.
+Esperado: `200` nos dois hostnames, `308` para `https://` no terceiro e um
+certificado do Let's Encrypt válido — **sem** precisar de `--insecure`.
+
+> Se o `curl` relatar `HTTP/1.1` onde você esperava `HTTP/2`, é o `curl` da sua
+> máquina sem suporte a h2, não o servidor. Quem responde é o ALPN:
+> `echo | openssl s_client -connect tphdl.com.br:443 -servername tphdl.com.br -alpn h2 2>/dev/null | grep -i ALPN`
+> deve dizer `ALPN protocol: h2`.
 
 No navegador, confira o cadeado e repita o roteiro de aceite da seção 8, agora em
 `https://`. O Caddy redireciona `http://` para `https://` sozinho, e o cabeçalho
 `Strict-Transport-Security` do `infra/caddy/Caddyfile` passa a valer de fato
 (em HTTP puro o navegador o ignora).
+
+Na verificação de 2026-10-23 o caminho completo foi exercitado pelo domínio:
+`POST /api/simulations` respondeu `202` com `Access-Control-Allow-Origin:
+https://tphdl.com.br`, o job terminou `succeeded` com `stdout` e `.vcd`, e um
+circuito com erro de sintaxe voltou com diagnóstico de arquivo e linha (RF05).
 
 > Depois da migração, atualize o `README.md` com a URL pública — é um dos
 > critérios de aceite de RF01-I03.
@@ -580,6 +643,6 @@ Registrado aqui para não parecer esquecimento:
 - **Alta disponibilidade e autoescala**: uma VM só, fora do escopo (RF01 §6).
 - **Backup automático** do Postgres: o comando existe, o agendamento não.
 - **Verificação em máquina limpa** (RF01-I03): a publicação foi verificada da
-  máquina de desenvolvimento, mas o roteiro em máquina sem Node/Docker, com as
-  capturas de tela, ainda precisa ser executado e registrado em
-  `docs/requisitos/funcional/RF01/`.
+  máquina de desenvolvimento, em HTTP e em HTTPS, mas o roteiro em máquina sem
+  Node/Docker, com as capturas de tela do cadeado, ainda precisa ser executado e
+  registrado em `docs/requisitos/funcional/RF01/`.

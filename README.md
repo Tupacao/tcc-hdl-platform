@@ -9,6 +9,38 @@ descricao de hardware.
 Trabalho de Conclusao de Curso. Os requisitos completos estao em
 [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md).
 
+## A plataforma no ar
+
+**<https://tphdl.com.br>**
+
+### Para avaliadores
+
+Não é preciso instalar nada: abra o endereço acima em qualquer navegador atual
+(Chrome, Edge, Firefox ou Safari) e a plataforma já está pronta para uso. Não há
+cadastro nem login — a página abre direto no ambiente de trabalho, com um
+circuito de exemplo carregado.
+
+Um roteiro curto para ver tudo funcionando:
+
+1. **Simular o exemplo.** Clique em **Executar**. A saída aparece no **Console** e
+   a forma de onda no visualizador abaixo do editor.
+2. **Ver o tratamento de erro.** Apague um `;` no circuito e execute de novo: o
+   erro aparece na aba **Problemas**; clicar nele leva o cursor à linha.
+3. **Salvar um trabalho.** Em **Meus projetos**, crie um projeto, renomeie-o e
+   volte para ele — o circuito e o testbench são preservados.
+4. **Deixar um retorno.** O formulário de feedback está no menu de ajuda e na
+   barra de estado — é por onde os dados da avaliação deste TCC são coletados.
+
+A compilação e a simulação rodam no servidor, em um container isolado e sem rede,
+e não no seu navegador — nada do que você escreve sai do ambiente da plataforma.
+Na VM de produção, um exemplo de aula leva **menos de meio segundo** de servidor
+(366 ms medidos em 2026-10-23, incluindo criar o container), bem abaixo do teto de
+5 s de RNF07; o que você percebe a mais é a ida e volta de rede.
+
+> A publicação é em uma VM única com crédito de estudante, desligada entre as
+> demonstrações para economizar o crédito. Se o endereço não responder, é isso: o
+> passo a passo para religá-la está em [`docs/DEPLOY.md`](docs/DEPLOY.md) §9.
+
 ## Stack
 
 | Camada       | Tecnologias                                                                                             |
