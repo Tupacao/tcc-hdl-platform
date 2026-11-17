@@ -1,0 +1,38 @@
+TPLab License (MIT with mandatory attribution)
+
+Copyright (c) 2026 Arthur Santos (https://github.com/Tupacao)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+1. Attribution in code. The above copyright notice and this permission notice
+   shall be included in all copies or substantial portions of the Software.
+   Any work derived from the Software (a fork, a modification, or a project
+   that incorporates part of it) must also name the original author and link
+   to the original repository in its README or equivalent documentation.
+
+2. Attribution in use. Any deployment, publication, or use of the Software or
+   of a work derived from it must credit the original author, whether the
+   Software is run as a service for other people, used in teaching, research,
+   academic work (articles, monographs, theses, presentations) or incorporated
+   into a product. The credit must be visible to the people who use or read the
+   result: in the user interface (for example, a footer or "About" page) when
+   there is one, and otherwise in the accompanying documentation or
+   publication. Suggested wording:
+
+       Based on TPLab, by Arthur Santos
+       (https://github.com/Tupacao/tcc-hdl-platform)
+
+3. The credit required above may not be removed, hidden, or presented as the
+   work of someone else.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

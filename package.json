@@ -2,6 +2,7 @@
   "name": "tplab",
   "version": "0.1.0",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE",
   "description": "TPLab - plataforma web educacional para desenvolvimento e simulacao de circuitos digitais em HDL",
   "engines": {
     "node": ">=22"
