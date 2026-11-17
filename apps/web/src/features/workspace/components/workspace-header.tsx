@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Download,
+  ExternalLink,
   FolderOpen,
   HelpCircle,
   LayoutTemplate,
@@ -19,7 +20,12 @@ import {
 import { ThemeToggle } from '@/components/theme-toggle';
 import { BrandLogo } from '@/components/brand-logo';
 import { DOCS_BUTTON_LABEL } from '@/features/docs';
-import { FEEDBACK_TRIGGER_LABEL } from '@/features/feedback';
+import {
+  FEEDBACK_TRIGGER_LABEL,
+  SURVEY_FORM_LABEL,
+  SURVEY_FORM_NEW_TAB_HINT,
+  SURVEY_FORM_URL,
+} from '@/features/feedback';
 import { TOUR_ANCHORS, TOUR_MENU, anchorAttributes } from '@/features/tour';
 import {
   CANCEL_RUN_BUTTON_LABEL,
@@ -150,6 +156,13 @@ export function WorkspaceHeader({
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onRestartTour}>{TOUR_MENU.RESTART}</DropdownMenuItem>
             <DropdownMenuItem onSelect={onSendFeedback}>{FEEDBACK_TRIGGER_LABEL}</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href={SURVEY_FORM_URL} target="_blank" rel="noopener noreferrer">
+                {SURVEY_FORM_LABEL}
+                <ExternalLink aria-hidden className="ml-auto" />
+                <span className="sr-only">{SURVEY_FORM_NEW_TAB_HINT}</span>
+              </a>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <Button
