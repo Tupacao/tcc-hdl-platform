@@ -2,6 +2,11 @@
 
 export const FEEDBACK_TRIGGER_LABEL = 'Enviar feedback';
 
+/** Formulário de avaliação do TCC (Google Forms) — aberto em outra aba pelo menu de ajuda. */
+export const SURVEY_FORM_LABEL = 'Responder ao formulário';
+export const SURVEY_FORM_URL = 'https://forms.gle/fHcTNSBf1cc68Joz5';
+export const SURVEY_FORM_NEW_TAB_HINT = '(abre em outra aba)';
+
 export const FEEDBACK_DIALOG = {
   TITLE: 'Como está sendo usar o TP Lab?',
   DESCRIPTION:
