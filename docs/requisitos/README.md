@@ -63,16 +63,16 @@ Tamanhos usados nas issues: **P** ~0,5 dia, **M** ~1 dia, **G** ~2 dias.
 | ID | Requisito | Issues | Status |
 | --- | --- | --- | --- |
 | [RF01](funcional/RF01/feature.md) | Acesso integral por navegador | 3 | Parcial |
-| [RF02](funcional/RF02/feature.md) | Editor Verilog com destaque de sintaxe | 3 | Parcial |
-| [RF03](funcional/RF03/feature.md) | Compilacao no servidor | 4 | Parcial |
-| [RF04](funcional/RF04/feature.md) | Simulacao a partir de testbench | 3 | Parcial |
-| [RF05](funcional/RF05/feature.md) | Erros contextualizados por linha | 3 | Parcial |
-| [RF06](funcional/RF06/feature.md) | Visualizador de formas de onda | 4 | Nao implementado |
-| [RF07](funcional/RF07/feature.md) | CRUD de projetos | 3 | Parcial |
-| [RF08](funcional/RF08/feature.md) | Exportacao em `.zip` | 2 | Nao implementado |
-| [RF09](funcional/RF09/feature.md) | Interface unica integrada | 3 | Parcial |
-| [RF10](funcional/RF10/feature.md) | Modo claro e escuro | 2 | Parcial |
-| [RF11](funcional/RF11/feature.md) | Documentacao estatica | 3 | Nao implementado |
+| [RF02](funcional/RF02/feature.md) | Editor Verilog com destaque de sintaxe | 3 | Concluido |
+| [RF03](funcional/RF03/feature.md) | Compilacao no servidor | 4 | Concluido |
+| [RF04](funcional/RF04/feature.md) | Simulacao a partir de testbench | 3 | Concluido |
+| [RF05](funcional/RF05/feature.md) | Erros contextualizados por linha | 3 | Concluido |
+| [RF06](funcional/RF06/feature.md) | Visualizador de formas de onda | 4 | Concluido |
+| [RF07](funcional/RF07/feature.md) | CRUD de projetos | 3 | Concluido |
+| [RF08](funcional/RF08/feature.md) | Exportacao em `.zip` | 2 | Concluido (client-side; I01 de servidor adiada) |
+| [RF09](funcional/RF09/feature.md) | Interface unica integrada | 3 | Concluido |
+| [RF10](funcional/RF10/feature.md) | Modo claro e escuro | 2 | Concluido |
+| [RF11](funcional/RF11/feature.md) | Documentacao estatica | 3 | Concluido |
 
 ### Should Have
 
@@ -82,8 +82,8 @@ Tamanhos usados nas issues: **P** ~0,5 dia, **M** ~1 dia, **G** ~2 dias.
 | [RF13](funcional/RF13/feature.md) | Geracao de Verilog do circuito | 3 | Nao implementado |
 | [RF14](funcional/RF14/feature.md) | Autenticacao com Google | 3 | Nao implementado |
 | [RF15](funcional/RF15/feature.md) | Links publicos de compartilhamento | 2 | Nao implementado |
-| [RF16](funcional/RF16/feature.md) | Tutorial guiado | 2 | Nao implementado |
-| [RF17](funcional/RF17/feature.md) | Envio de feedback | 2 | Nao implementado |
+| [RF16](funcional/RF16/feature.md) | Tutorial guiado | 2 | Implementado |
+| [RF17](funcional/RF17/feature.md) | Envio de feedback | 2 | Implementado |
 
 ### Could Have
 
@@ -100,13 +100,13 @@ Tamanhos usados nas issues: **P** ~0,5 dia, **M** ~1 dia, **G** ~2 dias.
 | --- | --- | --- | --- |
 | [RNF01](nao-funcional/RNF01/feature.md) | Interface simples para iniciantes | 2 | Parcial |
 | [RNF02](nao-funcional/RNF02/feature.md) | Compatibilidade entre navegadores | 2 | Nao verificado |
-| [RNF03](nao-funcional/RNF03/feature.md) | Responsividade a partir de 1024px | 2 | Parcial |
+| [RNF03](nao-funcional/RNF03/feature.md) | Responsividade a partir de 1024px | 2 | Fora do escopo do MVP (decisao 2026-10-03) |
 | [RNF04](nao-funcional/RNF04/feature.md) | Execucao isolada em conteineres | 3 | Implementado |
 | [RNF05](nao-funcional/RNF05/feature.md) | Limites de tempo e memoria | 2 | Implementado |
 | [RNF06](nao-funcional/RNF06/feature.md) | Autenticacao e autorizacao | 2 | Nao implementado |
-| [RNF07](nao-funcional/RNF07/feature.md) | Resposta em menos de 5 segundos | 2 | Nao medido |
-| [RNF08](nao-funcional/RNF08/feature.md) | Arquitetura modular | 2 | Parcial |
-| [RNF09](nao-funcional/RNF09/feature.md) | Contraste WCAG AA | 2 | Nao verificado |
+| [RNF07](nao-funcional/RNF07/feature.md) | Resposta em menos de 5 segundos | 2 | Em andamento (medido em dev; falta a VM alvo) |
+| [RNF08](nao-funcional/RNF08/feature.md) | Arquitetura modular | 2 | Concluido |
+| [RNF09](nao-funcional/RNF09/feature.md) | Contraste WCAG AA | 2 | Implementado |
 
 ## Plano de implementacao
 
@@ -124,9 +124,9 @@ houvesse mais gente:
 | Trilha | Requisitos | Toca |
 | --- | --- | --- |
 | A - Pipeline | RF03, RF04, RNF04, RNF05, RNF07, RNF08 | `apps/api`, `infra/sandbox` |
-| B - Edicao | RF02, RF05, RF09, RF10, RF18 | `apps/web/features/workspace` |
-| C - Ondas | RF06 | `apps/web/features/waveform` |
-| D - Projetos e contas | RF07, RF08, RF14, RNF06, RF15, RF17, RF19 | `apps/api/modules/projects`, `apps/web/features/projects` |
+| B - Edicao | RF02, RF05, RF09, RF10, RF18 | `apps/web/src/features/workspace` |
+| C - Ondas | RF06 | `apps/web/src/features/waveform` |
+| D - Projetos e contas | RF07, RF08, RF14, RNF06, RF15, RF17, RF19 | `apps/api/src/application/projects`, `apps/web/src/features/projects` |
 
 O que e **genuinamente serial** sao tres cadeias, e vale conhece-las porque sao
 elas que ditam o caminho critico do cronograma:
@@ -143,31 +143,31 @@ o que faz sentido entregar junto, nao o que precisa ser feito junto.
 
 ### Checklist por requisito
 
-- [ ] **RF03** Compilacao no servidor - fechar robustez do pipeline
-- [ ] **RF04** Simulacao a partir de testbench
-- [ ] **RF05** Erros contextualizados por linha
-- [ ] **RF02** Editor Verilog com destaque de sintaxe
-- [ ] **RF06** Visualizador de formas de onda
-- [ ] **RF07** CRUD de projetos
-- [ ] **RF08** Exportacao em `.zip`
-- [ ] **RF09** Interface unica integrada
-- [ ] **RF10** Modo claro e escuro
-- [ ] **RF20** Projetos de exemplo
-- [ ] **RF11** Documentacao estatica
+- [x] **RF03** Compilacao no servidor - fechar robustez do pipeline
+- [x] **RF04** Simulacao a partir de testbench
+- [x] **RF05** Erros contextualizados por linha
+- [x] **RF02** Editor Verilog com destaque de sintaxe
+- [x] **RF06** Visualizador de formas de onda
+- [x] **RF07** CRUD de projetos
+- [x] **RF08** Exportacao em `.zip` (client-side; endpoint de servidor adiado)
+- [x] **RF09** Interface unica integrada
+- [x] **RF10** Modo claro e escuro
+- [ ] **RF20** Projetos de exemplo (so o somador; falta o catalogo)
+- [x] **RF11** Documentacao estatica
 - [ ] **RF14** Autenticacao com Google
 - [ ] **RNF06** Autenticacao e autorizacao
 - [ ] **RF01** Acesso integral por navegador (publicacao)
-- [ ] **RNF09** Contraste WCAG AA
-- [ ] **RNF02** Compatibilidade entre navegadores
-- [ ] **RNF03** Responsividade a partir de 1024px
-- [ ] **RNF01** Interface simples para iniciantes
-- [ ] **RNF04** Execucao isolada em conteineres
-- [ ] **RNF05** Limites de tempo e memoria
-- [ ] **RNF07** Resposta em menos de 5 segundos
-- [ ] **RNF08** Arquitetura modular
+- [x] **RNF09** Contraste WCAG AA
+- [ ] **RNF02** Compatibilidade entre navegadores (alvo declarado; falta a matriz manual)
+- [ ] **RNF03** Responsividade a partir de 1024px (decisao: fora do escopo do MVP, ver `nao-funcional/RNF03/feature.md`)
+- [ ] **RNF01** Interface simples para iniciantes (base existe; falta revisao sistematica)
+- [x] **RNF04** Execucao isolada em conteineres
+- [x] **RNF05** Limites de tempo e memoria
+- [ ] **RNF07** Resposta em menos de 5 segundos (medido em dev; falta a VM alvo)
+- [x] **RNF08** Arquitetura modular
 - [ ] **RF15** Links publicos de compartilhamento
-- [ ] **RF16** Tutorial guiado
-- [ ] **RF17** Envio de feedback
+- [x] **RF16** Tutorial guiado
+- [x] **RF17** Envio de feedback
 - [ ] **RF12** Editor visual de circuitos
 - [ ] **RF13** Geracao de Verilog do circuito
 - [ ] **RF21** Sequenciais no editor visual
@@ -181,56 +181,56 @@ Formato: `ID` Titulo - `branch` (tamanho). **P** ~0,5 dia, **M** ~1 dia,
 
 #### Fase 1 - Robustez do pipeline (trilha A)
 
-- [ ] **RF03-I01** Limites e validacao de submissao - `feat/rf03-limites-de-submissao` (P)
-- [ ] **RF03-I02** Rate limit dedicado e tratamento de fila saturada - `feat/rf03-rate-limit-e-fila-cheia` (M)
-- [ ] **RF03-I03** Retencao e expiracao dos resultados de job - `feat/rf03-retencao-resultados-job` (P)
-- [ ] **RF03-I04** Logs estruturados e metricas do worker - `feat/rf03-observabilidade-worker` (M)
-- [ ] **RF04-I01** Contrato de testbench e coerencia do modulo de topo - `feat/rf04-contrato-testbench` (M)
-- [ ] **RF04-I02** Limites e truncamento da saida da simulacao - `feat/rf04-limites-saida-simulacao` (P)
-- [ ] **RF05-I01** Ampliar a cobertura do parser de diagnosticos - `feat/rf05-cobertura-parser-diagnosticos` (M)
+- [x] **RF03-I01** Limites e validacao de submissao - `feat/rf03-limites-de-submissao` (P)
+- [x] **RF03-I02** Rate limit dedicado e tratamento de fila saturada - `feat/rf03-rate-limit-e-fila-cheia` (M)
+- [x] **RF03-I03** Retencao e expiracao dos resultados de job - `feat/rf03-retencao-resultados-job` (P)
+- [x] **RF03-I04** Logs estruturados e metricas do worker - `feat/rf03-observabilidade-worker` (M)
+- [x] **RF04-I01** Contrato de testbench e coerencia do modulo de topo - `feat/rf04-contrato-testbench` (M)
+- [x] **RF04-I02** Limites e truncamento da saida da simulacao - `feat/rf04-limites-saida-simulacao` (P)
+- [x] **RF05-I01** Ampliar a cobertura do parser de diagnosticos - `feat/rf05-cobertura-parser-diagnosticos` (M)
 
 > RF03-I03 e RF04-I02 decidem os mesmos tetos de tamanho - fazer as duas com os
 > numeros na mesma mesa.
 
 #### Fase 2 - Editor e diagnosticos (trilha B)
 
-- [ ] **RF02-I01** Validar e ajustar a definicao de linguagem Verilog no Monaco - `feat/rf02-linguagem-verilog-monaco` (M)
-- [ ] **RF02-I02** Tema sincronizado e opcoes de ergonomia do editor - `feat/rf02-tema-e-ergonomia-editor` (P)
-- [ ] **RF02-I03** Abas de arquivo com preservacao de estado por arquivo - `feat/rf02-abas-design-testbench` (M)
-- [ ] **RF05-I02** Navegacao do console ate a linha no editor - `feat/rf05-navegacao-console-editor` (M)
-- [ ] **RF05-I03** Explicacoes em portugues para erros frequentes - `feat/rf05-mensagens-amigaveis` (M)
-- [ ] **RF04-I03** Estados de execucao e cancelamento no frontend - `feat/rf04-estados-execucao-frontend` (M)
+- [x] **RF02-I01** Validar e ajustar a definicao de linguagem Verilog no Monaco - `feat/rf02-linguagem-verilog-monaco` (M)
+- [x] **RF02-I02** Tema sincronizado e opcoes de ergonomia do editor - `feat/rf02-tema-e-ergonomia-editor` (P)
+- [x] **RF02-I03** Abas de arquivo com preservacao de estado por arquivo - `feat/rf02-abas-design-testbench` (M)
+- [x] **RF05-I02** Navegacao do console ate a linha no editor - `feat/rf05-navegacao-console-editor` (M)
+- [x] **RF05-I03** Explicacoes em portugues para erros frequentes - `feat/rf05-mensagens-amigaveis` (M)
+- [x] **RF04-I03** Estados de execucao e cancelamento no frontend - `feat/rf04-estados-execucao-frontend` (M)
 
 #### Fase 3 - Visualizador de formas de onda (trilha C)
 
-- [ ] **RF06-I01** Parser de VCD e modelo de sinais - `feat/rf06-parser-vcd` (M)
-- [ ] **RF06-I02** Renderizacao das formas de onda em canvas - `feat/rf06-renderizacao-canvas` (G)
-- [ ] **RF06-I03** Zoom, deslocamento, selecao de sinais e cursor de tempo - `feat/rf06-interacao-zoom-cursor` (G)
-- [ ] **RF06-I04** Desempenho com arquivos grandes e acessibilidade - `feat/rf06-desempenho-acessibilidade` (M)
+- [x] **RF06-I01** Parser de VCD e modelo de sinais - `feat/rf06-parser-vcd` (M)
+- [x] **RF06-I02** Renderizacao das formas de onda em canvas - `feat/rf06-renderizacao-canvas` (G)
+- [x] **RF06-I03** Zoom, deslocamento, selecao de sinais e cursor de tempo - `feat/rf06-interacao-zoom-cursor` (G)
+- [x] **RF06-I04** Desempenho com arquivos grandes e acessibilidade - `feat/rf06-desempenho-acessibilidade` (M)
 
 > Trilha independente das fases 1 e 2: so precisa que o `.vcd` chegue, o que ja
 > acontece hoje.
 
 #### Fase 4 - Projetos e exportacao (trilha D)
 
-- [ ] **RF07-I01** Persistencia com Prisma e PostgreSQL - `feat/rf07-persistencia-prisma-postgres` (G)
-- [ ] **RF07-I02** Interface de gerenciamento de projetos - `feat/rf07-interface-gerenciamento-projetos` (G)
-- [ ] **RF07-I03** Vinculo do workspace com o projeto aberto - `feat/rf07-vinculo-workspace-projeto` (M)
-- [ ] **RF08-I01** Endpoint de exportacao em `.zip` - `feat/rf08-endpoint-exportacao-zip` (M)
-- [ ] **RF08-I02** Acao de exportar na interface - `feat/rf08-acao-exportar-interface` (P)
+- [x] **RF07-I01** Persistencia com Prisma e PostgreSQL - `feat/rf07-persistencia-prisma-postgres` (G)
+- [x] **RF07-I02** Interface de gerenciamento de projetos - `feat/rf07-interface-gerenciamento-projetos` (G)
+- [x] **RF07-I03** Vinculo do workspace com o projeto aberto - `feat/rf07-vinculo-workspace-projeto` (M)
+- [ ] **RF08-I01** Endpoint de exportacao em `.zip` - `feat/rf08-endpoint-exportacao-zip` (M) — adiado, ver `funcional/RF08/feature.md`
+- [x] **RF08-I02** Acao de exportar na interface - `feat/rf08-acao-exportar-interface` (P)
 
 #### Fase 5 - Integracao, tema e conteudo
 
-- [ ] **RF09-I01** Persistencia e restauracao do layout dos paineis - `feat/rf09-persistencia-layout-paineis` (P)
-- [ ] **RF09-I02** Atalhos de teclado do fluxo principal - `feat/rf09-atalhos-teclado-fluxo` (M)
-- [ ] **RF09-I03** Semantica das abas, divisores e barra de estado - `feat/rf09-semantica-e-barra-de-estado` (M)
-- [ ] **RF10-I01** Seletor de tema com os tres modos - `feat/rf10-seletor-tres-modos` (P)
-- [ ] **RF10-I02** Aplicar o tema antes da primeira pintura - `feat/rf10-anti-flash-carregamento` (P)
+- [x] **RF09-I01** Persistencia e restauracao do layout dos paineis - `feat/rf09-persistencia-layout-paineis` (P)
+- [x] **RF09-I02** Atalhos de teclado do fluxo principal - `feat/rf09-atalhos-teclado-fluxo` (M)
+- [x] **RF09-I03** Semantica das abas, divisores e barra de estado - `feat/rf09-semantica-e-barra-de-estado` (M)
+- [x] **RF10-I01** Seletor de tema com os tres modos - `feat/rf10-seletor-tres-modos` (P)
+- [x] **RF10-I02** Aplicar o tema antes da primeira pintura - `feat/rf10-anti-flash-carregamento` (P)
 - [ ] **RF20-I01** Catalogo de exemplos e verificacao automatizada - `feat/rf20-catalogo-de-exemplos` (M)
 - [ ] **RF20-I02** Seletor de exemplos na interface - `feat/rf20-seletor-de-exemplos` (P)
-- [ ] **RF11-I01** Navegacao e layout da documentacao - `feat/rf11-navegacao-e-layout-docs` (M)
-- [ ] **RF11-I02** Conteudo do guia de inicio rapido - `feat/rf11-guia-inicio-rapido` (M)
-- [ ] **RF11-I03** Conteudo da referencia de sintaxe Verilog - `feat/rf11-referencia-sintaxe-verilog` (M)
+- [x] **RF11-I01** Navegacao e layout da documentacao - `feat/rf11-navegacao-e-layout-docs` (M)
+- [x] **RF11-I02** Conteudo do guia de inicio rapido - `feat/rf11-guia-inicio-rapido` (M)
+- [x] **RF11-I03** Conteudo da referencia de sintaxe Verilog - `feat/rf11-referencia-sintaxe-verilog` (M)
 
 > RF11-I01 decide se o SPA ganha roteador. A escolha vale tambem para RF07-I02 e
 > RF15-I02 - se ja tiver sido tomada na fase 4, seguir a mesma.
@@ -242,7 +242,7 @@ Formato: `ID` Titulo - `branch` (tamanho). **P** ~0,5 dia, **M** ~1 dia,
 - [ ] **RF14-I03** Interface de login e convivencia com o modo anonimo - `feat/rf14-interface-login-modo-anonimo` (M)
 - [ ] **RNF06-I01** Autorizacao nas rotas de projeto - `feat/rnf06-autorizacao-rotas-projeto` (M)
 - [ ] **RNF06-I02** Testes de acesso negado e revisao da superficie - `chore/rnf06-testes-de-acesso-negado` (M)
-- [ ] **RF01-I01** Build de producao do frontend e configuracao por ambiente - `feat/rf01-build-producao-frontend` (P)
+- [x] **RF01-I01** Build de producao do frontend e configuracao por ambiente - `feat/rf01-build-producao-frontend` (P)
 - [ ] **RF01-I02** Deploy da API, worker e infraestrutura na VM com HTTPS - `feat/rf01-deploy-api-worker-vm` (G)
 - [ ] **RF01-I03** Verificacao de acesso em maquina limpa e documentacao - `chore/rf01-verificacao-acesso-limpo` (P)
 
@@ -251,12 +251,12 @@ Formato: `ID` Titulo - `branch` (tamanho). **P** ~0,5 dia, **M** ~1 dia,
 
 #### Fase 7 - Verificacao da interface
 
-- [ ] **RNF09-I01** Auditoria de contraste dos tokens de tema - `chore/rnf09-auditoria-tokens-de-tema` (M)
-- [ ] **RNF09-I02** Contraste do editor e do visualizador de ondas - `chore/rnf09-contraste-editor-e-ondas` (M)
-- [ ] **RNF02-I01** Declaracao do alvo de build e navegadores suportados - `chore/rnf02-alvo-de-build-e-suporte` (P)
+- [x] **RNF09-I01** Auditoria de contraste dos tokens de tema - `chore/rnf09-auditoria-tokens-de-tema` (M)
+- [x] **RNF09-I02** Contraste do editor e do visualizador de ondas - `chore/rnf09-contraste-editor-e-ondas` (M)
+- [x] **RNF02-I01** Declaracao do alvo de build e navegadores suportados - `chore/rnf02-alvo-de-build-e-suporte` (P)
 - [ ] **RNF02-I02** Matriz de verificacao entre navegadores - `chore/rnf02-matriz-verificacao-navegadores` (M)
-- [ ] **RNF03-I01** Verificacao e ajuste nas larguras alvo - `chore/rnf03-verificacao-larguras-alvo` (M)
-- [ ] **RNF03-I02** Comportamento abaixo da largura minima - `feat/rnf03-comportamento-abaixo-do-minimo` (M)
+- [ ] **RNF03-I01** Verificacao e ajuste nas larguras alvo - `chore/rnf03-verificacao-larguras-alvo` (M) — nao planejada (decisao 2026-10-03: fora do escopo do MVP)
+- [ ] **RNF03-I02** Comportamento abaixo da largura minima - `feat/rnf03-comportamento-abaixo-do-minimo` (M) — nao planejada (idem)
 - [ ] **RNF01-I01** Glossario e revisao dos textos de interface - `chore/rnf01-vocabulario-e-textos` (M)
 - [ ] **RNF01-I02** Estados vazios e verificacao com usuarios - `chore/rnf01-estados-vazios-e-teste-usuario` (M)
 
@@ -265,12 +265,12 @@ Formato: `ID` Titulo - `branch` (tamanho). **P** ~0,5 dia, **M** ~1 dia,
 
 #### Fase 8 - Seguranca e desempenho (evidencia do TCC)
 
-- [ ] **RNF04-I01** Auditoria das barreiras do sandbox - `chore/rnf04-auditoria-do-sandbox` (M)
-- [ ] **RNF04-I02** Reducao da exposicao do socket do Docker - `feat/rnf04-exposicao-docker-socket` (G)
-- [ ] **RNF04-I03** Vetores especificos da toolchain Verilog - `chore/rnf04-vetores-toolchain` (M)
-- [ ] **RNF05-I01** Verificacao dos limites e fidelidade do desfecho - `chore/rnf05-verificacao-dos-limites` (M)
-- [ ] **RNF05-I02** Dimensionamento dos valores com medicao - `chore/rnf05-dimensionamento-dos-valores` (M)
-- [ ] **RNF07-I01** Medicao ponta a ponta e orcamento de latencia - `chore/rnf07-medicao-ponta-a-ponta` (M)
+- [x] **RNF04-I01** Auditoria das barreiras do sandbox - `chore/rnf04-auditoria-do-sandbox` (M)
+- [x] **RNF04-I02** Reducao da exposicao do socket do Docker - `feat/rnf04-exposicao-docker-socket` (G)
+- [x] **RNF04-I03** Vetores especificos da toolchain Verilog - `chore/rnf04-vetores-toolchain` (M)
+- [x] **RNF05-I01** Verificacao dos limites e fidelidade do desfecho - `chore/rnf05-verificacao-dos-limites` (M)
+- [x] **RNF05-I02** Dimensionamento dos valores com medicao - `chore/rnf05-dimensionamento-dos-valores` (M)
+- [x] **RNF07-I01** Medicao ponta a ponta e orcamento de latencia - `chore/rnf07-medicao-ponta-a-ponta` (M)
 - [ ] **RNF07-I02** Reducao das etapas fora do orcamento - `feat/rnf07-reducao-de-latencia` (M)
 
 > Trilha independente da interface: pode avancar em paralelo com as fases 5 e 7.
@@ -278,17 +278,17 @@ Formato: `ID` Titulo - `branch` (tamanho). **P** ~0,5 dia, **M** ~1 dia,
 
 #### Fase 9 - Modularidade
 
-- [ ] **RNF08-I01** Generalizacao do job por tipo de toolchain - `feat/rnf08-generalizacao-do-job` (G)
-- [ ] **RNF08-I02** Prova de conceito com uma segunda toolchain - `feat/rnf08-prova-de-conceito-ghdl` (M)
+- [x] **RNF08-I01** Generalizacao do job por tipo de toolchain - `feat/rnf08-generalizacao-do-job` (G)
+- [x] **RNF08-I02** Prova de conceito com uma segunda toolchain - `feat/rnf08-prova-de-conceito-ghdl` (M)
 
 #### Fase 10 - Should Have restantes
 
 - [ ] **RF15-I01** Token de compartilhamento e rota publica - `feat/rf15-token-e-rota-publica` (M)
 - [ ] **RF15-I02** Interface de compartilhar e pagina do projeto compartilhado - `feat/rf15-interface-compartilhar-e-visualizar` (M)
-- [ ] **RF16-I01** Tour guiado, roteiro e ancoras - `feat/rf16-tour-e-ancoras` (M)
-- [ ] **RF16-I02** Controle de primeiro acesso e reabertura - `feat/rf16-primeiro-acesso-e-reabertura` (P)
-- [ ] **RF17-I01** Endpoint, validacao e armazenamento do feedback - `feat/rf17-endpoint-e-armazenamento` (M)
-- [ ] **RF17-I02** Formulario de feedback na interface - `feat/rf17-formulario-na-interface` (P)
+- [x] **RF16-I01** Tour guiado, roteiro e ancoras - `feat/rf16-tour-e-ancoras` (M)
+- [x] **RF16-I02** Controle de primeiro acesso e reabertura - `feat/rf16-primeiro-acesso-e-reabertura` (P)
+- [x] **RF17-I01** Endpoint, validacao e armazenamento do feedback - `feat/rf17-endpoint-e-armazenamento` (M)
+- [x] **RF17-I02** Formulario de feedback na interface - `feat/rf17-formulario-na-interface` (P)
 
 #### Fase 11 - Editor visual (so com prazo folgado)
 

@@ -421,6 +421,17 @@ docker info --format '{{.SwapLimit}}'           # deve ser true (ver docs/SEGURA
 Se o p95 do caso pesado passar de ~3 s na VM, revisar `SANDBOX_TIMEOUT_MS` e a folga de
 3× (a regra é a mesma, o número muda).
 
+## Licença
+
+O TPLab é livre para usar, modificar e distribuir, inclusive para implementar novas
+funcionalidades, com uma condição: **o autor original precisa ser citado**, tanto no código
+(fork, derivado ou trecho incorporado) quanto no uso (serviço publicado, aula, pesquisa,
+trabalho acadêmico ou produto). Texto completo em [`LICENSE`](LICENSE) — é a licença MIT com
+cláusulas de atribuição obrigatória.
+
+Crédito sugerido: _Baseado no TPLab, de Arthur Santos
+(<https://github.com/Tupacao/tcc-hdl-platform>)_.
+
 ## Estado atual
 
 Ja implementado:
